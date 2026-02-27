@@ -1,0 +1,111 @@
+# graph-ontology.yaml
+# OWL 스타일 단일 진실 소스 (Single Source of Truth)
+# 이 파일 하나로 graph-config.yaml + rollup-config.yaml을 자동 도출한다.
+#
+# 사용:
+#   python3 skills/md-frontmatter-rollup/scripts/rollup_engine.py --ontology graph-ontology.yaml
+#   python3 skills/md-graph-multihop/scripts/graph_builder.py --config graph-config.yaml
+#
+# 단계:
+#   1. 이 파일을 graph-ontology.yaml로 복사하고 프로젝트에 맞게 수정
+#   2. rollup_engine.py --ontology graph-ontology.yaml 실행
+#      → entity_dirs + scalar_node_attrs를 도출해 그래프 구축
+#   3. graph-config.yaml이 필요하면 scaffold_project.py로 별도 생성 가능
+
+# ── 네임스페이스 (선택 — 문서화 목적) ────────────────────────────
+namespace: "http://example.org/knowledge-graph#"
+
+# ── 클래스 (Entity 타입) ──────────────────────────────────────────
+# entity_dir: graph_builder가 md 파일을 읽을 디렉토리 (base_dir 기준 상대경로)
+classes:
+  Industry:
+    label: 산업
+    entity_dir: data/industry-entities
+    description: 산업/시장 분류 노드
+
+  Segment:
+    label: 세그먼트
+    entity_dir: data/segment-entities
+    description: 산업 하위 세그먼트
+
+  Competitor:
+    label: 경쟁사
+    entity_dir: data/competitor-entities
+    description: 경쟁사 엔티티
+
+  Insight:
+    label: 인사이트
+    entity_dir: insights
+    description: Claude 멀티홉 추론 결과 저장 노드
+
+# ── Object Properties (엣지 / 관계) ───────────────────────────────
+# relation_name: 그래프 엣지에 기록되는 relation 식별자
+# domain / range: 관계의 주체 / 대상 클래스
+# rollup: 이 relation을 따라 집계할 규칙 목록
+object_properties:
+  hasSegment:
+    label: 세그먼트 포함
+    domain: Industry
+    range: Segment
+    relation_name: has_segment
+    rollup:
+      - field: market_size
+        func: sum
+        write_to: market_size
+        updated_at_field: market_size_updated_at
+      - field: callbot_adoption_rate
+        func: weighted_avg
+        weight_field: market_size
+        write_to: callbot_adoption_rate
+
+  targetsIndustry:
+    label: 목표 산업
+    domain: Competitor
+    range: Industry
+    relation_name: targets_industry
+    # rollup 없음 — 조회/추론용 관계
+
+  relatedTo:
+    label: 관련
+    domain: Insight
+    range: Insight
+    relation_name: related_to
+
+# ── Datatype Properties (노드 스칼라 속성) ───────────────────────
+# 여기 선언된 필드는 scalar_node_attrs에 자동 포함됨
+datatype_properties:
+  name:
+    label: 이름
+    domain: [Industry, Segment, Competitor, Insight]
+    range: xsd:string
+
+  marketSize:
+    label: 시장 규모 (억원)
+    domain: [Industry, Segment]
+    range: xsd:float
+
+  callbotAdoptionRate:
+    label: 콜봇 도입률 (%)
+    domain: [Industry, Segment]
+    range: xsd:float
+
+  threatLevel:
+    label: 위협 수준 (1~5)
+    domain: Competitor
+    range: xsd:integer
+
+  status:
+    label: 상태
+    domain: [Industry, Competitor, Insight]
+    range: xsd:string
+
+  tags:
+    label: 태그
+    domain: [Insight]
+    range: xsd:string
+
+# ── 추가 scalar_node_attrs (datatype_properties 외 필드) ─────────
+scalar_node_attrs:
+  - title
+  - date
+  - author
