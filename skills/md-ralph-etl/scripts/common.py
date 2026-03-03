@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 
@@ -54,6 +55,8 @@ STEP_ORDER: List[StepName] = [
     StepName.E_PLACE,
     StepName.F_SEAL,
 ]
+
+RUNS_ARCHIVE_DIR = Path("archive") / "history" / "ralph-runs"
 
 
 # ---------------------------------------------------------------------------
