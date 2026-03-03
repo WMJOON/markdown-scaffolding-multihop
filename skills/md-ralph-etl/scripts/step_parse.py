@@ -12,6 +12,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from ralph.common import (
     EntityCandidate,
+    ONTOLOGY_ENTITIES_DIR,
     RelationCandidate,
     RunConfig,
     RunState,
@@ -53,12 +54,14 @@ def load_ontology_node_types(root: Path) -> Dict[str, str]:
     return types
 
 
-def load_existing_entities(root: Path) -> Dict[str, Dict]:
+def load_existing_entities(root: Path, include_summary: bool = False) -> Dict[str, Dict]:
     """Load all existing entity IDs, labels, and aliases.
 
     Returns {entity_id: {label_en, label_ko, aliases, entity_type, relpath}}.
+    When include_summary=True, also includes a 'summary' key with the first
+    non-empty non-heading body paragraph.
     """
-    entities_dir = root / "data" / "ontology-entities"
+    entities_dir = root / ONTOLOGY_ENTITIES_DIR
     if not entities_dir.exists():
         return {}
 
@@ -68,40 +71,57 @@ def load_existing_entities(root: Path) -> Dict[str, Dict]:
         if not text.startswith("---"):
             continue
 
-        # quick frontmatter extraction
         parts = text.split("---", 2)
         if len(parts) < 3:
             continue
         fm = parts[1]
+        body = parts[2]
 
         eid = ""
         etype = ""
         label_en = ""
         label_ko = ""
         aliases: List[str] = []
+        in_aliases = False
 
         for line in fm.splitlines():
-            line = line.strip()
-            if line.startswith("entity_id:"):
-                eid = line.split(":", 1)[1].strip().strip('"').strip("'")
-            elif line.startswith("entity_type:"):
-                etype = line.split(":", 1)[1].strip().strip('"').strip("'")
-            elif line.startswith("label_en:"):
-                label_en = line.split(":", 1)[1].strip().strip('"').strip("'")
-            elif line.startswith("label_ko:"):
-                label_ko = line.split(":", 1)[1].strip().strip('"').strip("'")
-            elif line.startswith("- ") and aliases is not None:
-                # crude alias extraction (only within aliases block)
-                pass
+            line_s = line.strip()
+            if line_s.startswith("entity_id:"):
+                eid = line_s.split(":", 1)[1].strip().strip('"').strip("'")
+                in_aliases = False
+            elif line_s.startswith("entity_type:"):
+                etype = line_s.split(":", 1)[1].strip().strip('"').strip("'")
+                in_aliases = False
+            elif line_s.startswith("label_en:"):
+                label_en = line_s.split(":", 1)[1].strip().strip('"').strip("'")
+                in_aliases = False
+            elif line_s.startswith("label_ko:"):
+                label_ko = line_s.split(":", 1)[1].strip().strip('"').strip("'")
+                in_aliases = False
+            elif line_s.startswith("aliases:"):
+                in_aliases = True
+            elif in_aliases and line_s.startswith("- "):
+                aliases.append(line_s[2:].strip().strip('"').strip("'"))
+            elif not line_s.startswith("- ") and ":" in line_s:
+                in_aliases = False
 
         if eid:
-            entities[eid] = {
+            entry: Dict = {
                 "label_en": label_en,
                 "label_ko": label_ko,
                 "aliases": aliases,
                 "entity_type": etype,
                 "relpath": str(md_file.relative_to(root)),
             }
+            if include_summary:
+                summary = ""
+                for bline in body.strip().splitlines():
+                    bline_s = bline.strip()
+                    if bline_s and not bline_s.startswith("#"):
+                        summary = bline_s
+                        break
+                entry["summary"] = summary
+            entities[eid] = entry
     return entities
 
 
