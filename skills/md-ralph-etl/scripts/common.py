@@ -57,6 +57,7 @@ STEP_ORDER: List[StepName] = [
 ]
 
 RUNS_ARCHIVE_DIR = Path("archive") / "history" / "ralph-runs"
+ONTOLOGY_ENTITIES_DIR = Path("data") / "ontology-entities"
 
 
 # ---------------------------------------------------------------------------
