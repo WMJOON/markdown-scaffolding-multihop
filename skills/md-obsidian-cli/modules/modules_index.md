@@ -1,6 +1,14 @@
-# md-obsidian-cli — Modules
+# modules index — md-obsidian-cli
+
+## 모듈 목록
 
 | 모듈 | 역할 |
 |------|------|
-| `module.uri-actions.md` | 각 URI 액션(open·new·search·daily·choose-vault)의 파라미터·예시·제약 |
-| `module.shell-integration.md` | 쉘·Python에서 URI를 호출하는 통합 패턴 (배치, 파이프, 조건부 실행) |
+| `module.commands.md` | 전체 CLI 명령 카테고리별 레퍼런스 (파라미터·플래그·예시) |
+| `module.shell-integration.md` | 쉘 자동화·배치 처리·파이프라인 패턴 |
+
+## 참조 파일
+
+| 파일 | 역할 |
+|------|------|
+| `references/cli-reference.md` | 전체 명령 빠른 참조표 (출처: help.obsidian.md/cli) |

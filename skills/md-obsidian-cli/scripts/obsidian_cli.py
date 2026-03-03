@@ -1,234 +1,188 @@
 #!/usr/bin/env python3
 """
-obsidian_cli.py — obsidian:// URI 빌더 + 플랫폼별 실행기
+obsidian_cli.py — Obsidian CLI Python 래퍼
+
+실행 중인 Obsidian 앱의 CLI(`obsidian` 바이너리)를 Python에서 호출하는 유틸리티.
+복잡한 배치 자동화·출력 파싱에 사용한다.
+
+전제 조건:
+  - Obsidian 1.12+ 설치 및 실행 중
+  - Settings → General → Command line interface 활성화
+  - `obsidian` 바이너리가 PATH에 등록됨
 
 사용법:
-  python3 obsidian_cli.py [--dry-run] <action> [options]
-  python3 obsidian_cli.py --dry-run open --vault "my vault" --file "note"
-  python3 obsidian_cli.py new --vault "my vault" --name "새 노트" --content "내용"
-  python3 obsidian_cli.py search --vault "my vault" --query "keyword"
-  python3 obsidian_cli.py daily --vault "my vault"
-  python3 obsidian_cli.py exec "obsidian://open?vault=my%20vault"
+  python3 obsidian_cli.py <subcommand> [options]
 
-임포트해서 사용할 수도 있음:
-  from obsidian_cli import build_uri, run_uri
+서브커맨드:
+  run <command> [param=value ...] [flag ...]  — 단일 명령 실행
+  batch-create --names NAME [NAME ...] [--vault VAULT] [--template TMPL]
+  search-json --query QUERY [--vault VAULT] [--folder FOLDER]
+  tasks-json [--daily] [--todo] [--done] [--file FILE] [--vault VAULT]
 """
 
 import argparse
-import os
-import platform
+import json
 import subprocess
 import sys
-import unicodedata
-from urllib.parse import quote
+from typing import Optional
 
 
-# ── 인코딩 유틸 ──────────────────────────────────────────────
+# ── 핵심 실행기 ──────────────────────────────────────────────────────────────
 
-def nfc(s: str) -> str:
-    """macOS HFS+ NFC 정규화 (한글 경로 대응)"""
-    return unicodedata.normalize("NFC", s)
+def run_obsidian(args: list[str], vault: Optional[str] = None) -> str:
+    """
+    `obsidian` CLI를 실행하고 stdout을 반환한다.
+
+    Args:
+        args: CLI 인자 목록 (예: ["read", "file=Note"])
+        vault: vault 이름/ID (None이면 기본 vault 사용)
+
+    Returns:
+        stdout 문자열 (strip 처리)
+
+    Raises:
+        RuntimeError: CLI 실행 실패 시
+    """
+    cmd = ["obsidian"]
+    if vault:
+        cmd.append(f"vault={vault}")
+    cmd.extend(args)
+
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"obsidian 명령 실패 (exit {result.returncode})\n"
+            f"명령: {' '.join(cmd)}\n"
+            f"stderr: {result.stderr.strip()}"
+        )
+    return result.stdout.strip()
 
 
-def enc(value: str) -> str:
-    """URI 퍼센트 인코딩. NFC 정규화 후 인코딩."""
-    return quote(nfc(value), safe="")
+def run_obsidian_json(args: list[str], vault: Optional[str] = None) -> list | dict:
+    """JSON 출력을 파싱해 반환한다."""
+    # format=json이 없으면 추가
+    if not any(a.startswith("format=") for a in args):
+        args = args + ["format=json"]
+    raw = run_obsidian(args, vault=vault)
+    return json.loads(raw)
 
 
-# ── URI 빌더 ─────────────────────────────────────────────────
+# ── 서브커맨드 구현 ──────────────────────────────────────────────────────────
 
-def _params(**kwargs) -> str:
-    """kwargs → URI 쿼리 문자열 (None 값 제외)"""
-    parts = []
-    for k, v in kwargs.items():
-        if v is None:
-            continue
-        if isinstance(v, bool):
-            parts.append(f"{k}={str(v).lower()}")
+def cmd_run(argv: list[str]) -> None:
+    """단일 obsidian 명령 실행 후 출력 표시."""
+    parser = argparse.ArgumentParser(prog="obsidian_cli run")
+    parser.add_argument("command", help="obsidian 명령 (예: read, daily:append)")
+    parser.add_argument("params", nargs="*", help="파라미터/플래그 (예: file=Note open)")
+    parser.add_argument("--vault", help="대상 vault 이름")
+    args = parser.parse_args(argv)
+
+    output = run_obsidian([args.command] + args.params, vault=args.vault)
+    print(output)
+
+
+def cmd_batch_create(argv: list[str]) -> None:
+    """여러 노트를 일괄 생성한다."""
+    parser = argparse.ArgumentParser(prog="obsidian_cli batch-create")
+    parser.add_argument("--names", nargs="+", required=True, help="노트 이름 목록")
+    parser.add_argument("--vault", help="대상 vault 이름")
+    parser.add_argument("--template", help="사용할 템플릿 이름")
+    parser.add_argument("--folder", help="생성할 폴더 경로 (path= 접두어로 사용)")
+    parser.add_argument("--content", help="초기 내용")
+    args = parser.parse_args(argv)
+
+    results = []
+    for name in args.names:
+        cli_args = ["create"]
+        if args.folder:
+            cli_args.append(f"path={args.folder}/{name}.md")
         else:
-            parts.append(f"{k}={enc(str(v))}")
-    return "&".join(parts)
+            cli_args.append(f"name={name}")
+        if args.template:
+            cli_args.append(f"template={args.template}")
+        if args.content:
+            cli_args.append(f'content={args.content}')
+
+        try:
+            run_obsidian(cli_args, vault=args.vault)
+            results.append({"name": name, "status": "created"})
+            print(f"✓ {name}")
+        except RuntimeError as e:
+            results.append({"name": name, "status": "error", "error": str(e)})
+            print(f"✗ {name}: {e}", file=sys.stderr)
+
+    success = sum(1 for r in results if r["status"] == "created")
+    print(f"\n완료: {success}/{len(args.names)}개 생성")
 
 
-def build_uri(action: str, **kwargs) -> str:
-    """obsidian:// URI를 빌드해 반환한다."""
-    query = _params(**kwargs)
-    if query:
-        return f"obsidian://{action}?{query}"
-    return f"obsidian://{action}"
+def cmd_search_json(argv: list[str]) -> None:
+    """검색 결과를 JSON으로 출력한다."""
+    parser = argparse.ArgumentParser(prog="obsidian_cli search-json")
+    parser.add_argument("--query", required=True, help="검색 쿼리")
+    parser.add_argument("--vault", help="대상 vault")
+    parser.add_argument("--folder", help="검색 범위 폴더")
+    parser.add_argument("--limit", type=int, help="최대 결과 수")
+    parser.add_argument("--context", action="store_true", help="컨텍스트 포함 (search:context)")
+    args = parser.parse_args(argv)
+
+    command = "search:context" if args.context else "search"
+    cli_args = [command, f"query={args.query}"]
+    if args.folder:
+        cli_args.append(f"path={args.folder}")
+    if args.limit:
+        cli_args.append(f"limit={args.limit}")
+
+    results = run_obsidian_json(cli_args, vault=args.vault)
+    print(json.dumps(results, ensure_ascii=False, indent=2))
 
 
-# ── 실행기 ───────────────────────────────────────────────────
+def cmd_tasks_json(argv: list[str]) -> None:
+    """태스크 목록을 JSON으로 출력한다."""
+    parser = argparse.ArgumentParser(prog="obsidian_cli tasks-json")
+    parser.add_argument("--vault", help="대상 vault")
+    parser.add_argument("--file", help="파일 이름으로 필터")
+    parser.add_argument("--daily", action="store_true", help="일간 노트 태스크만")
+    parser.add_argument("--todo", action="store_true", help="미완료 태스크만")
+    parser.add_argument("--done", action="store_true", help="완료 태스크만")
+    args = parser.parse_args(argv)
 
-def _open_command() -> list[str]:
-    """플랫폼별 URI 실행 명령 반환"""
-    system = platform.system()
-    if system == "Darwin":
-        return ["open"]
-    elif system == "Linux":
-        return ["xdg-open"]
-    elif system == "Windows":
-        return ["cmd", "/c", "start", ""]
-    else:
-        raise RuntimeError(f"지원하지 않는 플랫폼: {system}")
+    cli_args = ["tasks"]
+    if args.file:
+        cli_args.append(f"file={args.file}")
+    if args.daily:
+        cli_args.append("daily")
+    if args.todo:
+        cli_args.append("todo")
+    if args.done:
+        cli_args.append("done")
 
-
-def run_uri(action: str, dry_run: bool = False, **kwargs) -> str:
-    """URI를 빌드하고 실행한다. dry_run=True면 출력만."""
-    uri = build_uri(action, **kwargs)
-    print(f"→ {uri}")
-    if not dry_run:
-        cmd = _open_command() + [uri]
-        subprocess.run(cmd, check=True)
-    return uri
-
-
-def exec_uri(uri: str, dry_run: bool = False) -> None:
-    """미리 완성된 URI를 직접 실행한다."""
-    print(f"→ {uri}")
-    if not dry_run:
-        cmd = _open_command() + [uri]
-        subprocess.run(cmd, check=True)
+    results = run_obsidian_json(cli_args, vault=args.vault)
+    print(json.dumps(results, ensure_ascii=False, indent=2))
 
 
-# ── 액션 핸들러 ──────────────────────────────────────────────
+# ── main ─────────────────────────────────────────────────────────────────────
 
-def handle_open(args) -> None:
-    run_uri(
-        "open",
-        dry_run=args.dry_run,
-        vault=args.vault,
-        file=args.file,
-        path=args.path,
-        paneType=args.pane,
-    )
-
-
-def handle_new(args) -> None:
-    if args.append and args.overwrite:
-        print("오류: --append와 --overwrite는 동시에 사용할 수 없습니다.", file=sys.stderr)
-        sys.exit(1)
-    if args.content and args.clipboard:
-        print("오류: --content와 --clipboard는 동시에 사용할 수 없습니다.", file=sys.stderr)
-        sys.exit(1)
-
-    run_uri(
-        "new",
-        dry_run=args.dry_run,
-        vault=args.vault,
-        name=args.name,
-        file=args.file,
-        path=args.path,
-        content=args.content,
-        clipboard=True if args.clipboard else None,
-        silent=True if args.silent else None,
-        append=True if args.append else None,
-        overwrite=True if args.overwrite else None,
-    )
-
-
-def handle_search(args) -> None:
-    run_uri(
-        "search",
-        dry_run=args.dry_run,
-        vault=args.vault,
-        query=args.query,
-    )
-
-
-def handle_daily(args) -> None:
-    run_uri(
-        "daily",
-        dry_run=args.dry_run,
-        vault=args.vault,
-    )
-
-
-def handle_exec(args) -> None:
-    exec_uri(args.uri, dry_run=args.dry_run)
-
-
-# ── CLI 정의 ─────────────────────────────────────────────────
-
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        prog="obsidian_cli",
-        description="obsidian:// URI 빌더 — Obsidian vault를 CLI에서 조작",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-예시:
-  %(prog)s open --vault "my vault" --file "Projects/Note"
-  %(prog)s --dry-run new --vault "my vault" --name "Quick Note" --content "내용"
-  %(prog)s search --vault "my vault" --query "GraphRAG"
-  %(prog)s daily --vault "my vault"
-  %(prog)s exec "obsidian://open?vault=my%%20vault&file=Dashboard"
-        """,
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="URI만 출력하고 Obsidian을 실행하지 않음",
-    )
-
-    sub = parser.add_subparsers(dest="action", required=True, metavar="action")
-
-    # ── open ──────────────────────────────────────────────────
-    p_open = sub.add_parser("open", help="노트 또는 볼트 열기")
-    p_open.add_argument("--vault", metavar="NAME", help="볼트 이름 또는 ID")
-    p_open.add_argument("--file", metavar="PATH", help="볼트 내 상대 경로 (확장자 생략 가능)")
-    p_open.add_argument("--path", metavar="ABSPATH", help="절대 파일 경로")
-    p_open.add_argument(
-        "--pane",
-        choices=["tab", "split", "window"],
-        metavar="tab|split|window",
-        help="열기 위치 (기본: 현재 탭)",
-    )
-    p_open.set_defaults(func=handle_open)
-
-    # ── new ───────────────────────────────────────────────────
-    p_new = sub.add_parser("new", help="새 노트 생성")
-    p_new.add_argument("--vault", metavar="NAME", help="볼트 이름 또는 ID")
-    p_new.add_argument("--name", metavar="NAME", help="노트 이름 (경로 없이 이름만)")
-    p_new.add_argument("--file", metavar="PATH", help="볼트 내 상대 경로 (폴더/이름)")
-    p_new.add_argument("--path", metavar="ABSPATH", help="절대 파일 경로")
-    p_new.add_argument("--content", metavar="TEXT", help="노트 초기 내용")
-    p_new.add_argument("--clipboard", action="store_true", help="클립보드 내용을 content로 사용")
-    p_new.add_argument("--silent", action="store_true", help="에디터에서 열지 않고 생성만")
-    p_new.add_argument("--append", action="store_true", help="기존 파일 끝에 content 추가")
-    p_new.add_argument("--overwrite", action="store_true", help="기존 파일 내용 교체")
-    p_new.set_defaults(func=handle_new)
-
-    # ── search ────────────────────────────────────────────────
-    p_search = sub.add_parser("search", help="검색 패널 열기")
-    p_search.add_argument("--vault", metavar="NAME", help="볼트 이름 또는 ID")
-    p_search.add_argument("--query", metavar="TEXT", help="검색 쿼리")
-    p_search.set_defaults(func=handle_search)
-
-    # ── daily ─────────────────────────────────────────────────
-    p_daily = sub.add_parser("daily", help="오늘 일간 노트 열기 (Daily notes 플러그인 필요)")
-    p_daily.add_argument("--vault", metavar="NAME", help="볼트 이름 또는 ID")
-    p_daily.set_defaults(func=handle_daily)
-
-    # ── exec ──────────────────────────────────────────────────
-    p_exec = sub.add_parser("exec", help="obsidian:// URI를 직접 실행")
-    p_exec.add_argument("uri", metavar="URI", help="obsidian:// URI 문자열")
-    p_exec.set_defaults(func=handle_exec)
-
-    return parser
+COMMANDS = {
+    "run": cmd_run,
+    "batch-create": cmd_batch_create,
+    "search-json": cmd_search_json,
+    "tasks-json": cmd_tasks_json,
+}
 
 
 def main() -> None:
-    # 환경변수로 기본 볼트 설정 지원
-    default_vault = os.environ.get("OBSIDIAN_VAULT")
+    if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
+        print(__doc__)
+        print("서브커맨드:", ", ".join(COMMANDS))
+        sys.exit(0)
 
-    parser = build_parser()
-    args = parser.parse_args()
+    subcmd = sys.argv[1]
+    if subcmd not in COMMANDS:
+        print(f"알 수 없는 서브커맨드: {subcmd}", file=sys.stderr)
+        print("사용 가능:", ", ".join(COMMANDS))
+        sys.exit(1)
 
-    # 환경변수 기본값 주입 (--vault 미지정 시)
-    if hasattr(args, "vault") and args.vault is None and default_vault:
-        args.vault = default_vault
-
-    args.func(args)
+    COMMANDS[subcmd](sys.argv[2:])
 
 
 if __name__ == "__main__":
