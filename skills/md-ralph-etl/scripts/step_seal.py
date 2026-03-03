@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Set
 
 from ralph.common import (
+    ONTOLOGY_ENTITIES_DIR,
     PlacementLabel,
     RunConfig,
     RunState,
@@ -327,7 +328,7 @@ def run_seal(
 
     # load existing entity IDs for uniqueness check
     existing_ids: Set[str] = set()
-    entities_dir = root / "data" / "ontology-entities"
+    entities_dir = root / ONTOLOGY_ENTITIES_DIR
     if entities_dir.exists():
         for md_file in entities_dir.rglob("*.md"):
             text = md_file.read_text(encoding="utf-8")
