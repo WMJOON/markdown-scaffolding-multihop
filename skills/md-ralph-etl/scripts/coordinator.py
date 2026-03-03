@@ -17,6 +17,7 @@ from ralph.common import (
     GovernanceEvent,
     RunConfig,
     RunMetrics,
+    RunMode,
     RunState,
     RUNS_ARCHIVE_DIR,
     StepName,
@@ -246,10 +247,10 @@ class RalphCoordinator:
     def _steps_to_skip(self) -> set:
         """Determine which steps to skip based on run_mode."""
         mode = self.config.run_mode
-        if mode == "local":
+        if mode == RunMode.LOCAL:
             # local files: skip crawl (files already exist)
             return {StepName.B_CRAWL}
-        elif mode == "enrich":
+        elif mode == RunMode.ENRICH:
             # enrich: skip crawl and preprocess, only parse + place + seal
             return {StepName.B_CRAWL, StepName.C_PREPROCESS}
         return set()
@@ -333,7 +334,7 @@ class RalphCoordinator:
         )
 
         checkpoints = []
-        for cp in d.get("checkpoints", []):
+        for cp in (d.get("checkpoints") or []):
             checkpoints.append(
                 Checkpoint(
                     step=str(cp.get("step", "")),

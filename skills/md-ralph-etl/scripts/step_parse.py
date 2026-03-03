@@ -170,11 +170,80 @@ def generate_entity_id(
 # Entity extraction patterns — per entity type
 # ---------------------------------------------------------------------------
 
-# Model name patterns
-_MODEL_PATTERN = re.compile(
-    r"(?:uses?|based on|trained with|employs?|leverag\w+|"
-    r"utiliz\w+|powered by|fine.?tun\w+)\s+"
-    r"([A-Z][a-zA-Z0-9\-]+(?:\s+[A-Z][a-zA-Z0-9\-]+){0,3})",
+# Known model name dictionary (canonical names + common abbreviations)
+# Used for high-precision dictionary matching in text
+_KNOWN_MODEL_NAMES: List[str] = [
+    # Transformers / LLMs (4+ chars, unambiguous names only)
+    "Transformer", "BERT", "GPT-2", "GPT-3", "GPT-4", "GPT-4o", "GPT-4V",
+    "LLaMA", "LLaMA 2", "LLaMA 3", "Llama 2", "Llama 3",
+    "Mistral", "Mixtral", "Gemma 2", "Phi-3",
+    "DeepSeek", "DeepSeek-R1", "Qwen2", "Qwen2.5",
+    "BART", "RoBERTa", "DeBERTa", "XLNet", "ALBERT",
+    "Falcon", "Vicuna", "Alpaca",
+    # Vision
+    "ResNet", "VGGNet", "AlexNet", "EfficientNet", "MobileNet",
+    "Vision Transformer", "DeiT", "Swin Transformer",
+    "CLIP", "DINOv2", "Segment Anything",
+    "YOLO", "YOLOv8", "Faster R-CNN", "Mask R-CNN", "DETR",
+    # Diffusion / Generative
+    "Stable Diffusion", "DALL-E", "Midjourney", "Imagen",
+    "DDPM", "DDIM", "Latent Diffusion", "ControlNet",
+    "DreamBooth", "LoRA", "QLoRA",
+    "StyleGAN", "CycleGAN", "VQGAN", "VQ-VAE",
+    "Variational Autoencoder",
+    # Graph Neural Networks
+    "Graph Neural Network", "Graph Convolutional Network", "Graph Attention Network",
+    "GraphSAGE", "STGCN", "DCRNN",
+    "Spatio-Temporal Graph Convolutional Network",
+    "Diffusion Convolutional Recurrent Neural Network",
+    # Recurrent / Sequential
+    "LSTM", "BiLSTM", "Seq2Seq",
+    "Long Short-Term Memory", "Gated Recurrent Unit",
+    "Temporal Convolutional Network",
+    # Time Series / Forecasting
+    "Prophet", "ARIMA", "SARIMA", "N-BEATS", "Informer",
+    "Autoformer", "FEDformer", "PatchTST", "TimesNet",
+    # Reinforcement Learning
+    "DQN", "DDPG", "MADDPG",
+    "Deep Q-Network", "Proximal Policy Optimization",
+    "Soft Actor-Critic",
+    # Tree-based / Classical ML
+    "XGBoost", "LightGBM", "CatBoost", "Random Forest",
+    "Gradient Boosting", "Support Vector Machine",
+    "Linear Regression", "Logistic Regression",
+    # Clustering
+    "K-Means", "DBSCAN", "HDBSCAN",
+    # Autoencoder / Representation
+    "Autoencoder", "Sparse Autoencoder", "Denoising Autoencoder",
+    # Mixture of Experts
+    "Mixture of Experts", "Switch Transformer",
+    # Multimodal
+    "LLaVA", "Flamingo", "BLIP-2", "InstructBLIP",
+    "Whisper", "Wav2Vec",
+    # State Space Models
+    "Mamba", "State Space Model",
+    # Neural ODE / Physics
+    "Neural ODE", "Neural SDE", "NeRF",
+    # Flow-based
+    "Normalizing Flow", "RealNVP", "GFlowNet",
+    # Transport domain specific
+    "STResNet", "ConvLSTM", "ST-ResNet",
+    "DMVST-Net", "CSTN",
+]
+
+# Build regex pattern from known model names (longest first to avoid partial matches)
+_KNOWN_MODEL_NAMES_SORTED = sorted(_KNOWN_MODEL_NAMES, key=len, reverse=True)
+_KNOWN_MODEL_RE = re.compile(
+    r"\b(" + "|".join(re.escape(n) for n in _KNOWN_MODEL_NAMES_SORTED) + r")\b",
+    re.IGNORECASE,
+)
+
+# Fallback pattern for unknown model names (high-precision: requires explicit context)
+_MODEL_PATTERN_FALLBACK = re.compile(
+    r"(?:propose[sd]?|present[s]?|introduce[sd]?|develop[s]?|design[s]?)\s+"
+    r"(?:a\s+)?(?:novel\s+)?(?:new\s+)?"
+    r"([A-Z][A-Z0-9\-]{1,20}(?:\s+[A-Z][a-zA-Z0-9\-]+){0,2})"
+    r"(?=\s*,|\s+model|\s+network|\s+architecture|\s+framework)",
     re.IGNORECASE,
 )
 
@@ -210,11 +279,12 @@ _FAMILY_PATTERN = re.compile(
 )
 
 # Patterns registry: maps entity type → (regex, predicate, new_entity_type)
+# Note: Model is handled separately via dictionary matching in extract_entity_candidates_from_chunk
+# Note: ModelFamily pattern is disabled — regex-based family extraction produces too much noise;
+#       ModelFamily entities are managed manually based on confirmed taxonomy
 _PATTERN_REGISTRY = {
-    "Model": (_MODEL_PATTERN, "targets_model", "Model"),
     "Work": (_TASK_PATTERN, "targets_work", "Work"),
     "Dataset": (_DATASET_PATTERN, "uses_dataset", "Dataset"),
-    "ModelFamily": (_FAMILY_PATTERN, "belongs_to_family", "ModelFamily"),
 }
 
 
@@ -223,6 +293,8 @@ def extract_entity_candidates_from_chunk(
     existing_entities: Dict[str, Dict],
     existing_ids: Set[str],
     scope_targets: Optional[List[str]] = None,
+    global_label_to_eid: Optional[Dict[str, str]] = None,
+    existing_by_type: Optional[Dict[str, Dict[str, Dict]]] = None,
 ) -> Tuple[List[EntityCandidate], List[RelationCandidate]]:
     """Extract entity and relation candidates from a single chunk.
 
@@ -256,17 +328,87 @@ def extract_entity_candidates_from_chunk(
 
     # 2. Pattern-based extraction — filtered by scope_targets
     active_types = set(scope_targets) if scope_targets else set(_PATTERN_REGISTRY.keys())
-    # Always include Model and Work as they're commonly cross-referenced
-    active_types.update({"Model", "Work"})
 
+    # Model extraction: dictionary-first, then fallback pattern
+    if "Model" in active_types:
+        global_label_to_eid = global_label_to_eid or {}
+        existing_models = (existing_by_type or {}).get("Model", existing_entities)
+        seen_model_names_in_chunk: Set[str] = set()
+
+        def _handle_model_candidate(name: str, confidence: float) -> None:
+            """Create or reuse entity candidate for a model name."""
+            name_key = name.lower()
+            if name_key in seen_model_names_in_chunk:
+                return
+            seen_model_names_in_chunk.add(name_key)
+
+            matched_eid = _match_existing(name, existing_models)
+            if matched_eid:
+                relation_cands.append(RelationCandidate(
+                    candidate_id=hashlib.sha256(
+                        f"rel:Model:{doc_id}:{matched_eid}:{chunk_id}".encode()
+                    ).hexdigest()[:16],
+                    source_entity_id=doc_id,
+                    predicate="targets_model",
+                    target_entity_id=matched_eid,
+                    evidence_spans=[span_ref],
+                    confidence=confidence,
+                ))
+            else:
+                global_key = f"Model:{name_key}"
+                if global_key in global_label_to_eid:
+                    # Entity already created in a previous chunk — just add evidence
+                    existing_ec_id = global_label_to_eid[global_key]
+                    # Add a relation pointing to the already-created entity
+                    # (dedup in run_parse will merge evidence spans)
+                    entity_cands.append(EntityCandidate(
+                        candidate_id=hashlib.sha256(
+                            f"ent:Model:{name}:{chunk_id}".encode()
+                        ).hexdigest()[:16],
+                        entity_id=existing_ec_id,
+                        entity_type="Model",
+                        label_en=name,
+                        label_ko="",
+                        evidence_spans=[span_ref],
+                        source_doc_id=doc_id,
+                        confidence=confidence,
+                    ))
+                else:
+                    eid = generate_entity_id("Model", name, existing_ids)
+                    global_label_to_eid[global_key] = eid
+                    existing_ids.add(eid)
+                    entity_cands.append(EntityCandidate(
+                        candidate_id=hashlib.sha256(
+                            f"ent:Model:{name}:{chunk_id}".encode()
+                        ).hexdigest()[:16],
+                        entity_id=eid,
+                        entity_type="Model",
+                        label_en=name,
+                        label_ko="",
+                        evidence_spans=[span_ref],
+                        source_doc_id=doc_id,
+                        confidence=confidence,
+                    ))
+
+        # 2a. Known model dictionary matching (high precision)
+        for m in _KNOWN_MODEL_RE.finditer(text):
+            _handle_model_candidate(m.group(1).strip(), 0.85)
+
+        # 2b. Fallback pattern disabled — too noisy across diverse paper domains
+        # Only dictionary-based matching (2a) is used for Model entity creation
+
+    # Other types (Work, Dataset, ModelFamily)
     for target_type, (pattern, predicate, new_type) in _PATTERN_REGISTRY.items():
+        if target_type == "Model":
+            continue  # handled above
         if target_type not in active_types:
             continue
+        existing_of_type = (existing_by_type or {}).get(target_type, existing_entities)
         for m in pattern.finditer(text):
             name = m.group(1).strip()
             if len(name) < 2:
                 continue
-            matched_eid = _match_existing(name, existing_entities, target_type)
+            matched_eid = _match_existing(name, existing_of_type)
             if matched_eid:
                 relation_cands.append(RelationCandidate(
                     candidate_id=hashlib.sha256(
@@ -316,15 +458,15 @@ def extract_entity_candidates_from_chunk(
 
 def _match_existing(
     name: str,
-    existing: Dict[str, Dict],
-    entity_type: str,
+    existing_of_type: Dict[str, Dict],
 ) -> Optional[str]:
-    """Try to match a name against existing entities of given type."""
+    """Try to match a name against pre-filtered existing entities (single type).
+
+    existing_of_type must already be filtered to the target entity_type.
+    """
     name_lower = name.lower().replace("-", "_").replace(" ", "_")
 
-    for eid, info in existing.items():
-        if info.get("entity_type") != entity_type:
-            continue
+    for eid, info in existing_of_type.items():
         # exact match on entity_id suffix
         eid_suffix = eid.split("__", 1)[-1] if "__" in eid else eid
         if name_lower == eid_suffix:
@@ -357,6 +499,11 @@ def run_parse(
     existing = load_existing_entities(root)
     existing_ids = set(existing.keys())
 
+    # Pre-index by entity_type for O(N/k) lookup in _match_existing
+    existing_by_type: Dict[str, Dict[str, Dict]] = {}
+    for eid, info in existing.items():
+        existing_by_type.setdefault(info.get("entity_type", ""), {})[eid] = info
+
     # load scope targets
     scope_targets: Optional[List[str]] = None
     meta_path = run_dir / ".run_meta.json"
@@ -370,27 +517,27 @@ def run_parse(
     all_entity_cands: List[Dict] = []
     all_relation_cands: List[Dict] = []
 
+    # Global label→eid map to prevent duplicate entity creation across chunks
+    # Key: (entity_type, label_lower), Value: entity_id
+    global_label_to_eid: Dict[str, str] = {}
+
     for chunk in chunks:
         ent_cands, rel_cands = extract_entity_candidates_from_chunk(
-            chunk, existing, existing_ids, scope_targets
+            chunk, existing, existing_ids, scope_targets, global_label_to_eid,
+            existing_by_type,
         )
         all_entity_cands.extend([asdict(c) for c in ent_cands])
         all_relation_cands.extend([asdict(c) for c in rel_cands])
 
-    # deduplicate entity candidates by entity_id
-    seen_eids: Set[str] = set()
-    deduped_entities: List[Dict] = []
+    # deduplicate entity candidates by entity_id (safety net), merge evidence spans
+    deduped_map: Dict[str, Dict] = {}
     for ec in all_entity_cands:
         eid = ec["entity_id"]
-        if eid not in seen_eids:
-            seen_eids.add(eid)
-            deduped_entities.append(ec)
+        if eid in deduped_map:
+            deduped_map[eid]["evidence_spans"].extend(ec["evidence_spans"])
         else:
-            # merge evidence spans
-            for existing_ec in deduped_entities:
-                if existing_ec["entity_id"] == eid:
-                    existing_ec["evidence_spans"].extend(ec["evidence_spans"])
-                    break
+            deduped_map[eid] = ec
+    deduped_entities: List[Dict] = list(deduped_map.values())
 
     write_jsonl(run_dir / "entity_candidates.jsonl", deduped_entities)
     write_jsonl(run_dir / "relation_candidates.jsonl", all_relation_cands)

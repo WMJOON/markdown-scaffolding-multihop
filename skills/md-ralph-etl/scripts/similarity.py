@@ -18,6 +18,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from ralph.common import EmbedMode
+
 SparseVector = Dict[str, float]
 DenseVector = List[float]
 
@@ -335,9 +337,9 @@ class SimilarityEngine:
         self.bert: Optional[BERTEngine] = None
         self._use_bert = False
 
-        if embed_mode in ("auto", "bert"):
+        if embed_mode in (EmbedMode.AUTO, EmbedMode.BERT):
             self.bert = BERTEngine(model=bert_model)
-            if embed_mode == "auto":
+            if embed_mode == EmbedMode.AUTO:
                 self._use_bert = self.bert.is_available()
             else:
                 if not self.bert.is_available():
