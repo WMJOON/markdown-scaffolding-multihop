@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Dict, List
 
 from ralph.common import DocIndex, RunConfig, RunState, URLEntry
+from ralph.scrapling_fetcher import fetch_with_scrapling
 from ralph.yaml_io import dump_yaml, load_yaml, read_jsonl, write_jsonl
 
 
@@ -153,8 +154,11 @@ def run_crawl(
 
         try:
             # fetch
-            status_code, resolved_url, html_body = ccsrd.fetch_html(
-                entry.url, config.http_timeout
+            status_code, resolved_url, html_body = fetch_with_scrapling(
+                entry.url,
+                timeout=config.http_timeout,
+                fetcher_mode=config.fetcher_mode,
+                source_type=entry.source_type,
             )
             if status_code >= 400:
                 print(f"  [skip] {doc_id}: HTTP {status_code}")

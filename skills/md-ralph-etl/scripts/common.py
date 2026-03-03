@@ -22,18 +22,33 @@ class StepName(Enum):
     RUN_FAILED = "RUN_FAILED"
 
 
-class RunMode(Enum):
+class RunMode(str, Enum):
     """Pipeline operation mode."""
     FULL = "full"              # URL → crawl → parse → place → seal (기본)
     LOCAL = "local"            # 로컬 파일 → preprocess → parse → place → seal
     ENRICH = "enrich"          # 기존 엔티티 관계 보강만 (parse → place만)
 
 
-class InputFormat(Enum):
+class InputFormat(str, Enum):
     """Supported manifest/input formats."""
     TSV = "tsv"
     JSONL = "jsonl"
     DIRECTORY = "directory"    # 로컬 디렉토리 스캔
+
+
+class EmbedMode(str, Enum):
+    """Similarity engine selection."""
+    AUTO = "auto"     # BERT if available, else TF-IDF
+    BERT = "bert"     # BERT only (RuntimeError if unavailable)
+    TFIDF = "tfidf"   # TF-IDF only
+
+
+class FetcherMode(str, Enum):
+    """HTTP fetcher tier selection."""
+    AUTO = "auto"         # source_type 기반 자동 선택
+    BASIC = "basic"       # TLS 스푸핑 HTTP
+    STEALTHY = "stealthy" # 반봇 우회
+    DYNAMIC = "dynamic"   # JS 렌더링 (Playwright)
 
 
 class PlacementLabel(Enum):
@@ -78,14 +93,15 @@ class RunConfig:
     relation_embed_sim_threshold: float = 0.75
     http_timeout: int = 40
     # v0.0.3 확장: 다양한 사용 모드
-    run_mode: str = "full"                  # full | local | enrich
-    input_format: str = "tsv"               # tsv | jsonl | directory
+    run_mode: str = RunMode.FULL
+    input_format: str = InputFormat.TSV
     scope_targets: List[str] = field(default_factory=list)  # 대상 entity type 직접 지정
     file_extensions: List[str] = field(      # local 모드에서 스캔할 확장자
         default_factory=lambda: [".md", ".txt", ".html"]
     )
-    embed_mode: str = "auto"                # auto | bert | tfidf
+    embed_mode: str = EmbedMode.AUTO
     bert_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    fetcher_mode: str = FetcherMode.AUTO
 
 
 # ---------------------------------------------------------------------------

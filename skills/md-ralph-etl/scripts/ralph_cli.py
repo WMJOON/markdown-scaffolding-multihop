@@ -41,7 +41,7 @@ for d in (_LINK_DIR, _RESOLVED_DIR):
     if str(d) not in sys.path:
         sys.path.insert(0, str(d))
 
-from ralph.common import RunConfig, RUNS_ARCHIVE_DIR, StepName
+from ralph.common import EmbedMode, FetcherMode, RunConfig, RunMode, RUNS_ARCHIVE_DIR, StepName
 from ralph.coordinator import RalphCoordinator, register_step
 
 
@@ -82,7 +82,7 @@ def _add_common_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--timeout", type=int, default=40,
                    help="HTTP timeout seconds")
     # --- 확장 옵션 ---
-    p.add_argument("--mode", choices=["full", "local", "enrich"], default="full",
+    p.add_argument("--mode", choices=[m.value for m in RunMode], default=RunMode.FULL,
                    help="full: URL→crawl→전체 | local: 로컬 파일→전체 | enrich: 관계 보강만")
     p.add_argument("--format", choices=["tsv", "jsonl", "auto"], default="auto",
                    help="Manifest format (auto-detected by default)")
@@ -90,10 +90,13 @@ def _add_common_args(p: argparse.ArgumentParser) -> None:
                    help="Comma-separated entity types to extract (e.g. Model,Work,Dataset)")
     p.add_argument("--extensions", default=".md,.txt,.html",
                    help="File extensions for directory scan (local mode)")
-    p.add_argument("--embed-mode", choices=["auto", "bert", "tfidf"], default="auto",
+    p.add_argument("--embed-mode", choices=[m.value for m in EmbedMode], default=EmbedMode.AUTO,
                    help="Similarity engine: auto(BERT if available) | bert | tfidf")
     p.add_argument("--bert-model", default="sentence-transformers/all-MiniLM-L6-v2",
                    help="BERT model for embeddings (default: all-MiniLM-L6-v2)")
+    p.add_argument("--fetcher", choices=[m.value for m in FetcherMode], default=FetcherMode.AUTO,
+                   help="Scrapling fetcher tier (auto: source_type 기반 자동 선택 | "
+                        "basic: TLS 스푸핑 HTTP | stealthy: 반봇 우회 | dynamic: JS 렌더링)")
 
 
 def build_config(args: argparse.Namespace) -> RunConfig:
@@ -117,6 +120,7 @@ def build_config(args: argparse.Namespace) -> RunConfig:
         file_extensions=exts,
         embed_mode=getattr(args, "embed_mode", "auto"),
         bert_model=getattr(args, "bert_model", "sentence-transformers/all-MiniLM-L6-v2"),
+        fetcher_mode=getattr(args, "fetcher", "auto"),
     )
 
 
