@@ -41,7 +41,7 @@ for d in (_LINK_DIR, _RESOLVED_DIR):
     if str(d) not in sys.path:
         sys.path.insert(0, str(d))
 
-from ralph.common import RunConfig, StepName
+from ralph.common import RunConfig, RUNS_ARCHIVE_DIR, StepName
 from ralph.coordinator import RalphCoordinator, register_step
 
 
@@ -174,7 +174,7 @@ def cmd_step(args: argparse.Namespace, step: StepName) -> None:
 
 def cmd_status(args: argparse.Namespace) -> None:
     root = Path(args.root)
-    runs_dir = root / "archive" / "history" / "ralph-runs"
+    runs_dir = root / RUNS_ARCHIVE_DIR
     state_path = runs_dir / args.run_id / "run_state.yaml"
     if not state_path.exists():
         print(f"[Ralph] Run not found: {args.run_id}")
@@ -201,7 +201,7 @@ def cmd_status(args: argparse.Namespace) -> None:
 def cmd_report(args: argparse.Namespace) -> None:
     _register_all_steps()
     root = Path(args.root)
-    runs_dir = root / "archive" / "history" / "ralph-runs"
+    runs_dir = root / RUNS_ARCHIVE_DIR
     run_dir = runs_dir / args.run_id
     if not run_dir.exists():
         print(f"[Ralph] Run not found: {args.run_id}")
