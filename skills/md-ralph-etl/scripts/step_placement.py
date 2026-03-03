@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from ralph.common import (
     HoldEntry,
@@ -20,74 +20,8 @@ from ralph.common import (
     RunState,
 )
 from ralph.similarity import SimilarityEngine, alias_similarity
+from ralph.step_parse import load_existing_entities
 from ralph.yaml_io import dump_yaml, read_jsonl, write_jsonl
-
-
-def _load_existing_entity_texts(root: Path) -> Dict[str, Dict]:
-    """Load existing entities with their text for TF-IDF corpus.
-
-    Returns {entity_id: {label_en, label_ko, aliases, entity_type, summary}}.
-    """
-    entities_dir = root / "data" / "ontology-entities"
-    if not entities_dir.exists():
-        return {}
-
-    entities: Dict[str, Dict] = {}
-    for md_file in entities_dir.rglob("*.md"):
-        text = md_file.read_text(encoding="utf-8")
-        if not text.startswith("---"):
-            continue
-        parts = text.split("---", 2)
-        if len(parts) < 3:
-            continue
-        fm_text = parts[1]
-        body = parts[2]
-
-        eid = ""
-        etype = ""
-        label_en = ""
-        label_ko = ""
-        aliases: List[str] = []
-        in_aliases = False
-
-        for line in fm_text.splitlines():
-            line_s = line.strip()
-            if line_s.startswith("entity_id:"):
-                eid = line_s.split(":", 1)[1].strip().strip('"').strip("'")
-                in_aliases = False
-            elif line_s.startswith("entity_type:"):
-                etype = line_s.split(":", 1)[1].strip().strip('"').strip("'")
-                in_aliases = False
-            elif line_s.startswith("label_en:"):
-                label_en = line_s.split(":", 1)[1].strip().strip('"').strip("'")
-                in_aliases = False
-            elif line_s.startswith("label_ko:"):
-                label_ko = line_s.split(":", 1)[1].strip().strip('"').strip("'")
-                in_aliases = False
-            elif line_s.startswith("aliases:"):
-                in_aliases = True
-            elif in_aliases and line_s.startswith("- "):
-                aliases.append(line_s[2:].strip().strip('"').strip("'"))
-            elif not line_s.startswith("- ") and ":" in line_s:
-                in_aliases = False
-
-        if eid:
-            # extract summary (first non-empty body paragraph)
-            summary = ""
-            for bline in body.strip().splitlines():
-                bline_s = bline.strip()
-                if bline_s and not bline_s.startswith("#"):
-                    summary = bline_s
-                    break
-
-            entities[eid] = {
-                "label_en": label_en,
-                "label_ko": label_ko,
-                "aliases": aliases,
-                "entity_type": etype,
-                "summary": summary,
-            }
-    return entities
 
 
 def _build_label_list(entity: Dict) -> List[str]:
@@ -235,7 +169,7 @@ def run_placement(
         print("[Ralph] Placement: empty entity candidates")
         return state
 
-    existing = _load_existing_entity_texts(root)
+    existing = load_existing_entities(root, include_summary=True)
 
     # Build similarity engine (auto: BERT if available, else TF-IDF)
     sim_engine = SimilarityEngine(
