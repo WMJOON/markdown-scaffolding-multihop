@@ -6,9 +6,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-ONTOLOGY_ENTITIES_DIR = Path("data") / "ontology-entities"
-
-
 # ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
