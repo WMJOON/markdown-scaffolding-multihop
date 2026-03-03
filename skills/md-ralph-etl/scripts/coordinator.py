@@ -18,6 +18,7 @@ from ralph.common import (
     RunConfig,
     RunMetrics,
     RunState,
+    RUNS_ARCHIVE_DIR,
     StepName,
     STEP_ORDER,
 )
@@ -88,7 +89,7 @@ class RalphCoordinator:
         self.root = root
         self.config = config
         self.apply = apply
-        self.runs_dir = root / "archive" / "history" / "ralph-runs"
+        self.runs_dir = root / RUNS_ARCHIVE_DIR
 
     # ------------------------------------------------------------------
     # Run lifecycle
