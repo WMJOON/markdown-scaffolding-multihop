@@ -16,9 +16,98 @@ from ralph.yaml_io import dump_yaml, load_yaml, read_jsonl, write_jsonl
 
 
 def _import_crawl_tools():
-    """Import functions from existing crawl module."""
-    import collect_case_study_raw_data as ccsrd
-    return ccsrd
+    """Import helper functions from existing crawl module, or fallback if unavailable."""
+    try:
+        import collect_case_study_raw_data as ccsrd
+        return ccsrd
+    except Exception:
+        print("[Ralph] Warning: collect_case_study_raw_data.py not found. Using fallback crawl utilities.")
+        return _fallback_crawl_tools()
+
+
+def _fallback_crawl_tools():
+    """Fallback implementations that avoid external dependency on collect_case_study_raw_data."""
+    import re as _re
+    import subprocess
+
+    class SourceItem:
+        def __init__(
+            self,
+            case_id: str,
+            source_type: str,
+            industry_mapping: str,
+            title: str,
+            url: str,
+            start_marker: str = "",
+        ) -> None:
+            self.case_id = case_id
+            self.source_type = source_type
+            self.industry_mapping = industry_mapping
+            self.title = title
+            self.url = url
+            self.start_marker = start_marker
+
+    def load_manifest(manifest_path: Path):
+        return []
+
+    def pandoc_to_markdown(html_path: Path) -> str:
+        result = subprocess.run(
+            ["pandoc", "--from", "html", "--to", "gfm", str(html_path)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return result.stdout
+
+    def clean_markdown(md_text: str, start_marker: str = "") -> str:
+        text = md_text
+        if start_marker:
+            idx = text.find(start_marker)
+            if idx >= 0:
+                text = text[idx + len(start_marker):]
+
+        # strip obvious boilerplate tags that break parsing
+        text = _re.sub(r"<script[^>]*>.*?</script>", "", text, flags=_re.IGNORECASE | _re.DOTALL)
+        text = _re.sub(r"<style[^>]*>.*?</style>", "", text, flags=_re.IGNORECASE | _re.DOTALL)
+        text = _re.sub(r"<!--.*?-->", "", text, flags=_re.DOTALL)
+        text = _re.sub(r"<[^>]+>", "", text)
+        return "\n".join(line.rstrip() for line in text.splitlines()).strip()
+
+    def write_markdown(
+        source_item: SourceItem,
+        html_rel: str,
+        original_url: str,
+        resolved_url: str,
+        status_code: int,
+        fetched_at: str,
+        markdown_text: str,
+    ) -> str:
+        frontmatter = "\n".join([
+            "---",
+            f"case_id: {source_item.case_id}",
+            f"source_type: {source_item.source_type}",
+            f"industry_mapping: {source_item.industry_mapping}",
+            f"title: {source_item.title}",
+            f"url: {original_url}",
+            f"resolved_url: {resolved_url}",
+            f"status_code: {status_code}",
+            f"fetched_at: {fetched_at}",
+            f"raw_html: {html_rel}",
+            "---",
+            "",
+        ])
+        return frontmatter + markdown_text.strip() + "\n"
+
+    class _Namespace:
+        pass
+
+    cns = _Namespace()
+    cns.SourceItem = SourceItem
+    cns.load_manifest = load_manifest
+    cns.pandoc_to_markdown = pandoc_to_markdown
+    cns.clean_markdown = clean_markdown
+    cns.write_markdown = write_markdown
+    return cns
 
 
 def parse_headings(md_text: str) -> List[str]:

@@ -28,8 +28,29 @@ Usage Examples:
 from __future__ import annotations
 
 import argparse
+import types
 import sys
 from pathlib import Path
+
+
+def _bootstrap_legacy_ralph_namespace() -> None:
+    """Allow importing `ralph.*` modules from flat `scripts` layout.
+
+    The package is not installed as a true package path in this skill layout,
+    but modules are colocated in `scripts/`. This alias keeps imports like
+    `from ralph.common import ...` working when running the CLI directly.
+    """
+    package_path = Path(__file__).resolve().parent
+    if str(package_path) not in sys.path:
+        sys.path.insert(0, str(package_path))
+
+    if "ralph" not in sys.modules:
+        pseudo = types.ModuleType("ralph")
+        pseudo.__path__ = [str(package_path)]
+        sys.modules["ralph"] = pseudo
+
+
+_bootstrap_legacy_ralph_namespace()
 
 # Support both direct execution and symlink-from-semantic-atlas
 # 1. Resolved path (real file location — skill repo scripts/)
