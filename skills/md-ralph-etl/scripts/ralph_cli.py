@@ -34,20 +34,30 @@ from pathlib import Path
 
 
 def _bootstrap_legacy_ralph_namespace() -> None:
-    """Allow importing `ralph.*` modules from flat `scripts` layout.
+    """Allow importing `ralph.*` modules.
 
-    The package is not installed as a true package path in this skill layout,
-    but modules are colocated in `scripts/`. This alias keeps imports like
-    `from ralph.common import ...` working when running the CLI directly.
+    Supports two layouts:
+    - Package layout (semantic-atlas): tools/ralph/ is a proper package.
+      → add tools/ to sys.path, let Python discover ralph/ naturally.
+    - Flat layout (skill repo scripts/): step files are colocated with CLI.
+      → create pseudo ralph module pointing at the scripts/ dir.
     """
     package_path = Path(__file__).resolve().parent
+    ralph_pkg_dir = package_path / "ralph"
+
     if str(package_path) not in sys.path:
         sys.path.insert(0, str(package_path))
 
     if "ralph" not in sys.modules:
-        pseudo = types.ModuleType("ralph")
-        pseudo.__path__ = [str(package_path)]
-        sys.modules["ralph"] = pseudo
+        if ralph_pkg_dir.is_dir():
+            # Package layout: ralph/ exists → Python will find it naturally
+            # Just ensure the parent is on sys.path (already done above)
+            pass
+        else:
+            # Flat layout: create pseudo module pointing at current dir
+            pseudo = types.ModuleType("ralph")
+            pseudo.__path__ = [str(package_path)]
+            sys.modules["ralph"] = pseudo
 
 
 _bootstrap_legacy_ralph_namespace()
@@ -57,10 +67,21 @@ _bootstrap_legacy_ralph_namespace()
 _RESOLVED_DIR = Path(__file__).resolve().parent
 # 2. Unresolved path (symlink location — semantic-atlas tools/)
 _LINK_DIR = Path(__file__).parent.resolve()
+# 3. If running via symlink, also add the semantic-atlas ralph package path
+#    (new v2 steps reside in tools/ralph/, not in skill repo scripts/)
+_RALPH_PKG_DIR = _LINK_DIR / "ralph"
 
 for d in (_LINK_DIR, _RESOLVED_DIR):
     if str(d) not in sys.path:
         sys.path.insert(0, str(d))
+
+# Extend ralph.__path__ to include semantic-atlas tools/ralph/ (v2 steps)
+if "ralph" in sys.modules and _RALPH_PKG_DIR.is_dir():
+    ralph_mod = sys.modules["ralph"]
+    ralph_path = list(getattr(ralph_mod, "__path__", []))
+    if str(_RALPH_PKG_DIR) not in ralph_path:
+        ralph_path.append(str(_RALPH_PKG_DIR))
+        ralph_mod.__path__ = ralph_path
 
 from ralph.common import EmbedMode, FetcherMode, RunConfig, RunMode, RUNS_ARCHIVE_DIR, StepName
 from ralph.coordinator import RalphCoordinator, register_step
@@ -80,6 +101,9 @@ def _register_all_steps() -> None:
     from ralph.step_crawl import run_crawl
     from ralph.step_preprocess import run_preprocess
     from ralph.step_parse import run_parse
+    from ralph.step_concept_map import run_concept_map
+    from ralph.step_deduplicate import run_deduplicate
+    from ralph.step_validate import run_validate
     from ralph.step_placement import run_placement
     from ralph.step_seal import run_seal
 
@@ -87,6 +111,12 @@ def _register_all_steps() -> None:
     register_step(StepName.B_CRAWL, run_crawl)
     register_step(StepName.C_PREPROCESS, run_preprocess)
     register_step(StepName.D_PARSE, run_parse)
+    register_step(StepName.E_CONCEPT_MAP, run_concept_map)
+    register_step(StepName.F_DEDUPLICATE, run_deduplicate)
+    register_step(StepName.G_VALIDATE, run_validate)
+    register_step(StepName.H_PLACE, run_placement)
+    register_step(StepName.I_SEAL, run_seal)
+    # legacy aliases
     register_step(StepName.E_PLACE, run_placement)
     register_step(StepName.F_SEAL, run_seal)
 
