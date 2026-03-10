@@ -3,11 +3,14 @@ name: md-scaffolding-design
 description: >
   로컬 Markdown 디렉토리 또는 GitHub repo에 멀티홉 추론 구조를 설계하고 저장하는 스캐폴딩 워크플로우.
   md-graph-multihop의 companion 스킬로, "조회/추론"이 아니라 "구조 설계 + 저장"을 담당한다.
+  온톨로지 분해 방법론(Top-down MECE 분해 + Bottom-up Instance→Entity 귀납 → 관계 매핑)을 적용해
+  체계적으로 Entity와 관계를 정의한 후 graph-config.yaml에 반영한다.
   (1) 프로젝트 디렉토리/GitHub repo를 분석해 graph-config.yaml을 자동 생성하거나,
   (2) personal-memory·github-docs·git-repo·obsidian-vault 등 프리셋으로 즉시 구조를 초기화하거나,
   (3) Claude의 멀티홉 추론 결과를 wikilink가 연결된 md 인사이트 노드로 저장할 때 사용한다.
   트리거 예시: "이 레포에 GraphRAG 구조 만들어줘", "멀티홉용 config 생성해줘",
-  "추론 결과를 노드로 저장해줘", "graph-config 자동 생성해줘", "git repo에 그래프 구조 세팅해줘".
+  "추론 결과를 노드로 저장해줘", "graph-config 자동 생성해줘", "git repo에 그래프 구조 세팅해줘",
+  "온톨로지 설계해줘", "Entity 정의해줘", "top-down 분해해줘".
 ---
 
 # md-scaffolding-design
