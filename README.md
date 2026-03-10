@@ -9,9 +9,10 @@ Markdown 기반 지식 베이스를 위한 **GraphRAG 스킬셋**.
 | 스킬 | 역할 |
 |------|------|
 | `md-graph-multihop` | 그래프 구축 + 멀티홉 추론 (조회) |
-| `md-scaffolding-design` | 구조 설계 + 추론 결과 저장 |
+| `md-scaffolding-design` | 구조 설계 + 추론 결과 저장 (온톨로지 분해 방법론 포함) |
 | `md-frontmatter-rollup` | 엣지 기반 frontmatter 값 집계 |
 | `md-obsidian-cli` | `obsidian://` URI로 Obsidian vault 직접 조작 |
+| `md-data-analysis` | frontmatter / CSV / JSON 데이터 통계 분석 스크립트 패키지 |
 
 ## 지원 소스
 
@@ -83,8 +84,9 @@ repository/
 ├── graph-ontology.example.yaml     # OWL 설정 예시
 ├── skills/
 │   ├── md-graph-multihop/          # 그래프 구축 + 멀티홉 추론
-│   ├── md-scaffolding-design/      # 구조 설계 + 결과 저장
+│   ├── md-scaffolding-design/      # 구조 설계 + 결과 저장 (온톨로지 분해 방법론)
 │   ├── md-frontmatter-rollup/      # frontmatter 값 집계
-│   └── md-obsidian-cli/            # Obsidian vault CLI 조작
+│   ├── md-obsidian-cli/            # Obsidian vault CLI 조작
+│   └── md-data-analysis/           # 통계 분석 스크립트 패키지
 └── tests/
 ```
