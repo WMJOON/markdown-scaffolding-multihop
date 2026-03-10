@@ -1,0 +1,9 @@
+rdflib>=7.0.0
+pyyaml>=6.0
+python-Levenshtein>=0.23.0
+numpy>=1.26.0
+scipy>=1.13.0
+
+# Mode B/C KG Embedding (선택 — torch 환경에서만)
+# pykeen>=1.10.0
+# torch>=2.0.0
