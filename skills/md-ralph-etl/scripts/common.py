@@ -16,6 +16,13 @@ class StepName(Enum):
     B_CRAWL = "B_CRAWL"
     C_PREPROCESS = "C_PREPROCESS"
     D_PARSE = "D_PARSE"
+    # v0.1 — 3 steps inserted between D_PARSE and H_PLACE
+    E_CONCEPT_MAP = "E_CONCEPT_MAP"
+    F_DEDUPLICATE = "F_DEDUPLICATE"
+    G_VALIDATE = "G_VALIDATE"
+    H_PLACE = "H_PLACE"
+    I_SEAL = "I_SEAL"
+    # legacy aliases kept for backward-compat (not in STEP_ORDER)
     E_PLACE = "E_PLACE"
     F_SEAL = "F_SEAL"
     DONE = "DONE"
@@ -66,8 +73,11 @@ STEP_ORDER: List[StepName] = [
     StepName.B_CRAWL,
     StepName.C_PREPROCESS,
     StepName.D_PARSE,
-    StepName.E_PLACE,
-    StepName.F_SEAL,
+    StepName.E_CONCEPT_MAP,
+    StepName.F_DEDUPLICATE,
+    StepName.G_VALIDATE,
+    StepName.H_PLACE,
+    StepName.I_SEAL,
 ]
 
 RUNS_ARCHIVE_DIR = Path("archive") / "history" / "ralph-runs"

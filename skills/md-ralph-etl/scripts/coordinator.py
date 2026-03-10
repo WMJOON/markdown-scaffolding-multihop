@@ -303,6 +303,13 @@ class RalphCoordinator:
             StepName.B_CRAWL: "evidence_corpus/index/",
             StepName.C_PREPROCESS: "evidence_corpus/chunks/",
             StepName.D_PARSE: "entity_candidates.jsonl",
+            # v0.1 新 단계
+            StepName.E_CONCEPT_MAP: "mapped_candidates.jsonl",
+            StepName.F_DEDUPLICATE: "dedup_report.jsonl",
+            StepName.G_VALIDATE: "validated_candidates.jsonl",
+            StepName.H_PLACE: "placement_report.jsonl",
+            StepName.I_SEAL: "audit_log.md",
+            # legacy
             StepName.E_PLACE: "placement_report.jsonl",
             StepName.F_SEAL: "seed_candidate.yaml",
         }.get(step, "")

@@ -74,18 +74,32 @@ def place_entity(
             best_alias_sim = sim
             best_match_id = eid
 
-    # 3. Merge threshold
-    if best_alias_sim >= config.merge_alias_sim_threshold and best_match_id:
+    # 3. Exact lexical match: treat as skip (already represented).
+    if best_alias_sim >= 0.999 and best_match_id:
         return PlacementResult(
             candidate_id=cand_id,
-            label=PlacementLabel.MERGE_CANDIDATE.value,
+            label="skip",
             target_existing_id=best_match_id,
             alias_sim=best_alias_sim,
             evidence_count=len(evidence_spans),
-            reason=f"alias_sim {best_alias_sim:.3f} >= {config.merge_alias_sim_threshold}",
+            reason="exact alias match with existing entity",
         )
 
-    # 4. Extend threshold
+    # 4. High-similarity match: conservative extend (avoid unresolved merge queue).
+    if best_alias_sim >= config.merge_alias_sim_threshold and best_match_id:
+        return PlacementResult(
+            candidate_id=cand_id,
+            label=PlacementLabel.EXTEND.value,
+            target_existing_id=best_match_id,
+            alias_sim=best_alias_sim,
+            evidence_count=len(evidence_spans),
+            reason=(
+                f"high alias_sim {best_alias_sim:.3f} >= "
+                f"{config.merge_alias_sim_threshold} (treated as extend)"
+            ),
+        )
+
+    # 5. Extend threshold
     if best_alias_sim >= config.extend_alias_sim_threshold and best_match_id:
         return PlacementResult(
             candidate_id=cand_id,
@@ -96,7 +110,7 @@ def place_entity(
             reason=f"alias_sim {best_alias_sim:.3f} >= {config.extend_alias_sim_threshold}",
         )
 
-    # 5. Semantic similarity for relation-only (BERT or TF-IDF)
+    # 6. Semantic similarity for relation-only (BERT or TF-IDF)
     if best_match_id:
         cand_text = " ".join(cand_labels)
         existing_text = " ".join(
@@ -121,7 +135,7 @@ def place_entity(
                 reason=f"embed_sim {embed_sim:.3f} >= {config.relation_embed_sim_threshold}",
             )
 
-    # 6. Check ambiguity (simplified: if multiple close matches exist)
+    # 7. Check ambiguity (simplified: if multiple close matches exist)
     close_matches = sum(
         1 for eid, einfo in existing_entities.items()
         if einfo.get("entity_type") == cand_type
@@ -137,7 +151,7 @@ def place_entity(
             reason=f"ambiguous: {close_matches} close matches",
         )
 
-    # 7. Default: new entity
+    # 8. Default: new entity
     return PlacementResult(
         candidate_id=cand_id,
         label=PlacementLabel.NEW.value,

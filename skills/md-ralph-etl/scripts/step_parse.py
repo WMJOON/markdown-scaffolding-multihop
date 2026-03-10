@@ -258,9 +258,8 @@ _TASK_PATTERN = re.compile(
 
 # Dataset patterns
 _DATASET_PATTERN = re.compile(
-    r"(?:dataset|benchmark|corpus|trained on|evaluated on|tested on)\s+"
+    r"(?:(?i:dataset|benchmark|corpus|trained on|evaluated on|tested on))\s+"
     r"([A-Z][a-zA-Z0-9\-]+(?:\s+[A-Z][a-zA-Z0-9\-]+){0,3})",
-    re.IGNORECASE,
 )
 
 # Metric patterns
@@ -286,6 +285,49 @@ _PATTERN_REGISTRY = {
     "Work": (_TASK_PATTERN, "targets_work", "Work"),
     "Dataset": (_DATASET_PATTERN, "uses_dataset", "Dataset"),
 }
+
+_DATASET_LEADING_STOPWORDS = {
+    "a", "an", "the", "this", "that", "these", "those",
+    "in", "on", "for", "of", "with", "as", "and", "or", "to", "from",
+}
+
+_DATASET_GENERIC_SINGLE = {
+    "dataset", "datasets", "benchmark", "benchmarks", "corpus", "corpora",
+    "model", "models", "problem", "problems", "data",
+}
+
+
+def _is_plausible_dataset_name(name: str) -> bool:
+    """Heuristic filter to reduce noisy Dataset candidates."""
+    tokens = [t for t in re.split(r"\s+", name.strip()) if t]
+    if not tokens:
+        return False
+    if len(tokens) > 6:
+        return False
+
+    lowered = [
+        re.sub(r"[^a-z0-9]+", "", t.lower())
+        for t in tokens
+    ]
+    lowered = [t for t in lowered if t]
+    if not lowered:
+        return False
+    if lowered[0] in _DATASET_LEADING_STOPWORDS:
+        return False
+    if len(lowered) == 1 and lowered[0] in _DATASET_GENERIC_SINGLE:
+        return False
+
+    has_digit = any(any(ch.isdigit() for ch in t) for t in tokens)
+    has_acronym = any(t.isupper() and len(t) >= 2 for t in tokens)
+    has_inner_upper = any(any(ch.isupper() for ch in t[1:]) for t in tokens)
+
+    # Accept title-case multiword names like "Penn Treebank".
+    has_multi_title = (
+        len(tokens) >= 2
+        and all(t[0].isupper() for t in tokens[:2] if t and t[0].isalpha())
+    )
+
+    return has_digit or has_acronym or has_inner_upper or has_multi_title
 
 
 def extract_entity_candidates_from_chunk(
@@ -407,6 +449,8 @@ def extract_entity_candidates_from_chunk(
         for m in pattern.finditer(text):
             name = m.group(1).strip()
             if len(name) < 2:
+                continue
+            if target_type == "Dataset" and not _is_plausible_dataset_name(name):
                 continue
             matched_eid = _match_existing(name, existing_of_type)
             if matched_eid:
