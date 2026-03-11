@@ -116,10 +116,15 @@ def run_placement(
             stats["skipped"] += 1
             continue
 
+        # candidate 관계 정보 추출 (hybrid/PyKEEN inductive embed용)
+        cand_rels = _extract_candidate_relations(candidate_id, cand_records)
+
         # 유사도 계산
-        from embed.kg_embed import compute_similarity, TFIDFEmbedder
+        from embed.kg_embed import compute_similarity
         try:
-            sim = compute_similarity(feature_text, target_id, embedder, graph)
+            sim = compute_similarity(
+                feature_text, target_id, embedder, graph, cand_rels,
+            )
         except Exception as e:
             logger.debug("[Mode C] 유사도 계산 실패 %s: %s", candidate_id, e)
             sim = 0.0
@@ -173,6 +178,26 @@ def _build_candidate_feature(
           for r in (rec.get("relations") or [])],
     ]
     return " ".join(p for p in parts if p).strip()
+
+
+def _extract_candidate_relations(
+    candidate_id: str,
+    cand_records: dict[str, dict],
+) -> list[tuple[str, str]] | None:
+    """entity_candidates에서 candidate의 관계 목록을 추출 (inductive embed용)."""
+    rec = cand_records.get(candidate_id)
+    if not rec:
+        return None
+    relations = rec.get("relations")
+    if not relations or not isinstance(relations, list):
+        return None
+    result = []
+    for r in relations:
+        rel_type = r.get("type", "")
+        target   = r.get("target", "")
+        if rel_type and target:
+            result.append((rel_type, target))
+    return result if result else None
 
 
 def _resolve_candidates_path(

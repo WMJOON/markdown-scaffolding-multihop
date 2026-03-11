@@ -197,9 +197,12 @@ def _run_embed_analysis(
     if not entity_list:
         return
 
-    # TF-IDF 백엔드: 상위 유사도 쌍 탐색
-    from embed.kg_embed import TFIDFEmbedder
-    if isinstance(embedder, TFIDFEmbedder):
+    from embed.kg_embed import TFIDFEmbedder, SemanticEmbedder, HybridEmbedder
+    if isinstance(embedder, HybridEmbedder):
+        _semantic_similarity_report(embedder, entity_list, graph, out_dir, "Hybrid")
+    elif isinstance(embedder, SemanticEmbedder):
+        _semantic_similarity_report(embedder, entity_list, graph, out_dir, "Semantic")
+    elif isinstance(embedder, TFIDFEmbedder):
         _tfidf_similarity_report(embedder, entity_list, graph, out_dir)
     else:
         _pykeen_similarity_report(embedder, entity_list, graph, out_dir)
@@ -233,6 +236,37 @@ def _tfidf_similarity_report(
     report_path = out_dir / "embed_report.md"
     report_path.write_text("\n".join(lines), encoding="utf-8")
     print(f"[Mode B] embed_report.md 저장 (TF-IDF, {min(100, len(entity_list))}개)")
+
+
+def _semantic_similarity_report(
+    embedder,
+    entity_list: list,
+    graph:       TripleGraph,
+    out_dir:     Path,
+    backend_label: str = "Semantic",
+    top_k:       int = 5,
+):
+    lines = [
+        f"# KG Embedding 유사도 리포트 ({backend_label})",
+        "",
+        f"> 생성일: {date.today().isoformat()}",
+        "",
+        "## 엔티티별 상위 유사 엔티티",
+        "",
+    ]
+    for _, eid, etype in entity_list[:100]:
+        feat = entity_feature_dict(eid, graph)
+        top  = embedder.top_k(feat["feature_text"], k=top_k + 1)
+        filtered = [(e, s) for e, s in top if e != eid][:top_k]
+
+        lines.append(f"### `{eid}` ({etype})")
+        for sim_eid, sim in filtered:
+            lines.append(f"  - `{sim_eid}` : {sim:.4f}")
+        lines.append("")
+
+    report_path = out_dir / "embed_report.md"
+    report_path.write_text("\n".join(lines), encoding="utf-8")
+    print(f"[Mode B] embed_report.md 저장 ({backend_label}, {min(100, len(entity_list))}개)")
 
 
 def _pykeen_similarity_report(

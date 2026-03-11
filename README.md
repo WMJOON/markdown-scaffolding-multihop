@@ -13,6 +13,7 @@ Markdown 기반 지식 베이스를 위한 **GraphRAG 스킬셋**.
 | `md-frontmatter-rollup` | 엣지 기반 frontmatter 값 집계 |
 | `md-obsidian-cli` | `obsidian://` URI로 Obsidian vault 직접 조작 |
 | `md-data-analysis` | frontmatter / CSV / JSON 데이터 통계 분석 스크립트 패키지 |
+| `md-rdf-owl-bridge` | RDF/OWL ↔ MD-frontmatter 양방향 변환 + KG 임베딩 분석 + placement 보강 |
 
 ## 지원 소스
 
@@ -87,6 +88,7 @@ repository/
 │   ├── md-scaffolding-design/      # 구조 설계 + 결과 저장 (온톨로지 분해 방법론)
 │   ├── md-frontmatter-rollup/      # frontmatter 값 집계
 │   ├── md-obsidian-cli/            # Obsidian vault CLI 조작
-│   └── md-data-analysis/           # 통계 분석 스크립트 패키지
+│   ├── md-data-analysis/           # 통계 분석 스크립트 패키지
+│   └── md-rdf-owl-bridge/          # RDF/OWL 변환 + KG 임베딩
 └── tests/
 ```
