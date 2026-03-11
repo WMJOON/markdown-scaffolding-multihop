@@ -70,8 +70,13 @@ def main():
     parser.add_argument(
         "--embed-model",
         default="tfidf",
-        choices=["tfidf", "TransE", "RotatE", "ComplEx"],
-        help="Embedding 모델 (기본값: tfidf). TransE/RotatE/ComplEx는 pykeen+torch 필요.",
+        choices=["tfidf", "semantic", "hybrid", "TransE", "RotatE", "ComplEx"],
+        help=(
+            "Embedding 모델 (기본값: tfidf).\n"
+            "  semantic: SentenceTransformer 의미 유사도 (sentence-transformers 필요)\n"
+            "  hybrid: Semantic + PyKEEN 3-tier scoring (sentence-transformers + pykeen 필요)\n"
+            "  TransE/RotatE/ComplEx: PyKEEN KG 임베딩 (pykeen+torch 필요)"
+        ),
     )
     parser.add_argument(
         "--threshold",
