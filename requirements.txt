@@ -5,6 +5,9 @@ langchain>=0.1
 langchain-anthropic>=0.1
 langchain-community>=0.1
 
+# md-vector-search
+zvec>=0.2
+
 # md-data-analysis
 pandas>=2.0
 numpy>=1.24
