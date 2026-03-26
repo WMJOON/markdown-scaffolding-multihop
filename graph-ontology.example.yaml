@@ -109,3 +109,75 @@ scalar_node_attrs:
   - title
   - date
   - author
+
+# ══════════════════════════════════════════════════════════════════
+# Categorical Morphism Extension (선택)
+# ══════════════════════════════════════════════════════════════════
+# 이 섹션이 존재하면 graph_builder가 합성 추론을 자동 수행한다.
+# 없으면 기존 방식(단순 typed edge)으로 동작한다.
+#
+# 범주 C = (Ob, Hom, ∘, id) 구조:
+#   - Ob(C): classes에 정의된 엔티티 = 객체
+#   - Hom(C): object_properties 중 morphism_type: categorical인 관계 = 사상
+#   - ∘: composition_table에 따른 사상 합성 법칙
+#   - id: 각 객체의 자기 일관성 조건 (항등 사상)
+
+# ── 사상 유형 정의 ──────────────────────────────────────────────
+# 각 morphism type의 의미론적 계약 (precondition → postcondition)
+morphism_types:
+  causes:
+    description: "F_i의 상태 변화가 F_j를 유발"
+    transitive: true
+    precondition: "F_i에서 임계값 초과 또는 상태 전이 발생"
+    postcondition: "F_j의 Action/Trigger가 활성화됨"
+
+  requires:
+    description: "F_j 분석에 F_i의 출력이 선행 입력으로 필요"
+    transitive: true
+    precondition: "F_i의 출력이 생성 완료됨"
+    postcondition: "F_j가 실행 가능 상태가 됨"
+
+  constrains:
+    description: "F_i가 F_j의 선택지 또는 실행 조건을 제한"
+    transitive: true
+    precondition: "F_i의 규칙/임계값이 정의됨"
+    postcondition: "F_j의 파라미터 범위 또는 실행 시점이 제한됨"
+
+  informs:
+    description: "F_i 결과가 F_j 해석에 맥락 제공"
+    transitive: true
+    precondition: "F_i의 분석 결과가 존재"
+    postcondition: "F_j의 해석 정확도 또는 초점이 개선됨"
+
+  contrasts_with:
+    description: "대립적 관점 제공 (양방향, 비추이적)"
+    transitive: false
+    precondition: "두 프레임워크가 동일 대상을 다른 축에서 분석"
+    postcondition: "다관점 분석(multi-perspective analysis) 가능"
+
+# ── 합성 테이블 ─────────────────────────────────────────────────
+# g ∘ f: f를 먼저 적용 후 g를 적용
+# 행 = f (첫 번째 사상), 열 순서 = [causes, requires, constrains, informs]
+# contrasts_with는 비추이적 → 합성 불가
+composition_table:
+  causes:     [causes,     causes,     causes,     informs]
+  requires:   [requires,   requires,   constrains, requires]
+  constrains: [constrains, constrains, constrains, constrains]
+  informs:    [informs,    informs,    informs,    informs]
+
+# ── 사용 예 ─────────────────────────────────────────────────────
+# object_properties에 morphism_type: categorical을 추가하면
+# graph_builder가 해당 relation을 categorical morphism으로 인식한다.
+#
+# 예:
+#   requires:
+#     domain: Technique
+#     range: Technique
+#     relation_name: requires
+#     morphism_type: categorical    # ← 이 필드가 핵심
+#     transitive: true
+#
+# graph_builder --config ... 실행 시 자동으로:
+#   1. categorical 엣지만 필터링
+#   2. composition_table에 따라 2-hop/3-hop 합성 엣지 생성
+#   3. 합성 엣지에 inferred=true, via="A→B→C", composition="f_type ∘ g_type" 메타데이터 추가

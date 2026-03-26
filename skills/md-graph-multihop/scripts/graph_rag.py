@@ -43,15 +43,31 @@ def subgraph_to_text(G: nx.DiGraph, sub: nx.DiGraph) -> str:
     """서브그래프를 LLM이 읽기 쉬운 Triples + Node Facts로 직렬화"""
     lines: list[str] = []
 
-    # 1) 트리플 (엣지)
-    lines.append("## Graph Triples (관계)")
-    for src, tgt, data in sub.edges(data=True):
+    # 1) 엣지 분류 (단일 패스)
+    direct_edges: list[tuple] = []
+    inferred_edges: list[tuple] = []
+    for s, t, d in sub.edges(data=True):
+        (inferred_edges if d.get("inferred") else direct_edges).append((s, t, d))
+
+    lines.append("## Graph Triples (직접 관계)")
+    for src, tgt, data in direct_edges:
         src_name = G.nodes[src].get("name", src)
         tgt_name = G.nodes[tgt].get("name", tgt)
         rel = data.get("relation", "related_to")
         lines.append(f"  ({src_name}) --[{rel}]--> ({tgt_name})")
 
-    # 2) 노드 속성
+    # 2) 합성 추론 트리플 (있을 때만)
+    if inferred_edges:
+        lines.append("\n## Composition Inferences (합성 추론으로 도출된 관계)")
+        for src, tgt, data in inferred_edges:
+            src_name = G.nodes[src].get("name", src)
+            tgt_name = G.nodes[tgt].get("name", tgt)
+            rel = data.get("relation", "?")
+            via = data.get("via", "")
+            comp = data.get("composition", "")
+            lines.append(f"  ({src_name}) --[{rel}]--> ({tgt_name})  [추론: {comp}, 경로: {via}]")
+
+    # 3) 노드 속성
     lines.append("\n## Node Facts (속성)")
     SKIP_ATTRS = {"source_file", "type"}
     for node_id, data in sub.nodes(data=True):
@@ -102,6 +118,19 @@ SYSTEM_PROMPT = """\
 - 확인되지 않은 정보는 "그래프에 데이터 없음"으로 표시하세요.
 - 멀티홉 경로를 명시적으로 설명하세요. 예: A → B → C 순으로...
 - 한국어로 답변하세요.
+
+## 범주론적 관계 유형 (Categorical Morphisms)
+
+그래프에 다음 유형의 관계가 포함될 수 있습니다:
+- **requires**: F_j 분석에 F_i 출력이 선행 입력으로 필요
+- **informs**: F_i 결과가 F_j 해석에 맥락 제공
+- **causes**: F_i 상태 변화가 F_j를 유발
+- **constrains**: F_i가 F_j의 선택지/실행 조건을 제한
+- **contrasts_with**: 대립적 관점 (양방향)
+
+"Composition Inferences" 섹션의 관계는 직접 선언되지 않았으나
+합성 법칙(g ∘ f)에 의해 자동 도출된 관계입니다.
+추론 경로를 반드시 근거로 설명하세요.
 """
 
 

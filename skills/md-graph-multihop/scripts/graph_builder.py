@@ -173,7 +173,98 @@ def build_graph(config_path: Optional[Path] = None) -> nx.DiGraph:
                 if G.has_node(tgt) and not G.has_edge(src, tgt):
                     G.add_edge(src, tgt, relation="links_to", field="body")
 
+    # ── 4단계: 범주론적 합성 추론 (opt-in) ──
+    inferred = infer_compositions(G, cfg, base_dir)
+    if inferred > 0:
+        print(f"[categorical] 합성 추론 엣지 {inferred}개 추가", file=sys.stderr)
+
     return G
+
+
+# ──────────────────────────────────────────────
+# Categorical Composition (범주론적 합성 추론)
+# ──────────────────────────────────────────────
+
+_COMP_COL_INDEX = {"causes": 0, "requires": 1, "constrains": 2, "informs": 3}
+
+
+def _load_ontology(cfg: dict, base_dir: Path) -> Optional[dict]:
+    """graph-ontology.yaml 로드 (composition_table이 있을 때만 반환)"""
+    if "composition_table" in cfg:
+        return cfg
+    for name in ("graph-ontology.yaml", "graph-ontology.yml"):
+        p = base_dir / name
+        if p.exists():
+            with open(p, encoding="utf-8") as f:
+                onto = yaml.safe_load(f)
+            if onto and "composition_table" in onto:
+                return onto
+    return None
+
+
+def infer_compositions(
+    G: nx.DiGraph,
+    cfg: dict,
+    base_dir: Path,
+    max_hops: int = 3,
+) -> int:
+    """
+    범주론적 합성 추론으로 새로운 엣지를 자동 도출한다.
+    composition_table이 config/ontology에 없으면 아무것도 하지 않는다 (opt-in).
+
+    Returns: 추가된 합성 엣지 수
+    """
+    onto = _load_ontology(cfg, base_dir)
+    if onto is None:
+        return 0
+
+    comp_table = onto["composition_table"]
+    transitive_types = {
+        mt for mt, props in onto.get("morphism_types", {}).items()
+        if props.get("transitive", True)
+    }
+
+    added = 0
+    for _ in range(max_hops - 1):
+        cat_edges = [
+            (u, v, d["relation"])
+            for u, v, d in G.edges(data=True)
+            if d.get("relation") in transitive_types
+        ]
+        if not cat_edges:
+            break
+
+        new_edges: list[tuple[str, str, dict]] = []
+        for u1, v1, f_type in cat_edges:
+            if f_type not in comp_table:
+                continue
+            for u2, v2, g_type in cat_edges:
+                if v1 != u2 or u1 == v2:
+                    continue
+                col_idx = _COMP_COL_INDEX.get(g_type)
+                if col_idx is None:
+                    continue
+                # direct edge takes precedence
+                if G.has_edge(u1, v2) and not G.edges[u1, v2].get("inferred"):
+                    continue
+                if G.has_edge(u1, v2):
+                    continue
+                new_edges.append((u1, v2, {
+                    "relation": comp_table[f_type][col_idx],
+                    "inferred": True,
+                    "via": f"{u1}→{v1}→{v2}",
+                    "composition": f"{f_type} ∘ {g_type}",
+                    "field": "composition",
+                }))
+
+        if not new_edges:
+            break
+        for u, v, d in new_edges:
+            if not G.has_edge(u, v):
+                G.add_edge(u, v, **d)
+                added += 1
+
+    return added
 
 
 # ──────────────────────────────────────────────
@@ -201,6 +292,14 @@ def summarize(G: nx.DiGraph) -> str:
     lines += ["", "[ 엣지 relation ]"]
     for r, cnt in sorted(rel_counts.items()):
         lines.append(f"  {r:30s} {cnt:3d}개")
+
+    # 합성 엣지 통계 (단일 패스)
+    inferred = [(u, v, d) for u, v, d in G.edges(data=True) if d.get("inferred")]
+    if inferred:
+        lines += ["", f"[ 합성 추론 (categorical) ] {len(inferred)}개"]
+        for _, _, d in inferred:
+            lines.append(f"  {d.get('via','')}  ({d.get('composition','')} → {d.get('relation','')})")
+
     return "\n".join(lines)
 
 
