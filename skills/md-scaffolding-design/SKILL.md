@@ -5,6 +5,8 @@ description: >
   md-graph-multihop의 companion 스킬로, "조회/추론"이 아니라 "구조 설계 + 저장"을 담당한다.
   KB 디렉토리 구조 원칙(ontology/ ABox + schema/ TBox + evidence/ + context/ + docs/)을 기반으로,
   Evidence → Ontology ETL → Node Link → Validation 흐름에 따라 지식 구조를 초기화·확장한다.
+  KB 구축 전략으로 Top-Down(structure-first)과 Bottom-Up(evidence-first) 두 흐름을 지원하며,
+  노드 유형별 검증 깊이(Light/Medium/Deep) 루브릭과 루프 탈출 조건으로 토큰 낭비를 방지한다.
   (1) 프로젝트 디렉토리/GitHub repo를 분석해 graph-config.yaml을 자동 생성하거나,
   (2) personal-memory·github-docs·git-repo·obsidian-vault·kb-structure 등 프리셋으로 즉시 구조를 초기화하거나,
   (3) Claude의 멀티홉 추론 결과를 wikilink가 연결된 md 인사이트 노드로 저장할 때 사용한다.
@@ -12,7 +14,8 @@ description: >
   트리거 예시: "이 레포에 GraphRAG 구조 만들어줘", "멀티홉용 config 생성해줘",
   "추론 결과를 노드로 저장해줘", "graph-config 자동 생성해줘", "git repo에 그래프 구조 세팅해줘",
   "온톨로지 설계해줘", "Entity 정의해줘", "top-down 분해해줘", "KB 구조 초기화해줘",
-  "evidence 폴더 만들어줘", "schema 정의해줘".
+  "evidence 폴더 만들어줘", "schema 정의해줘",
+  "탑다운으로 KB 만들어줘", "바텀업으로 구성해줘", "검증 깊이 정해줘", "루브릭 적용해줘".
 ---
 
 # md-scaffolding-design
@@ -107,6 +110,11 @@ echo "추론 결과 텍스트" | python3 save_insight.py \
 ```
 [새 프로젝트]
 scaffold_project.py → graph-config.yaml 생성
+        ↓
+[KB 구축 전략 선택]
+  Top-Down: ontology scaffolding → evidence 수집 → 검증
+  Bottom-Up: evidence 수집 → ontology 귀납 추출 → 검증
+  (전략·검증 깊이·루프 탈출 → docs/guides/kb-build-flows.md 참조)
         ↓
 [조회/추론]  md-graph-multihop
 graph_builder.py / graph_rag.py / github_adapter.py
