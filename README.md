@@ -117,18 +117,6 @@ flowchart LR
 
 ---
 
-## 문서
-
-| 문서                                           | 설명                                             |
-| -------------------------------------------- | ---------------------------------------------- |
-| [빠른 시작](docs/guides/quickstart.md)              | 설치, 지원 소스, 기본 명령어                                         |
-| [온톨로지 설정](docs/guides/ontology-config.md)     | graph-ontology.yaml, Morphism Extension, 설정 파일              |
-| [KB 디렉토리 구조](docs/kb-directory-structure.md)  | ABox/TBox 분리, ETL 흐름, 상태 모델, graph-config 연동              |
-| [KB 구축 흐름](docs/guides/kb-build-flows.md)      | Top-Down / Bottom-Up 전략, 검증 깊이 루브릭, 루프 탈출 조건          |
-| [스킬 구성](docs/skills.md)                       | 전체 스킬 목록, 역할, 레퍼런스 링크                                    |
-
----
-
 ## v0.1.2 변경 이력
 
 > KB 구축 흐름(Top-Down / Bottom-Up)과 최적화 루브릭을 도입한 릴리스.
@@ -140,23 +128,20 @@ flowchart LR
 | 상태 승격 조건 | `→ validated` 단일 기준 | `draft → experimental → validated` 단계별 조건 분리 |
 | 문서 | `docs/guides/` 2종 | **`kb-build-flows.md` 추가** — 흐름·루브릭·루프 탈출 통합 |
 
-상세: [SPEC v0.1.2](../planning/markdown-scaffolding-multihop_v0.1.2-SPEC.md)
+상세: [SPEC v0.1.2](../planning/markdown-scaffolding-multihop_v0.1.2-SPEC.md) · [전체 변경 이력](docs/changelog.md)
 
 ---
 
-## v0.1.1 변경 이력
+## 문서
 
-> KB 구조 명세(SPEC)를 도입하고, Obsidian 기반 실제 KB에 검증 적용한 릴리스.
-
-| 개선 영역 | 이전 | v0.1.1 |
-|-----------|------|--------|
-| KB 구조 | `ontology/` 안에 domain 폴더 혼재 | **ABox/TBox 분리** — `ontology/`(instance), `schema/`(type 정의) |
-| Obsidian 필터 | `path:ontology/` 에 relation 파일 혼재 | `schema/` 분리로 `path:ontology/` 필터 정합성 확보 |
-| Neo4j 확장 | 별도 매핑 작업 필요 | `schema/relation/*.yaml` → relationship type 직접 매핑 |
-| docs 구조 | 없음 | `docs/index/ · guides/ · templates/` 신설 |
-| 프리셋 | `obsidian-vault` 등 5종 | **`kb-structure` 프리셋 추가** — ABox/TBox 골격 자동 생성 |
-
-상세: [SPEC v0.1.1](../planning/markdown-scaffolding-multihop_v0.1.1-SPEC.md)
+| 문서 | 설명 |
+| ---- | ---- |
+| [빠른 시작](docs/guides/quickstart.md) | 설치, 지원 소스, 기본 명령어 |
+| [온톨로지 설정](docs/guides/ontology-config.md) | graph-ontology.yaml, Morphism Extension, 설정 파일 |
+| [KB 디렉토리 구조](docs/kb-directory-structure.md) | ABox/TBox 분리, ETL 흐름, 상태 모델, graph-config 연동 |
+| [KB 구축 흐름](docs/guides/kb-build-flows.md) | Top-Down / Bottom-Up 전략, 검증 깊이 루브릭, 루프 탈출 조건 |
+| [스킬 구성](docs/skills.md) | 전체 스킬 목록, 역할, 레퍼런스 링크 |
+| [Changelog](docs/changelog.md) | 전체 버전별 변경 이력 |
 
 ---
 
