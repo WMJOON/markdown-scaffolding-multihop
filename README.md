@@ -6,7 +6,7 @@ Graph + Vector 하이브리드 검색과 BFS 멀티홉 추론으로
 
 ---
 
-## 설계 철학: Evidence-first, Structure-second
+## 설계 철학: Evaluation First
 
 |  | 기존 Markdown KB | 이 프레임워크 |
 |--|-----------------|--------------|
