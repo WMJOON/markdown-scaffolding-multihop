@@ -1,4 +1,4 @@
-# markdown-scaffolding-multihop (v0.1.2)
+# markdown-scaffolding-multihop (v0.1.1)
 
 frontmatter + wikilink로 선언한 엔티티·관계를 그래프로 파싱하고,
 Graph + Vector 하이브리드 검색과 BFS 멀티홉 추론으로
