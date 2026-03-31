@@ -51,14 +51,17 @@ def build_frontmatter(title: str, links: list[str],
                       tags: list[str], extra: dict) -> dict:
     fm: dict = {
         "title":      title,
-        "entity":     "insight",
+        "type":       "insight",
         "date":       str(date.today()),
         "tags":       tags,
         "status":     "draft",
         "generated":  "Claude multihop",
     }
     if links:
-        fm["related_nodes"] = [f"[[{l.strip()}]]" for l in links if l.strip()]
+        fm["relations"] = [
+            {"type": "related-to", "target": f"[[{l.strip()}]]"}
+            for l in links if l.strip()
+        ]
     fm.update(extra)
     return fm
 

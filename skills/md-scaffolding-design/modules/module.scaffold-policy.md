@@ -24,8 +24,39 @@
 | `git-repo` | 일반 Git 레포 (README, docs, wiki 포함) |
 | `obsidian-vault` | Obsidian vault (entity 노드 + wikilink) |
 | `any-markdown` | 임의 Markdown 디렉토리 (최소 설정) |
+| `kb-structure` | Evidence → Ontology → Schema 계층 구조 (ABox/TBox 분리) |
 
 프리셋 + 분석 결과 병합 시: 프리셋 entity_dirs가 기본값, 분석 결과로 미발견 디렉토리 보완.
+
+### kb-structure 프리셋 상세
+
+`kb-structure` 프리셋은 다음 디렉토리 골격을 생성한다:
+
+```text
+[kb-name]/
+  ontology/          ← graph-config의 entity_dirs 루트
+    [concept]/       ← 각 concept 폴더 자동 생성 (분해 결과 기반)
+  schema/
+    relation/        ← relation type yaml 파일 위치
+    concept/         ← concept 메타 yaml 위치 (선택)
+  evidence/
+    [topic]/
+      sources/
+      notes/
+      claims/
+  context/
+    planning/
+    policies/
+    validation/
+  docs/
+    index/
+    guides/
+```
+
+graph-config.yaml 생성 시:
+- `entity_dirs`: `ontology/[concept]/` 패턴으로 설정
+- `exclude_dirs`: `schema/`, `context/`, `docs/` 포함 (graph traversal 제외)
+- `schema_dir`: `schema/relation/` 로 설정
 
 ## entity 타입 추론
 
