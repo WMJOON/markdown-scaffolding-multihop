@@ -6,13 +6,20 @@ Graph + Vector 하이브리드 검색과 BFS 멀티홉 추론으로
 
 ---
 
-## 설계 철학: Decision-Calibrated Validation
+## 설계 철학: Bounded Rationality, Calibrated Validation
 
-> 검증은 일괄적인 과정이 아니라,
-> 의사결정에 필요한 수준으로 정밀도를 조정해야 한다.
+> 우리는 언제나 제한된 정보와 시간 안에서 판단한다.
+> 즉, 모든 의사결정은 제한된 합리성(Bounded Rationality) 위에서 이루어진다.
 >
-> 이 프레임워크는 검증 깊이를 고정하지 않고,
-> Decision Quality를 기준으로 최적의 검증 전략을 선택한다.
+> markdown-scaffolding-multihop은 이 전제를 기반으로,
+> 무조건 깊은 검증이 아니라 인지 비용을 최소화하면서도 충분히 신뢰 가능한 판단을 가능하게 하는 구조를 지향한다.
+>
+> 이를 위해 검증 깊이를 고정하지 않고
+> Light · Medium · Deep 수준으로 조정 가능한 파라미터로 두며,
+> 문제의 스케일과 의사결정 중요도에 따라 최적의 검증 수준을 선택해야 한다.
+>
+> 이 접근은 불필요한 reasoning 비용을 줄이면서도
+> Decision Quality를 유지하거나 향상시키는 방향으로 작동한다.
 
 |  | 기존 Markdown KB | 이 프레임워크 |
 |--|-----------------|--------------|
