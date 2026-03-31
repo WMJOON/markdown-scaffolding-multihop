@@ -304,6 +304,22 @@ def main() -> None:
     report_p.add_argument("--run-id", required=True)
     report_p.add_argument("--root", default=str(_default_root()))
 
+    # --- credibility (N03) ---
+    from ralph.credibility.cli import register_credibility_subcommand
+    register_credibility_subcommand(sub)
+
+    # --- neo4j (M4) ---
+    from ralph.neo4j.cli import register_neo4j_subcommand
+    register_neo4j_subcommand(sub)
+
+    # --- dashboard (N07) ---
+    from ralph.monitor.dashboard import register_dashboard_subcommand
+    register_dashboard_subcommand(sub)
+
+    # --- platform runner (N01~N07) ---
+    from platform_runner import register_platform_subcommand
+    register_platform_subcommand(sub)
+
     args = parser.parse_args()
 
     step_map = {
@@ -315,7 +331,11 @@ def main() -> None:
         "seal": StepName.F_SEAL,
     }
 
-    if args.command == "run":
+    if hasattr(args, "func"):
+        # credibility 등 func= 방식으로 등록된 서브커맨드
+        args.root = getattr(args, "root", str(_default_root()))
+        sys.exit(args.func(args))
+    elif args.command == "run":
         if not args.resume and not args.manifest and not args.input_dir:
             parser.error("--manifest, --input-dir, or --resume is required")
         cmd_run(args)
