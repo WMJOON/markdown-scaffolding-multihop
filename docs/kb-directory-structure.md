@@ -89,4 +89,6 @@ Evidence 수집
 
 ## 관련 문서
 
-- 상세 명세: [`planning/markdown-scaffolding-multihop_v0.1.1-SPEC.md`](../../planning/markdown-scaffolding-multihop_v0.1.1-SPEC.md)
+- KB 구축 흐름 가이드: [`docs/guides/kb-build-flows.md`](guides/kb-build-flows.md)
+- 구조 명세 v0.1.1: [`planning/markdown-scaffolding-multihop_v0.1.1-SPEC.md`](../../planning/markdown-scaffolding-multihop_v0.1.1-SPEC.md)
+- Top-Down/Bottom-Up + 루브릭 명세 v0.1.2: [`planning/markdown-scaffolding-multihop_v0.1.2-SPEC.md`](../../planning/markdown-scaffolding-multihop_v0.1.2-SPEC.md)

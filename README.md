@@ -121,10 +121,11 @@ flowchart LR
 
 | 문서                                           | 설명                                             |
 | -------------------------------------------- | ---------------------------------------------- |
-| [빠른 시작](docs/guides/quickstart.md)           | 설치, 지원 소스, 기본 명령어                              |
-| [온톨로지 설정](docs/guides/ontology-config.md)    | graph-ontology.yaml, Morphism Extension, 설정 파일 |
-| [KB 디렉토리 구조](docs/kb-directory-structure.md) | ABox/TBox 분리, ETL 흐름, 상태 모델, graph-config 연동   |
-| [스킬 구성](docs/skills.md)                      | 전체 스킬 목록, 역할, 레퍼런스 링크                          |
+| [빠른 시작](docs/guides/quickstart.md)              | 설치, 지원 소스, 기본 명령어                                         |
+| [온톨로지 설정](docs/guides/ontology-config.md)     | graph-ontology.yaml, Morphism Extension, 설정 파일              |
+| [KB 디렉토리 구조](docs/kb-directory-structure.md)  | ABox/TBox 분리, ETL 흐름, 상태 모델, graph-config 연동              |
+| [KB 구축 흐름](docs/guides/kb-build-flows.md)      | Top-Down / Bottom-Up 전략, 검증 깊이 루브릭, 루프 탈출 조건          |
+| [스킬 구성](docs/skills.md)                       | 전체 스킬 목록, 역할, 레퍼런스 링크                                    |
 
 ---
 

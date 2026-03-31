@@ -115,11 +115,15 @@ Validation          status: draft → experimental → validated
 | `validated` | source-backed claim + relation 검증 완료 |
 | `deprecated` | 더 나은 node/structure로 대체됨 |
 
-**승격 최소 조건 (→ validated):**
-- source note 1개 이상
-- 핵심 claim의 evidence trace 확보
-- relation 방향 확인
-- `context/validation/` 에 validation pack 존재 권장
+**승격 조건:**
+
+| 전환 | 최소 조건 |
+|------|---------|
+| `draft → experimental` | source 1개 이상 + evidence trace 확보 |
+| `experimental → validated` | 독립 source 2개 이상 + relation 방향 확인 + `context/validation/` pack 존재 |
+
+> KB 구축 흐름(Top-Down / Bottom-Up), 검증 깊이 루브릭, 루프 탈출 조건은
+> [`docs/guides/kb-build-flows.md`](../../docs/guides/kb-build-flows.md) 참조.
 
 ---
 
