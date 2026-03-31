@@ -1,4 +1,4 @@
-# markdown-scaffolding-multihop (v0.1.1)
+# markdown-scaffolding-multihop (v0.1.2)
 
 frontmatter + wikilink로 선언한 엔티티·관계를 그래프로 파싱하고,
 Graph + Vector 하이브리드 검색과 BFS 멀티홉 추론으로
@@ -126,6 +126,21 @@ flowchart LR
 | [KB 디렉토리 구조](docs/kb-directory-structure.md)  | ABox/TBox 분리, ETL 흐름, 상태 모델, graph-config 연동              |
 | [KB 구축 흐름](docs/guides/kb-build-flows.md)      | Top-Down / Bottom-Up 전략, 검증 깊이 루브릭, 루프 탈출 조건          |
 | [스킬 구성](docs/skills.md)                       | 전체 스킬 목록, 역할, 레퍼런스 링크                                    |
+
+---
+
+## v0.1.2 변경 이력
+
+> KB 구축 흐름(Top-Down / Bottom-Up)과 최적화 루브릭을 도입한 릴리스.
+
+| 개선 영역 | 이전 | v0.1.2 |
+|-----------|------|--------|
+| 구축 전략 | 흐름 미정의 | **Top-Down / Bottom-Up** 전략 선택 기준 + 절차 문서화 |
+| 토큰 최적화 | 없음 | **Light/Medium/Deep 검증 깊이** 루브릭 + 강제 종료 조건 |
+| 상태 승격 조건 | `→ validated` 단일 기준 | `draft → experimental → validated` 단계별 조건 분리 |
+| 문서 | `docs/guides/` 2종 | **`kb-build-flows.md` 추가** — 흐름·루브릭·루프 탈출 통합 |
+
+상세: [SPEC v0.1.2](../planning/markdown-scaffolding-multihop_v0.1.2-SPEC.md)
 
 ---
 
