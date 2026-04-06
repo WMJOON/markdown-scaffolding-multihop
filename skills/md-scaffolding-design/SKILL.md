@@ -1,21 +1,22 @@
 ---
 name: md-scaffolding-design
-description: >
+description: >-
   로컬 Markdown 디렉토리 또는 GitHub repo에 멀티홉 추론 구조를 설계하고 저장하는 스캐폴딩 워크플로우.
-  md-graph-multihop의 companion 스킬로, "조회/추론"이 아니라 "구조 설계 + 저장"을 담당한다.
-  KB 디렉토리 구조 원칙(ontology/ ABox + schema/ TBox + evidence/ + context/ + docs/)을 기반으로,
-  Evidence → Ontology ETL → Node Link → Validation 흐름에 따라 지식 구조를 초기화·확장한다.
-  KB 구축 전략으로 Top-Down(structure-first)과 Bottom-Up(evidence-first) 두 흐름을 지원하며,
-  노드 유형별 검증 깊이(Light/Medium/Deep) 루브릭과 루프 탈출 조건으로 토큰 낭비를 방지한다.
-  (1) 프로젝트 디렉토리/GitHub repo를 분석해 graph-config.yaml을 자동 생성하거나,
-  (2) personal-memory·github-docs·git-repo·obsidian-vault·kb-structure 등 프리셋으로 즉시 구조를 초기화하거나,
-  (3) Claude의 멀티홉 추론 결과를 wikilink가 연결된 md 인사이트 노드로 저장할 때 사용한다.
-  Obsidian path:ontology/ 필터 및 Neo4j 확장을 염두에 둔 ABox/TBox 분리 구조를 지원한다.
-  트리거 예시: "이 레포에 GraphRAG 구조 만들어줘", "멀티홉용 config 생성해줘",
-  "추론 결과를 노드로 저장해줘", "graph-config 자동 생성해줘", "git repo에 그래프 구조 세팅해줘",
-  "온톨로지 설계해줘", "Entity 정의해줘", "top-down 분해해줘", "KB 구조 초기화해줘",
-  "evidence 폴더 만들어줘", "schema 정의해줘",
-  "탑다운으로 KB 만들어줘", "바텀업으로 구성해줘", "검증 깊이 정해줘", "루브릭 적용해줘".
+    md-graph-multihop의 companion 스킬로, "조회/추론"이 아니라 "구조 설계 + 저장"을 담당한다.
+    KB 디렉토리 구조 원칙(ontology/ ABox + schema/ TBox + evidence/ + context/ + docs/)을 기반으로,
+    Evidence → Ontology ETL → Node Link → Validation 흐름에 따라 지식 구조를 초기화·확장한다.
+    KB 구축 전략으로 Top-Down(structure-first)과 Bottom-Up(evidence-first) 두 흐름을 지원하며,
+    노드 유형별 검증 깊이(Light/Medium/Deep) 루브릭과 루프 탈출 조건으로 토큰 낭비를 방지한다.
+    KB 유지보수(rewrite loop)는 별도 스킬 md-kb-rewrite가 담당한다.
+    (1) 프로젝트 디렉토리/GitHub repo를 분석해 graph-config.yaml을 자동 생성하거나,
+    (2) personal-memory·github-docs·git-repo·obsidian-vault·kb-structure 등 프리셋으로 즉시 구조를 초기화하거나,
+    (3) Claude의 멀티홉 추론 결과를 wikilink가 연결된 md 인사이트 노드로 저장할 때 사용한다.
+    Obsidian path:ontology/ 필터 및 Neo4j 확장을 염두에 둔 ABox/TBox 분리 구조를 지원한다.
+    트리거 예시: "이 레포에 GraphRAG 구조 만들어줘", "멀티홉용 config 생성해줘",
+    "추론 결과를 노드로 저장해줘", "graph-config 자동 생성해줘", "git repo에 그래프 구조 세팅해줘",
+    "온톨로지 설계해줘", "Entity 정의해줘", "top-down 분해해줘", "KB 구조 초기화해줘",
+    "evidence 폴더 만들어줘", "schema 정의해줘", "탑다운으로 KB 만들어줘", "바텀업으로 구성해줘",
+    "검증 깊이 정해줘", "루브릭 적용해줘".
 ---
 
 # md-scaffolding-design
@@ -124,3 +125,100 @@ save_insight.py → insights/날짜_제목.md (wikilink 포함)
         ↓
 [다음 추론]  새 노드가 그래프에 포함 → 더 깊은 멀티홉 가능
 ```
+
+---
+
+## 워크플로우 C — KB 유지보수 (Heuristic Rewrite Loop)
+
+KB가 만들어진 이후 entropy가 누적될 때 사용한다.
+
+> 상세 실행 규칙: `modules/module.kb-rewrite-loop.md`
+
+### 언제 트리거하나
+
+- "이 노트 점검해줘" / "KB 품질 확인해줘" / "낡은 노트 찾아줘"
+- 새 evidence 추가 후 기존 노드 업데이트 필요 시
+- 팀 공유 전 가독성 개선 필요 시
+- ontology 변경 후 연관 노드 일관성 확인 시
+
+### 실행 흐름
+
+```
+[대상 노드 또는 디렉토리 지정]
+        ↓
+[Detect] — H-A~H-G heuristic 스캔
+        ↓
+[Diagnose] — rewrite type 분류 (위험도 Low/Medium/High)
+        ↓
+[Draft] — rationale 포함한 controlled rewrite
+        ↓
+[Review] — Low: 자동 반영 / High: human review 요청
+        ↓
+[Merge] — in-place / variant / sidecar note 선택
+        ↓
+[Observe] — context/rewrite-log/ 기록 (선택)
+```
+
+### 모듈 참조
+
+- `modules/module.kb-rewrite-loop.md` — heuristic 표, rewrite type 분류, merge 정책, log 포맷
+
+---
+
+> **⚠️ 스킬 분리 안내 (2026-04-07)**
+> 워크플로우 C (KB 유지보수 / Heuristic Rewrite Loop)는 **`md-kb-rewrite` 스킬**로 분리됐습니다.
+> "KB 품질 점검해줘", "노트 개선이 필요해", "rewrite해줘" 등의 요청은 `md-kb-rewrite`를 사용하세요.
+> 위의 워크플로우 C 섹션은 참고용으로 남겨두되, 실제 실행 규칙은 `skills/md-kb-rewrite/SKILL.md`를 따릅니다.
+
+---
+
+## 워크플로우 D — Raw → Wiki 컴파일 (Karpathy ingest flow)
+
+> Karpathy: "I index source documents into a raw/ directory, then use an LLM to incrementally compile a wiki."
+
+raw/ 디렉토리에 소스 문서(논문, 기사, 클리핑, 이미지 등)가 쌓였을 때,
+LLM이 이를 구조화된 wiki 노드로 컴파일하는 흐름이다.
+기존 Bottom-Up flow의 **자동화 버전**이다.
+
+### 언제 트리거하나
+
+- "raw 폴더를 wiki로 변환해줘"
+- "소스 문서들을 KB로 컴파일해줘"
+- "클리핑한 문서들 정리해줘"
+- "새로 수집한 자료들 KB에 넣어줘"
+- "ingest해줘"
+
+### 실행 흐름
+
+```
+raw/ 디렉토리 스캔
+  → 각 소스 문서 읽기 (md, pdf, html 클리핑 등)
+  → 문서별로:
+      1. 핵심 개념 추출 (ollama_extract_concepts 활용 가능)
+      2. 요약 생성 (ollama_summarize 활용 가능)
+      3. 기존 ontology 노드와 매핑 — 새 concept이면 stub 생성
+      4. evidence/ 에 source note 저장
+      5. wikilink로 ontology 노드와 연결
+  → index 파일 업데이트
+  → 새로 생성된 노드 목록 보고
+```
+
+### 출력 규칙
+
+- 기존 노드가 있으면: evidence 추가 + H-E 트리거 (md-kb-rewrite로 위임)
+- 신규 개념이면: `ontology/[concept]/` 에 stub 노드 생성 (status: draft)
+- 모호하면: 후보 목록만 제시하고 human 결정 대기
+
+### ollama 활용
+
+| 작업 | 도구 |
+|------|------|
+| 소스 문서 요약 | `ollama_summarize` |
+| 개념 추출 | `ollama_extract_concepts` |
+| 노드 초안 | `ollama_draft_note` |
+| Claude 전담 | 기존 ontology와의 매핑, 새 concept 판단, wikilink 설계 |
+
+### 관련 스킬
+
+- `md-kb-rewrite` H-E: 기존 노드에 evidence가 추가된 경우 freshness 체크
+- `md-kb-rewrite` H-X: 컴파일 후 connection candidate 탐색
