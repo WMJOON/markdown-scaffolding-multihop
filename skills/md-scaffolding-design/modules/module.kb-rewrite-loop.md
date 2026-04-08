@@ -29,7 +29,7 @@ Claude가 아래 heuristic 기준으로 후보 노드를 찾는다.
 | H-D | Link Mismatch | 연결된 노드끼리 설명 구조가 안 맞음, ontology 변경 후 article은 예전 표현 유지 | cross-note consistency rewrite |
 | H-E | Evidence Freshness | 새 evidence가 들어왔지만 본문이 업데이트 안 됨 | evidence-integrating rewrite |
 | H-F | Readability | block 과도 쪼개짐, bold/heading/list 과다, 팀 공유용인데 너무 압축적 | readability rewrite, format rewrite |
-| H-G | Semantic Bias | single framing 고착, uncertainty 삭제, alternative framing 부재 | framing rewrite, bias mitigation rewrite |
+| H-G | Semantic Bias | single framing 고착 → 대표 해석화 증폭; uncertainty·option 소실; **semantic trace 소실**(어떤 카테고리·relation rule 적용됨지 불명); **hand-back 불가** | framing rewrite, bias mitigation rewrite |
 
 **스캔 방법:**
 - 특정 노드 지정: "이 노트 점검해줘" → 해당 노드에 적용 가능한 heuristic 전수 체크
@@ -77,6 +77,23 @@ Claude가 draft를 생성할 때 반드시 포함해야 할 항목:
 
 이 rationale은 Review 단계에서 human이 판단하는 근거가 되고,
 Sidecar note 방식으로 저장할 경우 그대로 활용된다.
+
+---
+
+## H-G Framing Rewrite -- 출력 구조
+
+H-G가 발화된 경우, draft는 아래 요소를 포함해야 한다.
+
+| 요소 | 설명 |
+|------|------|
+| **Multi-framing block** | 같은 내용을 2개 이상 관점으로 병렬 제시 |
+| **Uncertainty markers** | 불확실한 부분, 혼재된 evidence, 미해결 이슈 명시 |
+| **Semantic trace note** | 적용된 framing 원칙·카테고리·relation rule, 전경/배경 분류 |
+| **Option inventory** | primary + secondary + 눈중 낙지만 reviewable + 제외되었지만 reviewable |
+| **Hand-back pointer** | 원 source 링크 또는 다른 관점 재진입 경로 |
+
+> framing rewrite의 목표는 판단을 뒤어 줌는 것이 아니라 검토 가능한 판단 보조이다.
+
 
 ---
 
