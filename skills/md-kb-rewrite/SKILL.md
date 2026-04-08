@@ -91,9 +91,11 @@ When auditing a note or note cluster, look for these signals:
 - structurally correct but hard to read
 
 ### 7. Semantic framing risk
-- single framing lock-in
-- uncertainty collapse
-- option collapse
+- **single framing lock-in**: one framing dominates repeatedly, becomes default interpretation; alternatives stop being considered (decision bias amplification)
+- **uncertainty collapse**: ambiguity, mixed evidence, or unresolved issues erased during semantic compression
+- **option collapse**: secondary options, low-weight-but-reviewable, and excluded-but-reviewable options not preserved
+- **semantic trace erasure**: which categories/relation rules applied and what was foregrounded vs omitted -- not recoverable
+- **hand-back impossibility**: reader cannot re-examine from alternative framing or return to source
 - claim/evidence boundary blur
 - premature ontology elevation
 
@@ -151,8 +153,12 @@ Before finalizing a rewrite, check:
 - Did it blur evidence and interpretation?
 - Did it make a concept sound more settled than the sources justify?
 - Did it accidentally erase provenance or reviewability?
+- Did it erase **semantic trace** -- framing principles, category choices, relation rules applied, and what was foregrounded vs omitted?
+- Did it collapse **option diversity** -- secondary, low-weight-but-reviewable, excluded-but-reviewable options still present?
+- Does the result allow **decision hand-back** -- can reader re-examine from alternative framing or trace back to source?
+- If only one framing remains, should a **parallel framing block** be added?
 
-If yes, prefer a draft variant plus explanation over direct replacement.
+If yes to any of these, prefer a draft variant plus explanation over direct replacement.
 
 ## Output modes
 
@@ -266,3 +272,5 @@ When H-X fires:
 Triggers: "새 article 후보 찾아줘", "연결 안 된 개념 찾아줘", "KB에서 놓친 게 있나", "interesting connections 찾아줘", "synthesis 기회 찾아줘", "gap 분석해줘"
 
 ollama_mcp 연동: `ollama_extract_concepts`로 여러 노드에서 개념 목록 추출 → Claude가 교차 분석해 gap 후보 도출.
+
+**ollama 사용 불가 시 fallback:** ollama_mcp 미연결 또는 오류 시, Claude가 노드 본문을 직접 읽어 개념 목록을 추출한 뒤 교차 분석한다. 처리 대상 노드 수를 5개 이내로 제한하거나, 키워드 검색(obsidian_simple_search 등)으로 사전 필터링해 토큰 낭비를 방지한다.

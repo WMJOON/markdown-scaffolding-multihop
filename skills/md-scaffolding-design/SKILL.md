@@ -218,6 +218,20 @@ raw/ 디렉토리 스캔
 | 노드 초안 | `ollama_draft_note` |
 | Claude 전담 | 기존 ontology와의 매핑, 새 concept 판단, wikilink 설계 |
 
+### ollama 사용 불가 시 fallback
+
+ollama_mcp 연결이 없거나 tool 호출이 실패하면 Claude가 직접 처리한다.
+
+| 작업 | ollama 사용 시 | fallback (Claude 직접) |
+|------|--------------|----------------------|
+| 소스 문서 요약 | `ollama_summarize` | Claude가 문서 직접 읽고 요약 |
+| 개념 추출 | `ollama_extract_concepts` | Claude가 텍스트 분석 후 개념 목록 추출 |
+| 노드 초안 | `ollama_draft_note` | Claude가 frontmatter + 본문 직접 작성 |
+
+**감지 기준:** ollama_mcp 도구 호출 시 오류 반환 또는 MCP 서버 미연결 상태.
+**제한사항:** 대량 문서(10개 이상) 배치 처리 시 토큰 비용 증가. 처리 파일 수를 줄이거나 요약 깊이를 낮춰서 진행한다.
+
+
 ### 관련 스킬
 
 - `md-kb-rewrite` H-E: 기존 노드에 evidence가 추가된 경우 freshness 체크
