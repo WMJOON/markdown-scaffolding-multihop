@@ -107,7 +107,7 @@ class RunConfig:
     input_format: str = InputFormat.TSV
     scope_targets: List[str] = field(default_factory=list)  # 대상 entity type 직접 지정
     file_extensions: List[str] = field(      # local 모드에서 스캔할 확장자
-        default_factory=lambda: [".md", ".txt", ".html"]
+        default_factory=lambda: [".md", ".txt", ".html", ".pdf"]
     )
     embed_mode: str = EmbedMode.AUTO
     bert_model: str = "sentence-transformers/all-MiniLM-L6-v2"

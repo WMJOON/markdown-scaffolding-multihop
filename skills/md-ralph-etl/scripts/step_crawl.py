@@ -12,6 +12,7 @@ from typing import Dict, List
 
 from ralph.common import DocIndex, RunConfig, RunState, URLEntry
 from ralph.scrapling_fetcher import fetch_with_scrapling
+from ralph.step_pdf import build_pdf_md, convert_pdf_to_md, download_pdf, is_pdf_url
 from ralph.yaml_io import dump_yaml, load_yaml, read_jsonl, write_jsonl
 
 
@@ -209,6 +210,7 @@ def run_crawl(
         doc_id = entry.case_id
         md_path = raw_dir / f"{doc_id}.md"
         html_path = raw_dir / f"{doc_id}.html"
+        pdf_path = raw_dir / f"{doc_id}.pdf"
 
         # handle local files (file:// URLs from local/directory mode)
         if entry.normalized_url.startswith("file://"):
@@ -223,6 +225,52 @@ def run_crawl(
                 from dataclasses import asdict
                 doc_indexes.append(asdict(idx))
                 success += 1
+            continue
+
+        # PDF URL 처리 — HTML 크롤 경로와 완전히 분리
+        if is_pdf_url(entry.url):
+            if not apply:
+                print(f"  [dry-run] would fetch PDF: {entry.url}")
+                success += 1
+                continue
+
+            if md_path.exists() and (pdf_path.exists() or not entry.url):
+                print(f"  [cached] {doc_id} (pdf)")
+                md_text = md_path.read_text(encoding="utf-8")
+                idx = build_doc_index(doc_id, entry.title, md_text, entry.source_type)
+                from dataclasses import asdict
+                doc_indexes.append(asdict(idx))
+                success += 1
+                continue
+
+            status_code, resolved_url = download_pdf(
+                entry.url, pdf_path, config.http_timeout
+            )
+            if status_code >= 400:
+                print(f"  [skip] {doc_id}: HTTP {status_code}")
+                failed += 1
+                continue
+
+            body_md = convert_pdf_to_md(pdf_path)
+            if body_md is None:
+                print(f"  [skip] {doc_id}: PDF 변환 실패 — "
+                      "Java 11+(opendataloader-pdf) 또는 pymupdf4llm 필요")
+                failed += 1
+                continue
+
+            full_md = build_pdf_md(entry, resolved_url, status_code, body_md)
+            md_path.write_text(full_md, encoding="utf-8")
+
+            idx = build_doc_index(doc_id, entry.title, body_md, entry.source_type)
+            from dataclasses import asdict
+            idx_dict = asdict(idx)
+            doc_indexes.append(idx_dict)
+
+            idx_path = index_dir / f"{doc_id}.yaml"
+            idx_path.write_text(dump_yaml(idx_dict), encoding="utf-8")
+
+            print(f"  [ok] {doc_id} (pdf, {len(body_md)} chars)")
+            success += 1
             continue
 
         # skip if already crawled (idempotency)
