@@ -1,22 +1,6 @@
 ---
 name: md-scaffolding-design
-description: >-
-  로컬 Markdown 디렉토리 또는 GitHub repo에 멀티홉 추론 구조를 설계하고 저장하는 스캐폴딩 워크플로우.
-    md-graph-multihop의 companion 스킬로, "조회/추론"이 아니라 "구조 설계 + 저장"을 담당한다.
-    KB 디렉토리 구조 원칙(ontology/ ABox + schema/ TBox + evidence/ + context/ + docs/)을 기반으로,
-    Evidence → Ontology ETL → Node Link → Validation 흐름에 따라 지식 구조를 초기화·확장한다.
-    KB 구축 전략으로 Top-Down(structure-first)과 Bottom-Up(evidence-first) 두 흐름을 지원하며,
-    노드 유형별 검증 깊이(Light/Medium/Deep) 루브릭과 루프 탈출 조건으로 토큰 낭비를 방지한다.
-    KB 유지보수(rewrite loop)는 별도 스킬 md-kb-rewrite가 담당한다.
-    (1) 프로젝트 디렉토리/GitHub repo를 분석해 graph-config.yaml을 자동 생성하거나,
-    (2) personal-memory·github-docs·git-repo·obsidian-vault·kb-structure 등 프리셋으로 즉시 구조를 초기화하거나,
-    (3) Claude의 멀티홉 추론 결과를 wikilink가 연결된 md 인사이트 노드로 저장할 때 사용한다.
-    Obsidian path:ontology/ 필터 및 Neo4j 확장을 염두에 둔 ABox/TBox 분리 구조를 지원한다.
-    트리거 예시: "이 레포에 GraphRAG 구조 만들어줘", "멀티홉용 config 생성해줘",
-    "추론 결과를 노드로 저장해줘", "graph-config 자동 생성해줘", "git repo에 그래프 구조 세팅해줘",
-    "온톨로지 설계해줘", "Entity 정의해줘", "top-down 분해해줘", "KB 구조 초기화해줘",
-    "evidence 폴더 만들어줘", "schema 정의해줘", "탑다운으로 KB 만들어줘", "바텀업으로 구성해줘",
-    "검증 깊이 정해줘", "루브릭 적용해줘".
+description: Markdown 디렉토리/GitHub repo에 멀티홉 추론 구조를 설계·저장하는 스캐폴딩 워크플로우. md-graph-multihop의 companion 스킬로 KB 초기화, 구조 설계, 추론 결과 저장을 담당한다.
 ---
 
 # md-scaffolding-design

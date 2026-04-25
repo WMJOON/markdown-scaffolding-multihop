@@ -110,8 +110,8 @@ def run(
         lines.append(pd.DataFrame(pairs).to_markdown(index=False) + "\n")
         high = [p for p in pairs if abs(p["상관계수"]) >= 0.9]
         if high:
-            lines.append(f"\n> ⚠️ 다중공선성 주의 (|r| ≥ 0.9): "
-                         f"{', '.join(f'{p[\"변수1\"]}↔{p[\"변수2\"]}' for p in high)}\n")
+            high_pairs = ', '.join(f"{p['변수1']}↔{p['변수2']}" for p in high)
+            lines.append(f"\n> ⚠️ 다중공선성 주의 (|r| ≥ 0.9): {high_pairs}\n")
     else:
         lines.append("강한 상관 쌍 없음 (|r| < 0.7)\n")
 

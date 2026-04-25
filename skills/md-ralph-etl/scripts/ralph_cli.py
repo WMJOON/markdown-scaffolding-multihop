@@ -101,9 +101,6 @@ def _register_all_steps() -> None:
     from ralph.step_crawl import run_crawl
     from ralph.step_preprocess import run_preprocess
     from ralph.step_parse import run_parse
-    from ralph.step_concept_map import run_concept_map
-    from ralph.step_deduplicate import run_deduplicate
-    from ralph.step_validate import run_validate
     from ralph.step_placement import run_placement
     from ralph.step_seal import run_seal
 
@@ -111,9 +108,24 @@ def _register_all_steps() -> None:
     register_step(StepName.B_CRAWL, run_crawl)
     register_step(StepName.C_PREPROCESS, run_preprocess)
     register_step(StepName.D_PARSE, run_parse)
-    register_step(StepName.E_CONCEPT_MAP, run_concept_map)
-    register_step(StepName.F_DEDUPLICATE, run_deduplicate)
-    register_step(StepName.G_VALIDATE, run_validate)
+
+    # v0.1 추가 스텝 — semantic-atlas 전용, 미설치 시 skip
+    try:
+        from ralph.step_concept_map import run_concept_map
+        register_step(StepName.E_CONCEPT_MAP, run_concept_map)
+    except ImportError:
+        pass
+    try:
+        from ralph.step_deduplicate import run_deduplicate
+        register_step(StepName.F_DEDUPLICATE, run_deduplicate)
+    except ImportError:
+        pass
+    try:
+        from ralph.step_validate import run_validate
+        register_step(StepName.G_VALIDATE, run_validate)
+    except ImportError:
+        pass
+
     register_step(StepName.H_PLACE, run_placement)
     register_step(StepName.I_SEAL, run_seal)
     # legacy aliases
@@ -294,6 +306,19 @@ def main() -> None:
         sp.add_argument("--input-dir", default="")
         _add_common_args(sp)
 
+    # --- sidecar ---
+    sc_p = sub.add_parser("sidecar", help="run의 PDF raw에 ollama sidecar 생성 (비동기)")
+    sc_p.add_argument("--run-id", required=True)
+    sc_p.add_argument("--root", default=str(_default_root()))
+    sc_p.add_argument("--model", default="gemma4:e4b")
+
+    # --- publish ---
+    pub_p = sub.add_parser("publish", help="archive → KB evidence 폴더로 publish")
+    pub_p.add_argument("--run-id", required=True, help="publish할 run ID")
+    pub_p.add_argument("--evidence-dir", required=True, help="KB evidence 폴더 경로")
+    pub_p.add_argument("--root", default=str(_default_root()))
+    pub_p.add_argument("--overwrite", action="store_true", help="기존 디렉토리 덮어쓰기")
+
     # --- status ---
     status_p = sub.add_parser("status", help="Show run status")
     status_p.add_argument("--run-id", required=True)
@@ -304,21 +329,33 @@ def main() -> None:
     report_p.add_argument("--run-id", required=True)
     report_p.add_argument("--root", default=str(_default_root()))
 
-    # --- credibility (N03) ---
-    from ralph.credibility.cli import register_credibility_subcommand
-    register_credibility_subcommand(sub)
+    # --- credibility (N03) — semantic-atlas 전용, 미설치 시 skip ---
+    try:
+        from ralph.credibility.cli import register_credibility_subcommand
+        register_credibility_subcommand(sub)
+    except ImportError:
+        pass
 
     # --- neo4j (M4) ---
-    from ralph.neo4j.cli import register_neo4j_subcommand
-    register_neo4j_subcommand(sub)
+    try:
+        from ralph.neo4j.cli import register_neo4j_subcommand
+        register_neo4j_subcommand(sub)
+    except ImportError:
+        pass
 
     # --- dashboard (N07) ---
-    from ralph.monitor.dashboard import register_dashboard_subcommand
-    register_dashboard_subcommand(sub)
+    try:
+        from ralph.monitor.dashboard import register_dashboard_subcommand
+        register_dashboard_subcommand(sub)
+    except ImportError:
+        pass
 
     # --- platform runner (N01~N07) ---
-    from platform_runner import register_platform_subcommand
-    register_platform_subcommand(sub)
+    try:
+        from platform_runner import register_platform_subcommand
+        register_platform_subcommand(sub)
+    except ImportError:
+        pass
 
     args = parser.parse_args()
 
@@ -335,6 +372,33 @@ def main() -> None:
         # credibility 등 func= 방식으로 등록된 서브커맨드
         args.root = getattr(args, "root", str(_default_root()))
         sys.exit(args.func(args))
+    elif args.command == "sidecar":
+        from ralph.step_pdf import generate_sidecar
+        root = Path(args.root)
+        raw_dir = root / RUNS_ARCHIVE_DIR / args.run_id / "evidence_corpus" / "raw"
+        if not raw_dir.exists():
+            print(f"[Sidecar] raw dir 없음: {raw_dir}"); sys.exit(1)
+        md_files = sorted(f for f in raw_dir.glob("*.md")
+                          if not f.stem.endswith("-overview"))
+        print(f"[Sidecar] {args.run_id}: {len(md_files)}개 문서 처리 시작")
+        for md_path in md_files:
+            doc_id = md_path.stem
+            body_md = md_path.read_text(encoding="utf-8")
+            # frontmatter 제거 후 본문만 넘김
+            if body_md.startswith("---"):
+                parts = body_md.split("---", 2)
+                body_md = parts[2] if len(parts) >= 3 else body_md
+            generate_sidecar(doc_id, body_md, raw_dir, model=args.model)
+        print(f"[Sidecar] 완료")
+    elif args.command == "publish":
+        from ralph.publish_evidence import publish_run
+        root = Path(args.root)
+        publish_run(
+            run_id=args.run_id,
+            runs_archive_dir=root / RUNS_ARCHIVE_DIR,
+            evidence_dir=Path(args.evidence_dir),
+            overwrite=args.overwrite,
+        )
     elif args.command == "run":
         if not args.resume and not args.manifest and not args.input_dir:
             parser.error("--manifest, --input-dir, or --resume is required")

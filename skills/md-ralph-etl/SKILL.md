@@ -27,8 +27,11 @@ Ralph형 업무를 수행할 때 **반드시 3-Phase 프로토콜**을 따른다
 ## 전제 조건
 
 - Python 3.10+
-- `curl`, `pandoc` (full 모드 크롤링 시)
+- `curl`, `pandoc` (full 모드 HTML 크롤링 시)
 - `01_ontology-data/graph-ontology.yaml` 존재
+- PDF 처리 (선택):
+  - `opendataloader-pdf` + Java 11+: `pip install opendataloader-pdf` (품질 최상)
+  - `pymupdf4llm`: `pip install pymupdf4llm` (순수 Python fallback)
 
 ## 스크립트
 
@@ -38,7 +41,8 @@ Ralph형 업무를 수행할 때 **반드시 3-Phase 프로토콜**을 따른다
 └── ralph/
     ├── coordinator.py           # 상태 머신 오케스트레이터
     ├── step_intake.py           # A. URL/파일 정규화, dedup, 배치
-    ├── step_crawl.py            # B. curl+pandoc 크롤링
+    ├── step_crawl.py            # B. curl+pandoc 크롤링 / PDF 다운로드 분기
+    ├── step_pdf.py              # B'. PDF 다운로드 + opendataloader/pymupdf4llm 변환
     ├── step_preprocess.py       # C. 헤딩 경계 청킹 엔진
     ├── step_parse.py            # D. 규칙+패턴 엔티티/관계 추출
     ├── step_placement.py        # E. 2단계 유사도 그래프 위치 판정
@@ -82,6 +86,21 @@ python3 tools/ralph_cli.py run \
   --scope CaseStudy,Model \
   --apply
 ```
+
+### 시나리오 1b — arxiv PDF URL에서 엔티티 수집
+
+```bash
+# sources.jsonl 예시:
+# {"url":"https://arxiv.org/pdf/2312.10997","title":"Mamba","source_type":"paper"}
+
+python3 tools/ralph_cli.py run \
+  --manifest sources.jsonl \
+  --scope Model,Dataset \
+  --apply
+```
+
+Step B에서 자동으로 PDF 경로를 타며, 원문을 최대한 보존한 채 저장합니다.  
+`evidence_corpus/raw/{doc_id}.pdf` (원본) + `{doc_id}.md` (변환본) 두 파일 모두 저장.
 
 ### 시나리오 2 — 로컬 논문 디렉토리에서 Model 추출
 
