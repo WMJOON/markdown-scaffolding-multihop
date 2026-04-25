@@ -277,8 +277,97 @@ _FAMILY_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+# ---------------------------------------------------------------------------
+# Concept extraction — dictionary + fallback pattern
+# ---------------------------------------------------------------------------
+
+_KNOWN_CONCEPT_NAMES: List[str] = [
+    # Memory types (cognitive science taxonomy)
+    "Short-Term Memory", "Long-Term Memory", "Working Memory",
+    "Episodic Memory", "Semantic Memory", "Procedural Memory",
+    "Sensory Memory", "Declarative Memory",
+    # Agent memory taxonomy (functional)
+    "Factual Memory", "Experiential Memory",
+    "Token-Level Memory", "Parametric Memory", "Latent Memory",
+    # Memory operations
+    "Memory Consolidation", "Memory Retrieval", "Memory Formation",
+    "Memory Evolution", "Memory Automation", "Memory Compaction",
+    "Context Compression", "Memory Reflection",
+    # Architecture concepts
+    "Virtual Context Management", "Hierarchical Memory",
+    "Memory Hierarchy", "Context Window Management",
+    "In-Context Memory", "Out-of-Context Memory",
+    "Memory Buffer", "Memory Tier",
+    # Retrieval / search
+    "Similarity Search", "Embedding-Based Retrieval",
+    "Adaptive Retrieval Gating", "Retention Regularization",
+    # Multi-agent
+    "Multi-Agent Memory", "Shared Memory", "Collective Memory",
+    # Learning / adaptation
+    "Single-Shot Learning", "Continual Learning",
+    "Self-Evolving Memory", "Memory Reinforcement Learning",
+    # Multimodal
+    "Multimodal Memory",
+    # Trust / safety
+    "Memory Trustworthiness", "Memory Privacy",
+]
+
+_KNOWN_CONCEPT_NAMES_SORTED = sorted(_KNOWN_CONCEPT_NAMES, key=len, reverse=True)
+_KNOWN_CONCEPT_RE = re.compile(
+    r"\b(" + "|".join(re.escape(n) for n in _KNOWN_CONCEPT_NAMES_SORTED) + r")\b",
+    re.IGNORECASE,
+)
+
+# Fallback: "X memory" pattern for undiscovered concepts
+_CONCEPT_PATTERN_FALLBACK = re.compile(
+    r"\b((?:[A-Z][a-z]+[\-\s]){0,2}[A-Z][a-z]+)\s+"
+    r"(?:memory|memories)\b",
+)
+
+# ---------------------------------------------------------------------------
+# Framework extraction — dictionary + fallback pattern
+# ---------------------------------------------------------------------------
+
+_KNOWN_FRAMEWORK_NAMES: List[str] = [
+    # Memory frameworks
+    "MemGPT", "A-MEM", "Letta", "LangMem",
+    "MAGMA", "EverMemOS", "MemRL", "MemEvolve",
+    # Agent frameworks with memory
+    "LangChain", "LangGraph", "AutoGen", "CrewAI",
+    "BabyAGI", "AgentGPT", "MetaGPT",
+    # Memory-specific systems
+    "Mem0", "Zep", "Motorhead",
+    "Zettelkasten",
+    # Retrieval / RAG
+    "RAG", "Retrieval-Augmented Generation",
+    "GraphRAG", "HyDE",
+]
+
+_KNOWN_FRAMEWORK_NAMES_SORTED = sorted(_KNOWN_FRAMEWORK_NAMES, key=len, reverse=True)
+_KNOWN_FRAMEWORK_RE = re.compile(
+    r"\b(" + "|".join(re.escape(n) for n in _KNOWN_FRAMEWORK_NAMES_SORTED) + r")\b",
+)
+
+# Fallback: "propose/present X framework/system/architecture"
+# Requires first captured word to start with uppercase and be ≥3 chars (filters "a", "an", "the")
+_FRAMEWORK_PATTERN_FALLBACK = re.compile(
+    r"(?:propose[sd]?|present[s]?|introduce[sd]?|develop[s]?)\s+"
+    r"(?:a\s+)?(?:novel\s+)?(?:new\s+)?"
+    r"([A-Z][A-Za-z0-9\-]{2,25}(?:\s+[A-Z][a-zA-Z0-9\-]+){0,2})"
+    r"(?=\s*,|\s+(?:framework|system|architecture|platform|method|approach|mechanism))",
+    re.IGNORECASE,
+)
+
+# Concept names that are too generic and should be filtered from fallback pattern
+_CONCEPT_GENERIC_STOPWORDS = {
+    "current", "this", "that", "their", "our", "its", "other",
+    "new", "recent", "existing", "traditional", "various",
+    "main", "key", "core", "basic", "simple", "complex",
+}
+
 # Patterns registry: maps entity type → (regex, predicate, new_entity_type)
 # Note: Model is handled separately via dictionary matching in extract_entity_candidates_from_chunk
+# Note: Concept and Framework also use dictionary matching (like Model) + fallback patterns
 # Note: ModelFamily pattern is disabled — regex-based family extraction produces too much noise;
 #       ModelFamily entities are managed manually based on confirmed taxonomy
 _PATTERN_REGISTRY = {
@@ -438,6 +527,144 @@ def extract_entity_candidates_from_chunk(
 
         # 2b. Fallback pattern disabled — too noisy across diverse paper domains
         # Only dictionary-based matching (2a) is used for Model entity creation
+
+    # Concept extraction: dictionary-first + fallback "X memory" pattern
+    if "Concept" in active_types:
+        global_label_to_eid = global_label_to_eid or {}
+        existing_concepts = (existing_by_type or {}).get("Concept", existing_entities)
+        seen_concept_names_in_chunk: Set[str] = set()
+
+        def _handle_concept_candidate(name: str, confidence: float) -> None:
+            name_key = name.lower()
+            if name_key in seen_concept_names_in_chunk:
+                return
+            seen_concept_names_in_chunk.add(name_key)
+
+            matched_eid = _match_existing(name, existing_concepts)
+            if matched_eid:
+                relation_cands.append(RelationCandidate(
+                    candidate_id=hashlib.sha256(
+                        f"rel:Concept:{doc_id}:{matched_eid}:{chunk_id}".encode()
+                    ).hexdigest()[:16],
+                    source_entity_id=doc_id,
+                    predicate="describes_concept",
+                    target_entity_id=matched_eid,
+                    evidence_spans=[span_ref],
+                    confidence=confidence,
+                ))
+            else:
+                global_key = f"Concept:{name_key}"
+                if global_key in global_label_to_eid:
+                    entity_cands.append(EntityCandidate(
+                        candidate_id=hashlib.sha256(
+                            f"ent:Concept:{name}:{chunk_id}".encode()
+                        ).hexdigest()[:16],
+                        entity_id=global_label_to_eid[global_key],
+                        entity_type="Concept",
+                        label_en=name,
+                        label_ko="",
+                        evidence_spans=[span_ref],
+                        source_doc_id=doc_id,
+                        confidence=confidence,
+                    ))
+                else:
+                    eid = generate_entity_id("Concept", name, existing_ids)
+                    global_label_to_eid[global_key] = eid
+                    existing_ids.add(eid)
+                    entity_cands.append(EntityCandidate(
+                        candidate_id=hashlib.sha256(
+                            f"ent:Concept:{name}:{chunk_id}".encode()
+                        ).hexdigest()[:16],
+                        entity_id=eid,
+                        entity_type="Concept",
+                        label_en=name,
+                        label_ko="",
+                        evidence_spans=[span_ref],
+                        source_doc_id=doc_id,
+                        confidence=confidence,
+                    ))
+
+        # 2c. Known concept dictionary matching
+        for m in _KNOWN_CONCEPT_RE.finditer(text):
+            _handle_concept_candidate(m.group(1).strip(), 0.85)
+
+        # 2d. Fallback "X Memory" pattern (moderate precision, filtered)
+        for m in _CONCEPT_PATTERN_FALLBACK.finditer(text):
+            adj = m.group(1).strip()
+            if adj.lower() in _CONCEPT_GENERIC_STOPWORDS:
+                continue
+            name = f"{adj} Memory"
+            if name.lower() not in seen_concept_names_in_chunk:
+                _handle_concept_candidate(name, 0.6)
+
+    # Framework extraction: dictionary-first + fallback pattern
+    if "Framework" in active_types:
+        global_label_to_eid = global_label_to_eid or {}
+        existing_frameworks = (existing_by_type or {}).get("Framework", existing_entities)
+        seen_framework_names_in_chunk: Set[str] = set()
+
+        def _handle_framework_candidate(name: str, confidence: float) -> None:
+            name_key = name.lower()
+            if name_key in seen_framework_names_in_chunk:
+                return
+            seen_framework_names_in_chunk.add(name_key)
+
+            matched_eid = _match_existing(name, existing_frameworks)
+            if matched_eid:
+                relation_cands.append(RelationCandidate(
+                    candidate_id=hashlib.sha256(
+                        f"rel:Framework:{doc_id}:{matched_eid}:{chunk_id}".encode()
+                    ).hexdigest()[:16],
+                    source_entity_id=doc_id,
+                    predicate="implements_framework",
+                    target_entity_id=matched_eid,
+                    evidence_spans=[span_ref],
+                    confidence=confidence,
+                ))
+            else:
+                global_key = f"Framework:{name_key}"
+                if global_key in global_label_to_eid:
+                    entity_cands.append(EntityCandidate(
+                        candidate_id=hashlib.sha256(
+                            f"ent:Framework:{name}:{chunk_id}".encode()
+                        ).hexdigest()[:16],
+                        entity_id=global_label_to_eid[global_key],
+                        entity_type="Framework",
+                        label_en=name,
+                        label_ko="",
+                        evidence_spans=[span_ref],
+                        source_doc_id=doc_id,
+                        confidence=confidence,
+                    ))
+                else:
+                    eid = generate_entity_id("Framework", name, existing_ids)
+                    global_label_to_eid[global_key] = eid
+                    existing_ids.add(eid)
+                    entity_cands.append(EntityCandidate(
+                        candidate_id=hashlib.sha256(
+                            f"ent:Framework:{name}:{chunk_id}".encode()
+                        ).hexdigest()[:16],
+                        entity_id=eid,
+                        entity_type="Framework",
+                        label_en=name,
+                        label_ko="",
+                        evidence_spans=[span_ref],
+                        source_doc_id=doc_id,
+                        confidence=confidence,
+                    ))
+
+        # 2e. Known framework dictionary matching
+        for m in _KNOWN_FRAMEWORK_RE.finditer(text):
+            _handle_framework_candidate(m.group(1).strip(), 0.85)
+
+        # 2f. Fallback "propose/present X framework/system" pattern
+        #     Skip if name is already a known Concept (avoid type confusion)
+        _concept_names_lower = {n.lower() for n in _KNOWN_CONCEPT_NAMES}
+        for m in _FRAMEWORK_PATTERN_FALLBACK.finditer(text):
+            name = m.group(1).strip()
+            if name.lower() in _concept_names_lower:
+                continue
+            _handle_framework_candidate(name, 0.6)
 
     # Other types (Work, Dataset, ModelFamily)
     for target_type, (pattern, predicate, new_type) in _PATTERN_REGISTRY.items():
