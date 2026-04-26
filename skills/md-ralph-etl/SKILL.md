@@ -124,7 +124,19 @@ python3 tools/ralph_cli.py run \
   --scope Model,Work,Dataset
 ```
 
-### 시나리오 4 — 기존 엔티티 관계 보강
+### 시나리오 4 — Concept/Framework 추출 (리서치 주제)
+
+```bash
+# JSONL manifest (arxiv PDF URL)
+# {"url":"https://arxiv.org/pdf/2512.13564","title":"Memory Survey","source_type":"arxiv"}
+
+python3 tools/ralph_cli.py run \
+  --manifest sources.jsonl \
+  --scope Concept,Framework \
+  --apply
+```
+
+### 시나리오 5 — 기존 엔티티 관계 보강
 
 ```bash
 python3 tools/ralph_cli.py run \
@@ -132,7 +144,7 @@ python3 tools/ralph_cli.py run \
   --mode enrich
 ```
 
-### 시나리오 5 — 이전 run 재개 / 상태 확인
+### 시나리오 6 — 이전 run 재개 / 상태 확인
 
 ```bash
 # 재개
@@ -145,7 +157,7 @@ python3 tools/ralph_cli.py status --run-id R-20260303-0001
 python3 tools/ralph_cli.py report --run-id R-20260303-0001
 ```
 
-### 시나리오 6 — 특정 단계만 실행
+### 시나리오 7 — 특정 단계만 실행
 
 ```bash
 python3 tools/ralph_cli.py parse --run-id R-20260303-0001 --apply
@@ -161,7 +173,7 @@ python3 tools/ralph_cli.py seal  --run-id R-20260303-0001 --apply
 | `--input-dir PATH` | 로컬 디렉토리 (--manifest 대체) | |
 | `--mode {full,local,enrich}` | 운영 모드 | full |
 | `--format {tsv,jsonl,auto}` | 입력 포맷 (자동 감지) | auto |
-| `--scope TYPE,TYPE,...` | 추출 대상 entity type | 전체 |
+| `--scope TYPE,TYPE,...` | 추출 대상 entity type (Model,Concept,Framework,Work,Dataset) | 전체 |
 | `--apply` | 실제 파일 쓰기 (없으면 dry-run) | false |
 | `--batch-size N` | 배치당 최대 URL/파일 수 | 20 |
 | `--resume RUN_ID` | 이전 run 재개 | |
@@ -192,10 +204,17 @@ LLM 호출 없이 2단계 유사도로 그래프 위치 판정:
 ### Entity Parsing (규칙 우선)
 
 패턴 레지스트리 방식 — entity type별 regex + 기존 사전 매칭:
-- Model: `uses|based on|trained with` + 대문자 시작 이름
-- Work: `for|applied to|performs` + task 명사
-- Dataset: `dataset|benchmark|evaluated on` + 이름
-- Metric: 수치 + 단위 자동 추출
+
+| Entity Type | 추출 방식 | 패턴/사전 |
+|-------------|----------|----------|
+| **Model** | 딕셔너리 매칭 (300+ 항목) | 알려진 모델명 사전 → 텍스트 매칭 |
+| **Concept** | 딕셔너리(35) + fallback 패턴 | 메모리/학습 관련 개념 사전 + `"X Memory"` 패턴 |
+| **Framework** | 딕셔너리(22) + fallback 패턴 | 알려진 프레임워크 사전 + `"propose X framework"` 패턴 |
+| **Work** | regex 패턴 | `for/applied to/performs` + task 명사 |
+| **Dataset** | regex 패턴 | `dataset/benchmark/evaluated on` + 이름 |
+| **Metric** | regex 패턴 | 수치 + 단위 자동 추출 |
+
+Concept/Framework의 fallback 패턴에는 generic stopword 필터가 적용되어 노이즈를 억제한다.
 
 ### Seal Validation Suite (V1-V8)
 

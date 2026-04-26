@@ -360,9 +360,22 @@ _FRAMEWORK_PATTERN_FALLBACK = re.compile(
 
 # Concept names that are too generic and should be filtered from fallback pattern
 _CONCEPT_GENERIC_STOPWORDS = {
+    # Determiners / pronouns
     "current", "this", "that", "their", "our", "its", "other",
+    "the", "a", "an", "some", "all", "each", "every",
+    # Adjectives too vague for concept names
     "new", "recent", "existing", "traditional", "various",
     "main", "key", "core", "basic", "simple", "complex",
+    "effective", "efficient", "additional", "similar",
+    "deep", "mixed", "multiple", "representative",
+    # Conjunctions / prepositions / adverbs leaked by regex
+    "although", "because", "does", "how", "when", "within",
+    "without", "unlike", "toward", "on", "three",
+    # Verbs / gerunds
+    "exploring", "evaluating", "understanding", "rethinking",
+    "synergizing", "bridging", "learning",
+    # Noise from PDF parsing artifacts
+    "fact", "preference",
 }
 
 # Patterns registry: maps entity type → (regex, predicate, new_entity_type)
