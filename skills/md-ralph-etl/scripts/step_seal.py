@@ -388,13 +388,29 @@ def run_seal(
         new_placements = [
             p for p in placements if p.get("label") == PlacementLabel.NEW.value
         ]
-        written = 0
+
+        # Deduplicate by entity_id: merge evidence_spans, keep highest confidence
+        seen_eids: Dict[str, dict] = {}  # eid → (cand, placement)
         for p in new_placements:
             cand = cand_map.get(p.get("candidate_id"))
             if not cand:
                 continue
-            etype = cand.get("entity_type", "")
             eid = cand.get("entity_id", "")
+            if eid in seen_eids:
+                # merge evidence spans into existing
+                prev_cand = seen_eids[eid][0]
+                prev_cand.setdefault("evidence_spans", []).extend(
+                    cand.get("evidence_spans", [])
+                )
+                # keep higher confidence
+                if cand.get("confidence", 0) > prev_cand.get("confidence", 0):
+                    prev_cand["confidence"] = cand["confidence"]
+            else:
+                seen_eids[eid] = (cand, p)
+
+        written = 0
+        for eid, (cand, p) in seen_eids.items():
+            etype = cand.get("entity_type", "")
             # find relevant relations
             cand_rels = [
                 r for r in relations
