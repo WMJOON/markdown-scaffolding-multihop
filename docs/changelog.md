@@ -58,12 +58,12 @@
 ### Added
 - `md-kb-rewrite` 스킬에 semantic framing guardrail 추가
 - H-X: interesting connection / missing synthesis 후보 탐지까지 범위 확대
-- ollama_mcp 전용 섹션 README에 추가 — role, model(`gemma4:e4b`), fallback, use patterns 명시
+- ollama_mcp 전용 섹션 README에 추가 — role, model(`qwen3.5:4b`), fallback, use patterns 명시
 
 ### Changed
 - README 포지셔닝: GraphRAG/ETL 중심 → **structural layer + maintenance/governance layer** 구조 명시
 - `md-kb-rewrite` 설명: rewrite loop 중심 → wrapper skill + semantic framing + synthesis detection로 확대
-- `gemma4:e4b`를 경량 보조 기본 모델로 문서화
+- `qwen3.5:4b`를 경량 보조 기본 모델로 문서화
 
 ---
 

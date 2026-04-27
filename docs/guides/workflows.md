@@ -71,7 +71,7 @@ raw/[domain]/source.md (status: raw)
 
 `ollama_mcp`는 필수 의존성이 아닌 **비용 절감·반복 작업 위임 보조 레이어**입니다. 모든 유지보수/합성 작업을 상위 모델에 맡기면 단순 반복 작업까지 고비용 reasoning 경로를 타게 됩니다.
 
-**권장 모델:** `gemma4:e4b` — concept extraction / lightweight semantic filtering / draft condensation / rewrite pre-pass 역할
+**권장 모델:** `qwen3.5:4b` — concept extraction / lightweight semantic filtering / draft condensation / rewrite pre-pass 역할
 
 **대표 사용 패턴:**
 
