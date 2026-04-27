@@ -316,6 +316,27 @@ class _OllamaClient:
 # ── 클라이언트 선택 ────────────────────────────────────────────────────────────
 
 _AUTO_OLLAMA: bool = False  # --ollama 플래그로 설정됨
+_AUTO_MODE:   bool = False  # --auto 플래그로 설정됨
+
+
+def auto_answer(client, draft: "OntologyDraft", question: str, domain: str) -> str:
+    """--auto 모드: LLM이 온톨로지 전문 검토자 역할로 질문에 답변한다."""
+    system = (
+        "You are a senior ontology reviewer conducting a MECE validation interview. "
+        "Your job is to critically evaluate the ontology draft and give substantive answers "
+        "that identify real gaps, overlaps, or coverage issues. "
+        "Be specific — name actual classes or clusters. Keep your answer to 2-4 sentences."
+    )
+    user = (
+        f"Domain: {domain}\n\n"
+        f"Ontology draft (classes/clusters):\n{draft.as_yaml_str()[:3000]}\n\n"
+        f"Interview question: {question}\n\n"
+        "Answer as a critical ontology reviewer:"
+    )
+    try:
+        return client.generate(system, user, max_tokens=300)
+    except Exception as e:
+        return f"(auto-answer 실패: {e})"
 
 
 def _resolve_client() -> tuple[object | None, str]:
@@ -673,11 +694,15 @@ def run_medium(draft: OntologyDraft, domain: str, output: Path | None) -> MeceAs
 
         print(f"\n── Round {rnd}/{cfg['max_rounds']} [{weakest}] ──")
         print(f"Q: {question}")
-        answer = input("A: ").strip()
-        if not answer:
-            print("  (빈 답변 — 건너뜀)")
-            continue
-        print(f"   {answer}")
+        if _AUTO_MODE:
+            answer = auto_answer(client, draft, question, domain)
+            print(f"A: {answer}")
+        else:
+            answer = input("A: ").strip()
+            if not answer:
+                print("  (빈 답변 — 건너뜀)")
+                continue
+            print(f"   {answer}")
 
         history.append(InterviewRound(
             perspective=PERSPECTIVE.get(weakest, "MECE_REVIEWER"),
@@ -733,11 +758,15 @@ def run_deep(draft: OntologyDraft, domain: str, output: Path | None) -> MeceAsse
 
         print(f"\n── Round {rnd}/{cfg['max_rounds']} [{weakest}] ──")
         print(f"Q: {question}")
-        answer = input("A: ").strip()
-        if not answer:
-            print("  (빈 답변 — 건너뜀)")
-            continue
-        print(f"   {answer}")
+        if _AUTO_MODE:
+            answer = auto_answer(client, draft, question, domain)
+            print(f"A: {answer}")
+        else:
+            answer = input("A: ").strip()
+            if not answer:
+                print("  (빈 답변 — 건너뜀)")
+                continue
+            print(f"   {answer}")
 
         history.append(InterviewRound(
             perspective=PERSPECTIVE.get(weakest, "MECE_REVIEWER"),
@@ -822,11 +851,16 @@ def main() -> None:
                         help="출력 yaml 경로 (생략 시 파일 저장 안 함, 결과만 출력)")
     parser.add_argument("--ollama", action="store_true",
                         help="Ollama 로컬 서버 사용 자동 수락 (확인 프롬프트 건너뜀)")
+    parser.add_argument("--auto", action="store_true",
+                        help="LLM이 인터뷰 질문에 자동 답변 (비대화형 전체 자동화)")
     args = parser.parse_args()
 
-    global _AUTO_OLLAMA
+    global _AUTO_OLLAMA, _AUTO_MODE
     if args.ollama:
         _AUTO_OLLAMA = True
+    if args.auto:
+        _AUTO_MODE  = True
+        _AUTO_OLLAMA = True  # --auto는 항상 Ollama도 자동 수락
 
     # 초안 로드
     if args.draft and args.draft.exists():
