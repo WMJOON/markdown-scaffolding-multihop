@@ -1,6 +1,6 @@
 # 스킬 구성
 
-이 문서는 markdown-scaffolding-multihop을 구성하는 9개 스킬의 역할과 사용 시점을 설명합니다. 각 스킬은 명확한 단일 책임을 가지며, 상황에 맞는 스킬을 선택해 조합합니다.
+이 문서는 markdown-scaffolding-multihop을 구성하는 10개 스킬의 역할과 사용 시점을 설명합니다. 각 스킬은 명확한 단일 책임을 가지며, 상황에 맞는 스킬을 선택해 조합합니다.
 
 ---
 
@@ -57,6 +57,27 @@
 
 ---
 
+### `md-mece-validator`
+
+**무엇을 하나:** `graph-ontology.yaml`의 클래스·관계 구조가 MECE(상호배제·전체포괄)한지 검증하고 개선합니다. Calibrated Validation 루프로 Socratic 인터뷰를 진행하고, 인터뷰 내용을 반영해 온톨로지를 결정화(crystallize)한 뒤 `mece_assessment` 블록을 자동 생성합니다. `depth` 파라미터 하나로 LLM 호출 수·라운드·게이트·출력물을 동시에 제어합니다.
+
+**이런 상황에서 쓰세요:**
+- "온톨로지 클래스들이 겹치는 것 같아, MECE한지 확인해줘"
+- "graph-ontology.yaml 구조 설계할 때 빠진 개념이나 관계가 없는지 점검해줘"
+- `md-scaffolding-design`으로 구조를 만든 뒤 MECE 품질을 보장하고 싶을 때
+- `md-rdf-owl-bridge`로 외부 온톨로지를 import한 뒤 변환된 구조의 MECE를 재검증하고 싶을 때
+- `md-ralph-etl`로 Bottom-Up ETL 후 새 클래스·관계가 추가됐을 때 기존 구조와의 MECE를 확인하고 싶을 때
+
+| depth  | 언제 | LLM 호출 |
+|--------|------|---------|
+| light  | 빠른 구조 확인, 아는 도메인 | 0회 (heuristic) |
+| medium | 일반 KB 설계 | 4-6회, 게이트 ≥0.75 |
+| deep   | 신규·복잡 도메인 | 15-24회, 게이트 ≥0.85 |
+
+→ [SKILL.md](../skills/md-mece-validator/SKILL.md)
+
+---
+
 ### `md-rdf-owl-bridge`
 
 **무엇을 하나:** 기존 RDF/OWL 지식 그래프를 MD-frontmatter 형식으로 변환하거나, 반대로 MD 구조를 RDF로 내보냅니다. KG 임베딩과 placement도 지원합니다.
@@ -71,7 +92,7 @@
 
 ### `md-ralph-etl`
 
-**무엇을 하나:** URL이나 로컬 문서를 크롤링해서 핵심 내용을 추출하고, `evidence/[topic]/sources/`에 구조화된 노트로 저장합니다. 증거 기반으로 온톨로지를 확장할 때 쓰는 ETL 파이프라인입니다.
+**무엇을 하나:** URL이나 로컬 문서를 크롤링해서 핵심 내용을 추출하고, `evidence/[domain]/sources/`에 구조화된 노트로 저장합니다. 증거 기반으로 온톨로지를 확장할 때 쓰는 ETL 파이프라인입니다.
 
 **이런 상황에서 쓰세요:**
 - "이 논문 URL을 읽어서 KB에 evidence 노트로 추가해줘"
@@ -140,6 +161,7 @@ rewrite는 감각적으로 고치는 게 아니라 정해진 순서를 따릅니
 | 스킬 | 레퍼런스 |
 |------|---------|
 | `md-scaffolding-design` | [modules/](../skills/md-scaffolding-design/modules/) · [references/](../skills/md-scaffolding-design/references/) |
+| `md-mece-validator` | [references/depth-guide.md](../skills/md-mece-validator/references/depth-guide.md) |
 | `md-graph-multihop` | [core.md](../skills/md-graph-multihop/core.md) |
 | `md-kb-rewrite` | [core.md](../skills/md-kb-rewrite/core.md) |
 | `md-ralph-etl` | [core.md](../skills/md-ralph-etl/core.md) |

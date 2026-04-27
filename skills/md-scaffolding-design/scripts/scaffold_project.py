@@ -20,6 +20,10 @@ entity 디렉토리 템플릿을 자동 생성한다.
     # 분석 + 프리셋 병합 (분석 결과로 프리셋 커스터마이즈)
     python3 scaffold_project.py --local ./my-docs --template github-docs --output ./graph-config.yaml
     python3 scaffold_project.py --repo owner/repo --template git-repo --output ./graph-config.yaml
+
+    # MECE 온톨로지 인터뷰 연계 (graph-ontology.yaml 생성)
+    python3 scaffold_project.py --local ./my-docs --mece medium --domain "시장 분석 KB"
+    python3 scaffold_project.py --template obsidian-vault --mece light
 """
 
 import os
@@ -34,6 +38,10 @@ from collections import Counter
 
 import yaml
 import requests
+
+# MECE 인터뷰 모듈 (같은 scripts/ 디렉토리)
+_SCRIPTS_DIR = Path(__file__).parent
+sys.path.insert(0, str(_SCRIPTS_DIR))
 
 # ──────────────────────────────────────────────
 # 프리셋 템플릿
@@ -298,6 +306,13 @@ if __name__ == "__main__":
                         help="파일 생성 없이 결과만 출력")
     parser.add_argument("--list-templates", action="store_true",
                         help="사용 가능한 프리셋 목록 출력")
+    parser.add_argument("--mece", choices=["light", "medium", "deep"],
+                        help="graph-config.yaml 생성 후 MECE 온톨로지 인터뷰 실행\n"
+                             "  light : LLM 0회, 구조 체크만\n"
+                             "  medium: LLM 4-6회, 2-3 라운드 (게이트 ≥0.75)\n"
+                             "  deep  : LLM 15-24회, 5-8 라운드 (게이트 ≥0.85)")
+    parser.add_argument("--domain", default="",
+                        help="MECE 인터뷰용 KB 도메인 설명 (--mece 사용 시)")
     args = parser.parse_args()
 
     if args.list_templates:
@@ -340,3 +355,31 @@ if __name__ == "__main__":
         print(f"  3. python3 graph_rag.py --config {args.output} --query '...'")
         print(f"\n  OWL 온톨로지 방식으로 전환하려면:")
         print(f"  cp graph-ontology.example.yaml graph-ontology.yaml  # 예시 참조")
+
+    # ── MECE 인터뷰 연계 ────────────────────────────────────────────────────────
+    if args.mece and not args.dry_run:
+        print(f"\n{'─'*50}")
+        print(f"[ MECE 온톨로지 인터뷰 시작 — depth: {args.mece} ]")
+
+        try:
+            from mece_interview import (
+                OntologyDraft, run_light, run_medium, run_deep,
+            )
+        except ImportError as e:
+            print(f"[오류] mece_interview.py를 불러올 수 없습니다: {e}")
+            sys.exit(1)
+
+        # graph-ontology.yaml 출력 경로: graph-config.yaml과 같은 디렉토리
+        ontology_out = args.output.parent / "graph-ontology.yaml"
+
+        # 기존 graph-ontology.yaml이 있으면 초안으로 로드, 없으면 빈 초안
+        draft = (OntologyDraft.from_yaml(ontology_out)
+                 if ontology_out.exists() else OntologyDraft())
+        domain = args.domain or (args.local or args.repo or "KB").name if args.local else (args.domain or "KB")
+
+        if args.mece == "light":
+            run_light(draft, ontology_out)
+        elif args.mece == "medium":
+            run_medium(draft, str(domain), ontology_out)
+        else:
+            run_deep(draft, str(domain), ontology_out)
