@@ -32,6 +32,22 @@ scripts/
 | medium | 일반 KB 설계, 중간 복잡도             | `python3 mece_interview.py --domain "시장 분석 KB" --depth medium --output ./graph-ontology.yaml` |
 | deep   | 신규·복잡 도메인, 중요 의사결정 KB    | `python3 mece_interview.py --draft ./graph-ontology.yaml --depth deep --output ./graph-ontology.yaml` |
 
+### 비대화형 자동 모드 (CI / 대규모 KB)
+
+```bash
+# Ollama 확인 프롬프트 자동 수락 + 인터뷰 질문 LLM 자동 답변
+python3 mece_interview.py --draft ./graph-ontology.yaml --depth medium --auto --ollama --output ./graph-ontology.yaml
+```
+
+| 플래그 | 효과 |
+|--------|------|
+| `--ollama` | Ollama 사용 확인 프롬프트 자동 수락 |
+| `--auto`   | LLM이 "senior ontology reviewer" 역할로 인터뷰 질문에 자동 답변 (`--ollama` 포함) |
+
+**조기 종료 조건 (자동 내장):** 다음 중 하나를 만족하면 해당 라운드에서 중단한다.
+- 문자 3-gram Jaccard ≥ 0.15 — 새 질문이 이전 질문과 어휘를 재사용
+- 같은 weakest 차원(ME/CE)이 2라운드 연속 — 소형 LLM이 동일 갭에 갇힌 경우
+
 ---
 
 ## 워크플로우
@@ -93,6 +109,45 @@ mece_assessment:
   status: seed_ready    # draft | reviewing | seed_ready
   open_questions: []    # deep에서만 추적
   assessed_at: "2026-04-27"
+```
+
+---
+
+## 소형 LLM false positive 방지
+
+Ollama 소형 모델(≤7B)은 이름이 비슷한 클러스터를 ME 위반으로 잘못 판정하는 경향이 있다.
+**처방: 클러스터 description 첫머리에 `[계층 레이블]`을 명시한다.**
+
+```yaml
+# 나쁜 예 — 모델이 세 클러스터를 동의어로 혼동
+agent-governance:
+  description: "에이전트 감사 인프라"
+ai-governance:
+  description: "AI 거버넌스 평가"
+ax-org-mgmt:
+  description: "조직 에이전트 관리"
+
+# 좋은 예 — 계층 레이블로 즉시 구분
+agent-governance:
+  description: "[에이전트 거버넌스] 에이전트 결정 감사·규제 엔지니어링"
+ai-governance:
+  description: "[AI-시스템 거버넌스] AI 행동 평가 실행 체계"
+ax-org-mgmt:
+  description: "[조직 관리] 에이전트 도입 시 조직 프로세스·자산화"
+```
+
+효과: description 레이블만 추가해도 ME 점수가 0.30 → 0.70으로 개선된 사례 확인.
+
+### 대형 온톨로지 처리 (오브젝트 200+)
+
+파일이 너무 커서 LLM 컨텍스트에 직접 넣기 어려울 때: 클러스터별로 요약한 condensed YAML을 먼저 생성하고 검증에 사용한다.
+
+```bash
+# 1. condense 스크립트로 클러스터 요약 생성
+python3 condense_kb_ontology.py --source graph-ontology.yaml --output graph-ontology-condensed.yaml
+
+# 2. condensed로 MECE 검증
+python3 mece_interview.py --draft graph-ontology-condensed.yaml --depth medium --auto --output graph-ontology-condensed.yaml
 ```
 
 ---
