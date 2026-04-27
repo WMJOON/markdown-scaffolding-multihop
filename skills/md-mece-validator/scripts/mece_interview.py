@@ -315,6 +315,9 @@ class _OllamaClient:
 
 # ── 클라이언트 선택 ────────────────────────────────────────────────────────────
 
+_AUTO_OLLAMA: bool = False  # --ollama 플래그로 설정됨
+
+
 def _resolve_client() -> tuple[object | None, str]:
     """
     LLM 클라이언트 우선순위:
@@ -326,7 +329,11 @@ def _resolve_client() -> tuple[object | None, str]:
     if available:
         model_hint = ", ".join(models[:5]) if models else "없음"
         print(f"\n[Ollama] 로컬 서버 감지 — 모델: {model_hint}")
-        ans = input("로컬 모델을 사용하시겠습니까? [y/N]: ").strip().lower()
+        if _AUTO_OLLAMA:
+            ans = "y"
+            print("로컬 모델을 사용하시겠습니까? [y/N]: y  (--ollama 자동 수락)")
+        else:
+            ans = input("로컬 모델을 사용하시겠습니까? [y/N]: ").strip().lower()
         if ans == "y":
             # JSON 지시 준수 우선: qwen → phi → llama → gemma → mistral
             priority = [
@@ -813,7 +820,13 @@ def main() -> None:
                         help="검증 깊이 — 리소스 투입량 조절 (기본: medium)")
     parser.add_argument("--output", "-o", type=Path,
                         help="출력 yaml 경로 (생략 시 파일 저장 안 함, 결과만 출력)")
+    parser.add_argument("--ollama", action="store_true",
+                        help="Ollama 로컬 서버 사용 자동 수락 (확인 프롬프트 건너뜀)")
     args = parser.parse_args()
+
+    global _AUTO_OLLAMA
+    if args.ollama:
+        _AUTO_OLLAMA = True
 
     # 초안 로드
     if args.draft and args.draft.exists():
