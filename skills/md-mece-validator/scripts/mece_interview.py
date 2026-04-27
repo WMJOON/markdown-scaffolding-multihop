@@ -545,6 +545,32 @@ def score_six_dim(client, draft: OntologyDraft,
     }
 
 
+def _question_similarity(q1: str, q2: str) -> float:
+    """두 질문의 Jaccard 유사도 — 문자 3-gram 기반 (한국어/영어 혼합에 강건)."""
+    def trigrams(s: str) -> set[str]:
+        # 공백·구두점 제거 후 3-gram
+        t = re.sub(r'[\s,\.?!()\[\]예:·—]', '', s)
+        return {t[i:i+3] for i in range(len(t) - 2)}
+    g1, g2 = trigrams(q1), trigrams(q2)
+    if not g1 or not g2:
+        return 0.0
+    return len(g1 & g2) / len(g1 | g2)
+
+
+def _is_redundant(new_q: str, history: list[InterviewRound],
+                  threshold: float = 0.15) -> bool:
+    """새 질문이 기존 질문 중 하나와 threshold 이상 유사하면 True (trigram Jaccard)."""
+    return any(_question_similarity(new_q, r.question) >= threshold for r in history)
+
+
+def _is_perspective_stagnant(history: list[InterviewRound], consecutive: int = 2) -> bool:
+    """직전 consecutive 라운드가 모두 같은 perspective이면 True (차원 고착 감지)."""
+    if len(history) < consecutive:
+        return False
+    recent = [r.perspective for r in history[-consecutive:]]
+    return len(set(recent)) == 1
+
+
 def ask_question(client, draft: OntologyDraft, history: list[InterviewRound],
                  weakest: str, domain: str) -> str:
     if client is None:
@@ -692,6 +718,16 @@ def run_medium(draft: OntologyDraft, domain: str, output: Path | None) -> MeceAs
         weakest = score_data["weakest"]
         question = ask_question(client, draft, history, weakest, domain)
 
+        stop_reason = None
+        if _is_redundant(question, history):
+            stop_reason = "질문 유사도 임계치 초과"
+        elif _is_perspective_stagnant(history):
+            stop_reason = f"'{weakest}' 차원 2회 연속 — 다른 차원 탐색 불가"
+        if stop_reason:
+            print(f"\n── Round {rnd}/{cfg['max_rounds']} [{weakest}] ──")
+            print(f"  ({stop_reason} — 조기 종료)")
+            break
+
         print(f"\n── Round {rnd}/{cfg['max_rounds']} [{weakest}] ──")
         print(f"Q: {question}")
         if _AUTO_MODE:
@@ -755,6 +791,16 @@ def run_deep(draft: OntologyDraft, domain: str, output: Path | None) -> MeceAsse
     for rnd in range(1, cfg["max_rounds"] + 1):
         weakest = score_data["weakest"]
         question = ask_question(client, draft, history, weakest, domain)
+
+        stop_reason = None
+        if _is_redundant(question, history):
+            stop_reason = "질문 유사도 임계치 초과"
+        elif _is_perspective_stagnant(history):
+            stop_reason = f"'{weakest}' 차원 2회 연속 — 다른 차원 탐색 불가"
+        if stop_reason:
+            print(f"\n── Round {rnd}/{cfg['max_rounds']} [{weakest}] ──")
+            print(f"  ({stop_reason} — 조기 종료)")
+            break
 
         print(f"\n── Round {rnd}/{cfg['max_rounds']} [{weakest}] ──")
         print(f"Q: {question}")
