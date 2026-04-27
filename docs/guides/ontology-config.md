@@ -8,9 +8,16 @@ OWL-lite 스타일 단일 진실 소스.
 ```yaml
 classes:
   Industry:
-    entity_dir: ontology/industry
+    domain: market
+    concept_file: ontology/concept/market/Industry.md
   Competitor:
-    entity_dir: ontology/competitor
+    domain: market
+    concept_file: ontology/concept/market/Competitor.md
+
+# 도메인별 instance 스캔 (type frontmatter로 class 결정) — graph_builder instance_dirs 지원
+instance_dirs:
+  market: ontology/instance/market
+  tech: ontology/instance/tech
 
 object_properties:
   targetsIndustry:
@@ -66,6 +73,25 @@ composition_table:
 4. `graph_rag`가 직접 관계와 합성 추론을 분리하여 LLM에 전달
 
 `morphism_types`/`composition_table`이 없으면 기존과 동일하게 동작한다 (opt-in).
+
+## MECE 검증
+
+`graph-ontology.yaml`을 설계·수정한 뒤 클래스·관계 구조의 MECE 품질을 검증하려면 `md-mece-validator`를 씁니다.
+
+```bash
+# 기존 초안 구조 확인 (LLM 없음)
+python3 mece_interview.py --draft graph-ontology.yaml --depth light
+
+# 새 KB 설계 + 인터뷰 루프
+python3 mece_interview.py --domain "도메인 설명" --depth medium --output graph-ontology.yaml
+
+# scaffold_project.py와 한 번에
+python3 scaffold_project.py --local ./my-docs --mece medium --domain "도메인 설명"
+```
+
+검증 결과는 `graph-ontology.yaml`의 `mece_assessment` 블록에 자동 기록됩니다. 상세: [`md-mece-validator` SKILL.md](../../skills/md-mece-validator/SKILL.md)
+
+---
 
 ## 설정 파일 요약
 

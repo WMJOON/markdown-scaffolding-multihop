@@ -73,6 +73,14 @@ def resolve_entity_dirs(cfg: dict, base_dir: Path) -> dict[str, Path]:
     }
 
 
+def resolve_instance_dirs(cfg: dict, base_dir: Path) -> dict[str, Path]:
+    """domain → path 매핑 (instance_dirs). type frontmatter로 class 결정."""
+    return {
+        domain: base_dir / rel_path
+        for domain, rel_path in cfg.get("instance_dirs", {}).items()
+    }
+
+
 # ──────────────────────────────────────────────
 # 파서
 # ──────────────────────────────────────────────
@@ -120,58 +128,69 @@ def extract_wikilinks(value) -> list[str]:
 # 그래프 빌더
 # ──────────────────────────────────────────────
 
+def _iter_nodes(cfg: dict, base_dir: Path) -> list[tuple[str, Path]]:
+    """(entity_type, md_file) 이터레이터. entity_dirs + instance_dirs 모두 지원."""
+    pairs: list[tuple[str, Path]] = []
+    # 레거시: entity_dirs (class → path)
+    for etype, dir_path in resolve_entity_dirs(cfg, base_dir).items():
+        if not dir_path.exists():
+            continue
+        for md_file in sorted(dir_path.glob("*.md")):
+            pairs.append((etype, md_file))
+    # 신규: instance_dirs (domain → path, type frontmatter로 class 결정)
+    for _domain, dir_path in resolve_instance_dirs(cfg, base_dir).items():
+        if not dir_path.exists():
+            continue
+        for md_file in sorted(dir_path.glob("*.md")):
+            fm = parse_frontmatter(md_file)
+            etype = (fm or {}).get("type", _domain)
+            pairs.append((etype, md_file))
+    return pairs
+
+
 def build_graph(config_path: Optional[Path] = None) -> nx.DiGraph:
     cfg, base_dir = load_config(config_path)
-    entity_dirs  = resolve_entity_dirs(cfg, base_dir)
     relation_map  = cfg.get("relation_map", {})
     scalar_attrs  = set(cfg.get("scalar_node_attrs", []))
 
     G = nx.DiGraph()
+    node_pairs = _iter_nodes(cfg, base_dir)
 
     # ── 1단계: 노드 추가 ──
-    for entity_type, dir_path in entity_dirs.items():
-        if not dir_path.exists():
+    for entity_type, md_file in node_pairs:
+        fm = parse_frontmatter(md_file)
+        if fm is None:
             continue
-        for md_file in sorted(dir_path.glob("*.md")):
-            fm = parse_frontmatter(md_file)
-            if fm is None:
-                continue
-            node_id = nfc(md_file.stem)
-            attrs = {"type": entity_type, "source_file": str(md_file)}
-            for field in scalar_attrs:
-                if field in fm and fm[field] is not None:
-                    attrs[field] = fm[field]
-            G.add_node(node_id, **attrs)
+        node_id = nfc(md_file.stem)
+        attrs = {"type": entity_type, "source_file": str(md_file)}
+        for field in scalar_attrs:
+            if field in fm and fm[field] is not None:
+                attrs[field] = fm[field]
+        G.add_node(node_id, **attrs)
 
     # ── 2단계: 엣지 추가 (frontmatter RELATION_MAP 기반) ──
-    for entity_type, dir_path in entity_dirs.items():
-        if not dir_path.exists():
+    for _entity_type, md_file in node_pairs:
+        fm = parse_frontmatter(md_file)
+        if fm is None:
             continue
-        for md_file in sorted(dir_path.glob("*.md")):
-            fm = parse_frontmatter(md_file)
-            if fm is None:
+        src = nfc(md_file.stem)
+        for field, relation in relation_map.items():
+            if field not in fm:
                 continue
-            src = nfc(md_file.stem)
-            for field, relation in relation_map.items():
-                if field not in fm:
-                    continue
-                targets = [nfc(t) for t in extract_wikilinks(fm[field])]
-                for tgt in targets:
-                    if G.has_node(tgt):
-                        G.add_edge(src, tgt, relation=relation, field=field)
+            targets = [nfc(t) for t in extract_wikilinks(fm[field])]
+            for tgt in targets:
+                if G.has_node(tgt):
+                    G.add_edge(src, tgt, relation=relation, field=field)
 
     # ── 3단계: 엣지 추가 (본문 wikilink 기반) ──
-    for entity_type, dir_path in entity_dirs.items():
-        if not dir_path.exists():
+    for _entity_type, md_file in node_pairs:
+        src = nfc(md_file.stem)
+        if not G.has_node(src):
             continue
-        for md_file in sorted(dir_path.glob("*.md")):
-            src = nfc(md_file.stem)
-            if not G.has_node(src):
-                continue
-            body = parse_body(md_file)
-            for tgt in [nfc(t) for t in extract_wikilinks(body)]:
-                if G.has_node(tgt) and not G.has_edge(src, tgt):
-                    G.add_edge(src, tgt, relation="links_to", field="body")
+        body = parse_body(md_file)
+        for tgt in [nfc(t) for t in extract_wikilinks(body)]:
+            if G.has_node(tgt) and not G.has_edge(src, tgt):
+                G.add_edge(src, tgt, relation="links_to", field="body")
 
     # ── 4단계: 범주론적 합성 추론 (opt-in) ──
     inferred = infer_compositions(G, cfg, base_dir)

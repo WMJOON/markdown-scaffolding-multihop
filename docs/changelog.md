@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.1.6 (2026-04-27)
+
+> md-mece-validator 신규 스킬 추가. graph-ontology.yaml 온톨로지 설계·검증을 위한 Calibrated Validation 루프 구현.
+
+### Added
+- `md-mece-validator` 스킬 신규
+  - `scripts/mece_interview.py` — MECE Calibrated Validation 루프 (light/medium/deep)
+  - `references/depth-guide.md` — 채점 공식, 차원별 가중치, 출력 구조 상세
+  - light: LLM 0회, heuristic 구조 체크 (클래스·관계 존재 여부, domain/range 선언)
+  - medium: LLM 4-6회, ME/CE two-bucket 채점, 게이트 ≥0.75, crystallize
+  - deep: LLM 15-24회, 6차원 채점 + Contrarian 체크, 게이트 ≥0.85 + open_questions 소진, `context/validation/mece-pack-{날짜}.yaml` 출력
+
+### Changed
+- `md-scaffolding-design/scripts/scaffold_project.py` `--mece [light|medium|deep]` 플래그 추가 — 분석 후 MECE 인터뷰 자동 연계
+- `md-scaffolding-design/SKILL.md` 스크립트 목록에 `mece_interview.py` 추가, `md-mece-validator` 참조 링크 추가
+- `requirements.txt` `anthropic>=0.40` 추가 (medium/deep 모드용)
+- `docs/guides/ontology-config.md` MECE 검증 섹션 추가
+- `docs/guides/kb-build-flows.md` Light 검증 기준에 `md-mece-validator` 참조 추가
+
+---
+
 ## v0.1.5 (2026-04-25)
 
 > md-obsidian-cli 스킬 구조 재설계, Obsidian 그래프 계층 패턴 명문화, md-ralph-etl PDF 처리 지원 추가, 스크립트 구문 오류 수정.

@@ -12,10 +12,13 @@ description: Markdown 디렉토리/GitHub repo에 멀티홉 추론 구조를 설
 ```
 scripts/
 ├── scaffold_project.py   # 프로젝트 분석 → graph-config.yaml 자동 생성
+├── mece_interview.py     # MECE 온톨로지 인터뷰 → graph-ontology.yaml 생성·검증
 └── save_insight.py       # 추론 결과 → wikilink 연결 md 노드로 저장
 ```
 
 레퍼런스: `references/api_reference.md` — graph-config.yaml 필드 설명 + 프리셋 상세
+
+MECE 온톨로지 설계·검증 상세: `md-mece-validator` 스킬 참조
 
 ---
 
@@ -56,6 +59,61 @@ python3 scaffold_project.py --list-templates
 python3 graph_builder.py --config graph-config.yaml      # 그래프 구축 확인
 python3 graph_rag.py     --config graph-config.yaml --query "..."
 python3 github_adapter.py --repo owner/repo --config graph-config.yaml --query "..."
+```
+
+---
+
+## 워크플로우 A-1 — MECE 온톨로지 설계 (graph-ontology.yaml)
+
+graph-ontology.yaml을 설계하거나 기존 초안을 검증할 때 사용한다.
+`Bounded Rationality` 원칙에 따라 **검증 깊이(depth)를 리소스 투입량으로 명시 조절**한다.
+
+### 깊이별 비용과 게이트
+
+| depth  | LLM 호출 | 라운드 | 게이트        | 출력물                               |
+|--------|---------|--------|--------------|-------------------------------------|
+| light  | 0       | 0      | heuristic    | graph-ontology.yaml + 체크리스트    |
+| medium | 4-6     | 2-3    | MECE ≥ 0.75  | + mece_assessment 블록              |
+| deep   | 15-24   | 5-8    | ≥ 0.85 + open_questions 소진 | + validation_pack.yaml |
+
+### 언제 어떤 depth를 쓰나
+
+| 상황 | depth |
+|------|-------|
+| 이미 아는 도메인, 빠른 초안 확인 | light |
+| 일반 KB 설계, 중간 복잡도 | medium |
+| 신규·복잡 도메인, 중요 의사결정 KB | deep |
+| 기존 온톨로지에 클래스 하나 추가 | light (delta check) |
+
+### 사용법
+
+```bash
+# 새 온톨로지 설계 (Medium)
+python3 mece_interview.py --domain "시장 분석 KB" --depth medium --output ./graph-ontology.yaml
+
+# 기존 초안 구조 확인만 (Light, LLM 호출 없음)
+python3 mece_interview.py --draft ./graph-ontology.yaml --depth light
+
+# 기존 초안 개선 (Deep)
+python3 mece_interview.py --draft ./graph-ontology.yaml --depth deep --output ./graph-ontology.yaml
+
+# scaffold_project.py와 연계 (구조 분석 → MECE 인터뷰 한 번에)
+python3 scaffold_project.py --local ./my-docs --mece medium --domain "시장 분석 KB"
+```
+
+### 출력: graph-ontology.yaml의 mece_assessment 섹션
+
+```yaml
+mece_assessment:
+  depth: medium           # 사용한 깊이
+  score: 0.79
+  me_score: 0.83          # 상호 배제 점수
+  ce_score: 0.75          # 전체 포괄 점수
+  gate_threshold: 0.75
+  rounds_used: 2
+  status: seed_ready      # draft | reviewing | seed_ready
+  open_questions: []      # Deep에서만 추적
+  assessed_at: "2026-04-27"
 ```
 
 ---

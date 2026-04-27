@@ -37,11 +37,11 @@ scaffolding (ontology + schema)
             → [반복 or 종료]
 ```
 
-1. **scaffolding** — `ontology/[concept]/` 구조와 `schema/relation/` type을 먼저 설계
-2. **evidence 수집** — 각 instance를 지지할 evidence를 `evidence/[topic]/sources/`에 모음
+1. **scaffolding** — `ontology/concept/[domain]/`, `ontology/instance/[domain]/` 구조와 `schema/relation/` type을 먼저 설계
+2. **evidence 수집** — 각 instance를 지지할 evidence를 `evidence/[domain]/sources/`에 모음
 3. **데이터 검증** — ontology 구조와 evidence 내용의 정합성 확인
 4. **ontology 업데이트** — 검증 결과를 반영해 instance frontmatter 보정
-5. **출처 검증** — `evidence/[topic]/claims/`에 claim-to-source 매핑 확인
+5. **출처 검증** — `evidence/[domain]/claims/`에 claim-to-source 매핑 확인
 6. **evidence 업데이트** — 출처 검증 결과로 evidence 보정
 7. **반복 또는 종료** — 종료 조건 충족 시 `status` 승격
 
@@ -78,10 +78,10 @@ evidence 수집
             → [반복 or 종료]
 ```
 
-1. **evidence 수집** — source note, 문헌, 공식 문서를 `evidence/[topic]/sources/`에 모음
+1. **evidence 수집** — source note, 문헌, 공식 문서를 `evidence/[domain]/sources/`에 모음
 2. **출처 검증** — source validity를 먼저 확인, `claims/`에 기록
 3. **evidence 업데이트** — 검증된 근거 기준으로 정리
-4. **scaffolding** — 반복 등장하는 concept를 `ontology/[concept]/`로 추출, relation type을 `schema/relation/`에 정의
+4. **scaffolding** — 반복 등장하는 concept를 `ontology/concept/[domain]/`에 정의하고 instance를 `ontology/instance/[domain]/`로 추출, relation type을 `schema/relation/`에 정의
 5. **데이터 검증** — 구조화 결과가 evidence와 맞는지 확인
 6. **ontology 업데이트** — instance frontmatter 보정/확장
 7. **반복 또는 종료** — 종료 조건 충족 시 `status` 승격
@@ -137,7 +137,7 @@ evidence 수집
 
 | 수준 | 데이터 검증 | 출처 검증 | 권장 중단 기준 |
 |------|-----------|-----------|--------------|
-| Light | ontology 배치가 MECE에 맞는지만 확인 | URL + 기관명 확인 | 1회 pass면 종료 |
+| Light | ontology 배치가 MECE에 맞는지만 확인 (`md-mece-validator --depth light`) | URL + 기관명 확인 | 1회 pass면 종료 |
 | Medium | evidence 2개 이상에서 claim 교차 확인 | 날짜·버전·저자 확인 | 2회 이내 pass면 종료 |
 | Deep | 반박 가능성·예외·한계 탐색 포함 | 독립 출처 2개 이상 + 인용 맥락 확인 | validation pack 완성 시 종료 |
 
