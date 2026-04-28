@@ -2,17 +2,22 @@
 
 ## v0.2.0 (2026-04-28)
 
-> md-mece-validator 완전 자동화(--auto/--ollama), 보안 강화(git 이력 정화 + .gitignore).
+> 스킬 10개 → 7개 통합 재편 (md-* → msm-*). 각 스킬의 워크플로우 완결성을 높이고 구성을 간소화. mece-validator 완전 자동화, 보안 강화.
 
-### Added
-- `md-mece-validator/scripts/mece_interview.py`
-  - `--auto` 플래그 — LLM이 직접 인터뷰 답변 생성, 무인 MECE 검증 루프
-  - `--ollama` 플래그 — Ollama 확인 프롬프트 자동 수락, 로컬 모델 전용 실행 지원
+### Changed — 스킬 구조 재편
+- `md-*` 10개 → `msm-*` 7개로 통합·리네임
+  - `msm-kb-graph` (신규 통합): `md-graph-multihop` + `md-vector-search` + `md-scaffolding-design` 병합
+    - 그래프 초기화·BFS 멀티홉·zvec 벡터 검색·인사이트 저장을 단일 진입점으로
+  - `msm-ralph-etl`: `md-ralph-etl` + `md-frontmatter-rollup` 흡수 (ETL + 집계 통합)
+  - `msm-mece-validator`, `msm-kb-rewrite`, `msm-rdf-owl-bridge`, `msm-obsidian-cli`, `msm-data-analysis`: 리네임
+- README 스킬 구성 mermaid·역할 요약·의존관계 테이블 전면 갱신
+- `graph_builder.py` `entities.*.dir` 레거시 포맷 호환 추가
+
+### Added — mece-validator 자동화
+- `msm-mece-validator/scripts/mece_interview.py`
+  - `--auto` 플래그 — LLM이 인터뷰 답변 자동 생성, 무인 MECE 검증 루프
+  - `--ollama` 플래그 — Ollama 확인 프롬프트 자동 수락, 로컬 모델 단독 실행
   - 질문 중복 조기 종료 — 반복 질문 감지 시 루프 자동 종료
-
-### Changed
-- `md-mece-validator/SKILL.md` — --auto / --ollama 플래그 사용법, false-positive 방지 가이드 추가
-- Ollama 클라이언트 모델 `qwen3.5:4b` 전환
 
 ### Security
 - `skills/md-ralph-etl/data/ontology-entities/` (ETL 추출 엔티티 78개 파일) git 이력 전체 정화 (git filter-repo)
