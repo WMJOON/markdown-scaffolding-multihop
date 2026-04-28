@@ -2,9 +2,9 @@
 
 이 스킬셋은 **"Markdown 파일은 많이 쌓였는데, 그 안의 연결을 구조적으로 읽고 유지하고 확장하기가 어렵다"**는 문제를 풀기 위해 만들어졌습니다.
 
-단일 문서 검색은 하나의 노트 안에 있는 정보만 돌려줍니다. 하지만 실제 인사이트는 여러 노트를 가로질러 존재합니다. markdown-scaffolding-multihop은 frontmatter와 wikilink로 선언된 관계를 실제 그래프로 파싱하고, BFS 멀티홉 추론과 유지보수 레이어를 통해 **검색·추론·구조화·유지보수**를 하나의 skillset으로 다룹니다.
+단일 문서 검색은 하나의 노트 안에 있는 정보만 돌려줍니다. 하지만 실제 인사이트는 여러 노드를 가로질러 존재합니다. markdown-scaffolding-multihop은 frontmatter와 wikilink로 선언된 관계를 실제 그래프로 파싱하고, BFS 멀티홉 추론과 유지보수 레이어를 통해 **검색·추론·구조화·유지보수**를 하나의 skillset으로 다룹니다.
 
-v0.1.4에서 `msm-kb-rewrite`를 maintenance/governance wrapper layer로 추가해 KB entropy 문제를 다루기 시작했고, **v0.1.5에서는 `ollama_mcp`로 execution plane을 분리**해 토큰 최적화를 다뤘습니다. 반복적·저위험 작업(개념 추출, 초안 생성, 유사도 필터링)을 로컬 경량 모델(`qwen3.5:4b`)에 위임하고, 의미 판단과 governance는 상위 모델이 맡는 2-plane 구조입니다. **v0.1.6에서는 온톨로지 구조 자체를 더 단단하게** 만들었습니다. `ontology/concept/[domain]/`·`ontology/instance/[domain]/` 분리로 TBox-lite와 ABox를 명확히 구분하고, 도메인 축을 `evidence/`와 정렬했습니다. 여기에 `md-mece-validator`가 추가되어 온톨로지 설계 단계부터 MECE 품질을 검증할 수 있게 됐습니다. **v0.2.0에서는 `md-mece-validator`를 완전 자동화**했습니다. `--auto` 플래그로 LLM이 인터뷰 답변까지 생성해 무인 검증 루프를 돌릴 수 있고, `--ollama` 플래그로 로컬 모델 단독 실행을 지원합니다. 중복 질문 감지 조기 종료로 토큰 낭비도 줄었습니다. 함께 Ralph ETL 런타임 산출물을 git 이력에서 완전 정화해 보안 기반을 정비했습니다.
+**v0.2.0은 스킬을 얇게 많이 두는 방식에서 굵게 적게 두는 방식으로 전환한 버전입니다.** 기존 10개 `md-*` 스킬을 7개 `msm-*` 스킬로 통합·재편했습니다. 역할이 겹치거나 단독으로는 워크플로우 완결성이 낮았던 스킬들을 흡수·병합해, 각 스킬이 더 넓은 범위를 맥락 전환 없이 스스로 해결할 수 있도록 두텁게 만들었습니다. `msm-kb-graph`는 그래프 구조 초기화·멀티홉 추론·벡터 검색·인사이트 저장을 단일 진입점으로 통합했고, `msm-ralph-etl`은 ETL과 집계(Rollup)를 함께 다룹니다. 함께 `msm-mece-validator`의 `--auto`/`--ollama` 플래그로 온톨로지 검증 루프를 완전 자동화하고, Ralph ETL 런타임 산출물을 git 이력에서 정화해 보안 기반도 정비했습니다.
 
 ---
 
