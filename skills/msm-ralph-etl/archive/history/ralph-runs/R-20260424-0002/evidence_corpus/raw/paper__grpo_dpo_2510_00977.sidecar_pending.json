@@ -1,0 +1,15 @@
+{
+  "doc_id": "paper__grpo_dpo_2510_00977",
+  "md_path": "/Users/woo_mujune/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/skills/md-ralph-etl/archive/history/ralph-runs/R-20260424-0002/evidence_corpus/raw/paper__grpo_dpo_2510_00977.md",
+  "pending": [
+    "summary",
+    "concepts"
+  ],
+  "model": "gemma4:e4b",
+  "created_at": "2026-04-24T01:59:47+00:00",
+  "reason": "ollama unavailable",
+  "mcp_tools": {
+    "summary": "ollama_summarize",
+    "concepts": "ollama_extract_concepts"
+  }
+}

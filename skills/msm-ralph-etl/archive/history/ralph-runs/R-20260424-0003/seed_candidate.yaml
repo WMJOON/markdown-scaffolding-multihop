@@ -1,0 +1,10 @@
+seed_version: "seed-R-20260424-0003"
+created_at: "2026-04-24T02:24:51+00:00"
+run_id: "R-20260424-0003"
+input_snapshot_hash: "sha256:b5fe96fe9a6519e0b40c581085bc79e97adb8a32256c62b1d6c57ab1ca7b57e5"
+config_hash: "sha256:cf45698550b4505160ffb45d9987db72fc5f745b6acca67af355337325e5a072"
+code_ref: "git:cf4a19561ca88d980e4b1613a89f79bb49c1567f"
+placement_summary:
+  skip: 1
+total_candidates: 1
+total_placements: 1

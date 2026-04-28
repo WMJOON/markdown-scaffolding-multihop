@@ -1,0 +1,83 @@
+intake_manifest:
+  total: 6
+  active: 6
+  skipped: 0
+  entries:
+    - url: "https://arxiv.org/pdf/2512.13564"
+      normalized_url: "https://arxiv.org/pdf/2512.13564"
+      url_fingerprint: "sha256:3eee1e767cf5ba21d47533b29b6e0367d5340affa5e28a252a8aea24077e6169"
+      source_type: arxiv
+      case_id: doc__memory_in_the_age_of_ai_agents_a_survey
+      title: "Memory in the Age of AI Agents: A Survey"
+      industry_mapping: ""
+      start_marker: ""
+      tags: "['memory', 'agent', 'survey', 'taxonomy']"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-25T13:57:51+00:00"
+      skip_reason: null
+    - url: "https://arxiv.org/pdf/2502.12110"
+      normalized_url: "https://arxiv.org/pdf/2502.12110"
+      url_fingerprint: "sha256:d11614743598d0c55f519f4313de4c00fc1afc12ad7b6f9779374c1942af4ad2"
+      source_type: arxiv
+      case_id: doc__a_mem_agentic_memory_for_llm_agents
+      title: "A-MEM: Agentic Memory for LLM Agents"
+      industry_mapping: ""
+      start_marker: ""
+      tags: "['memory', 'zettelkasten', 'agentic', 'knowledge-network']"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-25T13:57:51+00:00"
+      skip_reason: null
+    - url: "https://arxiv.org/pdf/2502.06975"
+      normalized_url: "https://arxiv.org/pdf/2502.06975"
+      url_fingerprint: "sha256:26e21abaa9232190f2ab605b62fab26294774da1e9706bc9f6aa6ef276077835"
+      source_type: arxiv
+      case_id: doc__position_episodic_memory_is_the_missing_piece_for_long_term_
+      title: "Position: Episodic Memory is the Missing Piece for Long-Term LLM Agents"
+      industry_mapping: ""
+      start_marker: ""
+      tags: "['episodic-memory', 'long-term', 'agent']"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-25T13:57:51+00:00"
+      skip_reason: null
+    - url: "https://arxiv.org/pdf/2310.08560"
+      normalized_url: "https://arxiv.org/pdf/2310.08560"
+      url_fingerprint: "sha256:79f95208d786cc7e66104409c05adc267436b2f62f72311e83b2433e7cb663b9"
+      source_type: arxiv
+      case_id: doc__memgpt_towards_llms_as_operating_systems
+      title: "MemGPT: Towards LLMs as Operating Systems"
+      industry_mapping: ""
+      start_marker: ""
+      tags: "['memgpt', 'virtual-context', 'memory-hierarchy']"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-25T13:57:51+00:00"
+      skip_reason: null
+    - url: "https://arxiv.org/pdf/2603.29194"
+      normalized_url: "https://arxiv.org/pdf/2603.29194"
+      url_fingerprint: "sha256:82b007056320d80207ece33f483edd0e178e5bee7af2af11d1c431958b1223ce"
+      source_type: arxiv
+      case_id: doc__multi_layered_memory_architectures_for_llm_agents
+      title: "Multi-Layered Memory Architectures for LLM Agents"
+      industry_mapping: ""
+      start_marker: ""
+      tags: "['multi-layer', 'working-memory', 'episodic', 'semantic']"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-25T13:57:51+00:00"
+      skip_reason: null
+    - url: "https://arxiv.org/pdf/2603.07670"
+      normalized_url: "https://arxiv.org/pdf/2603.07670"
+      url_fingerprint: "sha256:1a6551e992b094d4fd767fc805b9c040920ee6d3fa93ee0de5d8402dbac432ef"
+      source_type: arxiv
+      case_id: doc__memory_for_autonomous_llm_agents_mechanisms_and_frontiers
+      title: "Memory for Autonomous LLM Agents: Mechanisms and Frontiers"
+      industry_mapping: ""
+      start_marker: ""
+      tags: "['autonomous-agent', 'memory-mechanism', 'evaluation']"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-25T13:57:51+00:00"
+      skip_reason: null

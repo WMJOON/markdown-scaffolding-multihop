@@ -1,0 +1,13 @@
+{"concept": "Group Relative Policy Optimization (GRPO)", "type": "model"}
+{"concept": "Proximal Policy Optimization (PPO)", "type": "model"}
+{"concept": "Direct Preference Optimization (DPO)", "type": "model"}
+{"concept": "2-GRPO (Minimal two-rollout case)", "type": "model"}
+{"concept": "Reinforcement Learning (RL)", "type": "other"}
+{"concept": "LLM post-training", "type": "task"}
+{"concept": "RL with Human Feedback (RLHF)", "type": "task"}
+{"concept": "RL with Verifiable Rewards (RLVR)", "type": "task"}
+{"concept": "Contrastive objective / Contrastive learning", "type": "other"}
+{"concept": "Advantage estimation", "type": "other"}
+{"concept": "Group-level statistics", "type": "other"}
+{"concept": "Prompt set (Q)", "type": "dataset"}
+{"concept": "Policy gradient estimator", "type": "other"}

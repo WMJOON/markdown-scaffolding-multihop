@@ -1,0 +1,17 @@
+{"concept": "MTEB (Massive Text Embedding Benchmark)", "type": "dataset"}
+{"concept": "Semantic Textual Similarity (STS)", "type": "task"}
+{"concept": "clustering", "type": "task"}
+{"concept": "reranking", "type": "task"}
+{"concept": "retrieval", "type": "task"}
+{"concept": "classification", "type": "task"}
+{"concept": "bitext mining", "type": "task"}
+{"concept": "pair classiﬁcation", "type": "task"}
+{"concept": "summarization", "type": "task"}
+{"concept": "GloVe", "type": "model"}
+{"concept": "BERT", "type": "model"}
+{"concept": "SBERT", "type": "model"}
+{"concept": "SimCSE", "type": "model"}
+{"concept": "Transformer", "type": "other"}
+{"concept": "Self-attention", "type": "other"}
+{"concept": "SemEval", "type": "dataset"}
+{"concept": "BEIR Benchmark", "type": "dataset"}

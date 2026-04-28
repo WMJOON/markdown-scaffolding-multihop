@@ -1,0 +1,9 @@
+{"concept": "LLM-as-a-Judge", "type": "task"}
+{"concept": "LLMs", "type": "model"}
+{"concept": "BLEU", "type": "metric"}
+{"concept": "ROUGE", "type": "metric"}
+{"concept": "Novel benchmark", "type": "dataset"}
+{"concept": "Prompt learning", "type": "other"}
+{"concept": "Fine-tuning", "type": "other"}
+{"concept": "Multimodal inputs", "type": "other"}
+{"concept": "Expert-driven assessments", "type": "other"}

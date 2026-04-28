@@ -1,0 +1,10 @@
+seed_version: "seed-R-20260425-0006"
+created_at: "2026-04-25T13:57:51+00:00"
+run_id: "R-20260425-0006"
+input_snapshot_hash: "sha256:a1a0cf7fafc15d1426a5db2f0f602fb09fcb36fc563f6828176b06b510ffd715"
+config_hash: "sha256:e3325acaaf4248bb59f4fb0e070ad64bcd03be9a4353e18cb9c0d30d83044b70"
+code_ref: "git:4c6f9183a973d71f06c1dd0045312a025e24ba47"
+placement_summary:
+
+total_candidates: 0
+total_placements: 0

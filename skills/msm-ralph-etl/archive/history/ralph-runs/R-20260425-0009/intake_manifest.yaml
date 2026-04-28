@@ -1,0 +1,83 @@
+intake_manifest:
+  total: 6
+  active: 6
+  skipped: 0
+  entries:
+    - url: "file:///Users/wmjoon/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/skills/md-ralph-etl/archive/history/ralph-runs/pdf-cache/md/paper_2310.08560.md"
+      normalized_url: "file:///Users/wmjoon/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/skills/md-ralph-etl/archive/history/ralph-runs/pdf-cache/md/paper_2310.08560.md"
+      url_fingerprint: "sha256:40059854304b0e06832179ed89dc74f5e29f15464f0854128b828d7fb1cbefc2"
+      source_type: md
+      case_id: local__paper_2310_08560
+      title: paper 2310.08560
+      industry_mapping: ""
+      start_marker: ""
+      tags: "[]"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-25T14:15:35+00:00"
+      skip_reason: null
+    - url: "file:///Users/wmjoon/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/skills/md-ralph-etl/archive/history/ralph-runs/pdf-cache/md/paper_2502.06975.md"
+      normalized_url: "file:///Users/wmjoon/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/skills/md-ralph-etl/archive/history/ralph-runs/pdf-cache/md/paper_2502.06975.md"
+      url_fingerprint: "sha256:df8f0eb08650e2409710862ca037b2517ec1d347bcd487c145aa4e73df785564"
+      source_type: md
+      case_id: local__paper_2502_06975
+      title: paper 2502.06975
+      industry_mapping: ""
+      start_marker: ""
+      tags: "[]"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-25T14:15:35+00:00"
+      skip_reason: null
+    - url: "file:///Users/wmjoon/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/skills/md-ralph-etl/archive/history/ralph-runs/pdf-cache/md/paper_2502.12110.md"
+      normalized_url: "file:///Users/wmjoon/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/skills/md-ralph-etl/archive/history/ralph-runs/pdf-cache/md/paper_2502.12110.md"
+      url_fingerprint: "sha256:4b17be1052452fa8385933e033a73f0a6e4751f189133452c4d738dfb0bc9665"
+      source_type: md
+      case_id: local__paper_2502_12110
+      title: paper 2502.12110
+      industry_mapping: ""
+      start_marker: ""
+      tags: "[]"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-25T14:15:35+00:00"
+      skip_reason: null
+    - url: "file:///Users/wmjoon/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/skills/md-ralph-etl/archive/history/ralph-runs/pdf-cache/md/paper_2603.07670.md"
+      normalized_url: "file:///Users/wmjoon/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/skills/md-ralph-etl/archive/history/ralph-runs/pdf-cache/md/paper_2603.07670.md"
+      url_fingerprint: "sha256:6711121686376a54616eee56a83ea321f9f88ec2c6838892e507025d485db634"
+      source_type: md
+      case_id: local__paper_2603_07670
+      title: paper 2603.07670
+      industry_mapping: ""
+      start_marker: ""
+      tags: "[]"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-25T14:15:35+00:00"
+      skip_reason: null
+    - url: "file:///Users/wmjoon/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/skills/md-ralph-etl/archive/history/ralph-runs/pdf-cache/md/paper_2603.29194.md"
+      normalized_url: "file:///Users/wmjoon/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/skills/md-ralph-etl/archive/history/ralph-runs/pdf-cache/md/paper_2603.29194.md"
+      url_fingerprint: "sha256:fafaf742278ddcbe47d542e8381245d00f3df31f2ce943bc866ce5cb41c9d3e2"
+      source_type: md
+      case_id: local__paper_2603_29194
+      title: paper 2603.29194
+      industry_mapping: ""
+      start_marker: ""
+      tags: "[]"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-25T14:15:35+00:00"
+      skip_reason: null
+    - url: "file:///Users/wmjoon/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/skills/md-ralph-etl/archive/history/ralph-runs/pdf-cache/md/survey_2512.13564.md"
+      normalized_url: "file:///Users/wmjoon/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/skills/md-ralph-etl/archive/history/ralph-runs/pdf-cache/md/survey_2512.13564.md"
+      url_fingerprint: "sha256:cceff7eef2167867f51359baae6914562b9489080058ffd41cb45877176ba19c"
+      source_type: md
+      case_id: local__survey_2512_13564
+      title: survey 2512.13564
+      industry_mapping: ""
+      start_marker: ""
+      tags: "[]"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-25T14:15:35+00:00"
+      skip_reason: null

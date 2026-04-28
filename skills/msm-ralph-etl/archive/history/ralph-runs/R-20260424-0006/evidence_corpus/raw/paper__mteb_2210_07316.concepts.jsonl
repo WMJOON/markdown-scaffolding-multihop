@@ -1,0 +1,22 @@
+{"concept": "Massive Text Embedding Benchmark (MTEB)", "type": "dataset"}
+{"concept": "Text embeddings", "type": "other"}
+{"concept": "Semantic textual similarity (STS)", "type": "task"}
+{"concept": "Clustering", "type": "task"}
+{"concept": "Reranking", "type": "task"}
+{"concept": "Bitext mining", "type": "task"}
+{"concept": "Classification", "type": "task"}
+{"concept": "Pair classification", "type": "task"}
+{"concept": "Retrieval", "type": "task"}
+{"concept": "Summarization", "type": "task"}
+{"concept": "SimCSE", "type": "model"}
+{"concept": "SBERT", "type": "model"}
+{"concept": "Glove", "type": "model"}
+{"concept": "BERT", "type": "model"}
+{"concept": "OpenAI Embeddings endpoint", "type": "model"}
+{"concept": "Transformers", "type": "other"}
+{"concept": "Word Embedding Models", "type": "other"}
+{"concept": "(Super)GLUE", "type": "dataset"}
+{"concept": "Big-BENCH", "type": "dataset"}
+{"concept": "SemEval datasets", "type": "dataset"}
+{"concept": "BEIR Benchmark", "type": "dataset"}
+{"concept": "Contrastive loss objective", "type": "other"}

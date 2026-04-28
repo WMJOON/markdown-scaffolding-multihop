@@ -1,0 +1,70 @@
+intake_manifest:
+  total: 5
+  active: 5
+  skipped: 0
+  entries:
+    - url: "https://arxiv.org/pdf/2210.07316"
+      normalized_url: "https://arxiv.org/pdf/2210.07316"
+      url_fingerprint: "sha256:c1b726e030debeebfc42398e5a54e170c53b01e05781f045f20539088288d532"
+      source_type: paper
+      case_id: paper__mteb_2210_07316
+      title: "MTEB: Massive Text Embedding Benchmark"
+      industry_mapping: ""
+      start_marker: ""
+      tags: "['embedding', 'benchmark']"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-24T01:45:25+00:00"
+      skip_reason: null
+    - url: "https://arxiv.org/pdf/2406.04692"
+      normalized_url: "https://arxiv.org/pdf/2406.04692"
+      url_fingerprint: "sha256:6f40d257c5020afc46b121851175447eefe0c002f47f57e5a54eaf649d1b8019"
+      source_type: paper
+      case_id: paper__moa_2406_04692
+      title: "Mixture-of-Agents Enhances Large Language Model Capabilities"
+      industry_mapping: ""
+      start_marker: ""
+      tags: "['ensemble', 'llm']"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-24T01:45:25+00:00"
+      skip_reason: null
+    - url: "https://arxiv.org/pdf/2510.00977"
+      normalized_url: "https://arxiv.org/pdf/2510.00977"
+      url_fingerprint: "sha256:8a0f617114ab166ae3d7bbfddc2af898002ba308b0bd6c20231b5600b03a2282"
+      source_type: paper
+      case_id: paper__grpo_dpo_2510_00977
+      title: "It Takes Two: Your GRPO Is Secretly DPO"
+      industry_mapping: ""
+      start_marker: ""
+      tags: "['rlhf', 'grpo', 'ensemble']"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-24T01:45:25+00:00"
+      skip_reason: null
+    - url: "https://arxiv.org/pdf/2103.03874"
+      normalized_url: "https://arxiv.org/pdf/2103.03874"
+      url_fingerprint: "sha256:61e56e93685b60f6cb831eb2b81112fa224ee25820ecaeb52afe94e115b63232"
+      source_type: paper
+      case_id: paper__math_halluc_2103_03874
+      title: Mathematical Reasoning in LLMs
+      industry_mapping: ""
+      start_marker: ""
+      tags: "['hallucination', 'arithmetic']"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-24T01:45:25+00:00"
+      skip_reason: null
+    - url: "https://arxiv.org/pdf/2411.15594"
+      normalized_url: "https://arxiv.org/pdf/2411.15594"
+      url_fingerprint: "sha256:17f25ce92ed2d7c3261bed571c834a2851ab3b741b2ceee70348b9d5c3138a6a"
+      source_type: paper
+      case_id: paper__llm_judge_2411_15594
+      title: "LLM-as-a-Judge Diversity Evidence"
+      industry_mapping: ""
+      start_marker: ""
+      tags: "['llm-judge', 'diversity']"
+      license_hint: ""
+      priority: 0
+      collected_at: "2026-04-24T01:45:25+00:00"
+      skip_reason: null

@@ -1,0 +1,8 @@
+{"check_id": "V1", "name": "evidence_coverage", "passed": true, "blocking": true, "details": "ok"}
+{"check_id": "V2", "name": "entity_id_uniqueness", "passed": true, "blocking": true, "details": "ok"}
+{"check_id": "V3", "name": "relation_type_validity", "passed": true, "blocking": true, "details": "ok (convention-based predicates accepted)"}
+{"check_id": "V4", "name": "hold_residual", "passed": true, "blocking": true, "details": "ok"}
+{"check_id": "V5", "name": "orphan_check", "passed": true, "blocking": false, "details": "ok"}
+{"check_id": "V6", "name": "layer_consistency", "passed": true, "blocking": false, "details": "ok (simplified check)"}
+{"check_id": "V7", "name": "merge_finalized", "passed": true, "blocking": true, "details": "ok"}
+{"check_id": "V8", "name": "source_ref_format", "passed": true, "blocking": true, "details": "ok"}

@@ -1,0 +1,33 @@
+doc_id: paper__math_halluc_2103_03874
+title: Mathematical Reasoning in LLMs
+organization: ""
+date: ""
+headings:
+  - "H1: arXiv:2103.03874v2 [cs.LG] 8 Nov 2021"
+  - "H2: Measuring Mathematical Problem Solving With the MATH Dataset"
+  - "H3: Abstract"
+  - "H3: 1 Introduction"
+  - "H6: √2, so x + 1 = ±eiπ8"
+  - "H3: 2 Related Work"
+  - "H3: 3 Datasets"
+  - "H5: 3.1 The MATH Dataset"
+  - "H5: 3.2 AMPS (Khan + Mathematica) Dataset"
+  - "H3: 4 Experiments"
+  - "H5: 4.1 Experimental Setup"
+  - "H5: . Ground truth solution: We can write a"
+  - "H5: 4.2 Analyzing Model Performance"
+  - "H3: 5 Conclusion"
+  - "H3: References"
+  - "H3: A Appendix"
+  - "H5: A.1 Expanded Dataset Comparisons"
+  - "H5: A.2 Logic and Intelligence Tests"
+  - "H4: 5"
+  - "H5: A.3 Further Dataset Information"
+  - "H5: A.4 Difﬁculty Analysis"
+  - "H5: A.5 Results with the BART Architecture"
+  - "H5: A.6 Further Human Evaluation Details"
+  - "H3: B Checklist Information"
+doc_type: paper
+length: 85387
+outbound_links:
+  - "https://github.com/hendrycks/apps."

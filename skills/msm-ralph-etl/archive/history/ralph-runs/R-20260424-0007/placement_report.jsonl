@@ -1,0 +1,1 @@
+{"candidate_id": "4e174bf5bb373f13", "label": "skip", "target_existing_id": "dataset__glove_komninos_bert_simcse", "alias_sim": 1.0, "embed_sim": 0.0, "evidence_count": 1, "conflict_layer": null, "reason": "exact alias match with existing entity"}

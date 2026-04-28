@@ -1,0 +1,87 @@
+ralph_run_id: "R-20260425-0004"
+parent_run_id: null
+started_at: "2026-04-25T13:55:15+00:00"
+status: DONE
+attempt: 1
+max_retry: 3
+input_snapshot_hash: "sha256:f1b0e381f1bd549e147e06ccb807bfd08db8d1d497e650f520a0b2a1bbf773e5"
+config_hash: "sha256:e3325acaaf4248bb59f4fb0e070ad64bcd03be9a4353e18cb9c0d30d83044b70"
+code_ref: "git:4c6f9183a973d71f06c1dd0045312a025e24ba47"
+batch:
+  batch_id: "B-20260425-0004"
+  urls:
+    - "https://arxiv.org/abs/2512.13564"
+    - "https://arxiv.org/abs/2502.12110"
+    - "https://arxiv.org/abs/2502.06975"
+    - "https://arxiv.org/abs/2310.08560"
+    - "https://arxiv.org/abs/2603.29194"
+    - "https://arxiv.org/abs/2603.07670"
+  scope_targets:
+    - Concept
+    - Framework
+  url_fingerprints:
+    - "sha256:d8296f99e3767cb7ff077405797c59f3fac47de7b52c94f9b1a32c4e26c40b9b"
+    - "sha256:e1a73a08a1782f96e9789a9e85c4f171d78b88a64e6eec12a270d754cc85486e"
+    - "sha256:ac86a0211070d2fc2b2b24d819b3a0c473c2b478750bd1be374416ed0b6d6124"
+    - "sha256:26e7ae529ac5e81bc7e010f6e7bfd8d72689fb0249bc9a424f718ab7bc4c2df7"
+    - "sha256:588953a1b40b8b7f341d1ad675fdac8d25370a01c605fa4ba5fc0bae846ceed1"
+    - "sha256:94ecb36c546a0392b224445dd750c00ed107f19c76deed68d6d2a16f276a725b"
+config:
+  batch_size: 20
+  max_retry: 3
+  ambiguity_threshold: 0.35
+  chunk_max_words: 400
+  chunk_overlap_words: 50
+  chunk_min_words: 40
+  llm_call_ratio_limit: 0.05
+  hold_ratio_limit: 0.2
+  merge_alias_sim_threshold: 0.92
+  extend_alias_sim_threshold: 0.8
+  relation_embed_sim_threshold: 0.75
+  http_timeout: 40
+  run_mode: full
+  input_format: jsonl
+  scope_targets:
+    - Concept
+    - Framework
+  file_extensions:
+    - .md
+    - .txt
+    - .html
+  embed_mode: EmbedMode.AUTO
+  bert_model: "sentence-transformers/all-MiniLM-L6-v2"
+  fetcher_mode: FetcherMode.AUTO
+checkpoints:
+  - step: A_INTAKE
+    artifact: intake_manifest.yaml
+    idempotency_key: "sha256:6597ef4c2c605366fee166022675ec7c89123caf284bb23fd4e0c74eda444441"
+    completed_at: "2026-04-25T13:55:15+00:00"
+  - step: B_CRAWL
+    artifact: evidence_corpus/index/
+    idempotency_key: "sha256:d8e45279fc40a405c7c798dfbb28e3cd9dcbc295b7ca8278191891551826ef3d"
+    completed_at: "2026-04-25T13:55:17+00:00"
+  - step: C_PREPROCESS
+    artifact: evidence_corpus/chunks/
+    idempotency_key: "sha256:5858caedf604df1c57b46ac14615f4e6cde0c81280b10654223ba7fd83b0e6dd"
+    completed_at: "2026-04-25T13:55:17+00:00"
+  - step: D_PARSE
+    artifact: entity_candidates.jsonl
+    idempotency_key: "sha256:76e81ee03db411e5aa1bec3d399678eef78071a7874d8d553a73509a890f94fc"
+    completed_at: "2026-04-25T13:55:17+00:00"
+  - step: H_PLACE
+    artifact: placement_report.jsonl
+    idempotency_key: "sha256:c839d522be9a9805168e390d2f81be9c3dde54e68688a63e2b7cf54b0288e8b9"
+    completed_at: "2026-04-25T13:55:17+00:00"
+  - step: I_SEAL
+    artifact: audit_log.md
+    idempotency_key: "sha256:0bc7d4ba466887cfdf966e9da0cc29dbfdabb5f06a0c6f03111e27d6c0019018"
+    completed_at: "2026-04-25T13:55:17+00:00"
+metrics:
+  llm_call_count: 0
+  llm_call_ratio: 0.0
+  cache_hit_ratio: 0.0
+  hold_count: 0
+  hold_ratio: 0.0
+  entities_processed: 0
+  relations_processed: 34
+governance_events: []

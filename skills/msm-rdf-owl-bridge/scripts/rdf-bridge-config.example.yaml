@@ -1,0 +1,121 @@
+# rdf-bridge-config.yaml
+# semantic-atlas 프로젝트 설정
+#
+# 다른 프로젝트에서 rdf-owl-bridge를 사용할 때는
+# BRIDGE_DIR에 이 파일을 복사한 후 entity_types를 수정하세요.
+#
+# 이 파일이 없으면 도구는 generic 모드로 동작합니다:
+#   - namespace_base: http://rdf-bridge.local/
+#   - entity_type: OWL Class URI 로컬명을 그대로 사용
+#   - dir: entity_type과 동일
+#   - layer: "general"
+
+namespace_base: "http://semantic-atlas.io/"
+
+entity_types:
+  # Semantic layer
+  - name: AIModel
+    layer: semantic
+    dir: AIModel
+  - name: Model
+    layer: semantic
+    dir: AIModel
+  - name: AISystem
+    layer: semantic
+    dir: AISystem
+  - name: AiAgent
+    layer: semantic
+    dir: AIAgent
+  - name: AISystemType
+    layer: semantic
+    dir: AISystemType
+  - name: ModelFamily
+    layer: semantic
+    dir: ModelFamily
+  - name: ModelParadigm
+    layer: semantic
+    dir: ModelParadigm
+  - name: ModelCapability
+    layer: semantic
+    dir: ModelCapability
+  - name: ModelExplainability
+    layer: semantic
+    dir: ModelExplainability
+  - name: ModelModality
+    layer: semantic
+    dir: ModelModality
+  - name: Capability
+    layer: semantic
+    dir: Capability
+  - name: Modality
+    layer: semantic
+    dir: Modality
+
+  # Empirical layer
+  - name: Dataset
+    layer: empirical
+    dir: Dataset
+  - name: BenchmarkProvider
+    layer: empirical
+    dir: BenchmarkProvider
+  - name: BenchmarkReference
+    layer: empirical
+    dir: BenchmarkReference
+  - name: EvaluationTask
+    layer: empirical
+    dir: EvaluationTask
+  - name: EvaluationScenario
+    layer: empirical
+    dir: EvaluationScenario
+  - name: Metric
+    layer: empirical
+    dir: Metric
+  - name: ModelPerformance
+    layer: empirical
+    dir: ModelPerformance
+  - name: SystemPerformance
+    layer: empirical
+    dir: SystemPerformance
+
+  # Evidence layer
+  - name: CaseStudy
+    layer: evidence
+    dir: CaseStudy
+  - name: Paper
+    layer: evidence
+    dir: Paper
+  - name: TechBlog
+    layer: evidence
+    dir: TechBlog
+  - name: Report
+    layer: evidence
+    dir: Report
+  - name: Source
+    layer: evidence
+    dir: Source
+
+  # Physical layer
+  - name: Work
+    layer: physical
+    dir: Work
+  - name: WorkTask
+    layer: physical
+    dir: WorkTask
+  - name: WorkflowType
+    layer: physical
+    dir: WorkflowType
+  - name: PhysicalAI
+    layer: physical
+    dir: PhysicalAI
+  - name: Environment
+    layer: physical
+    dir: Environment
+  - name: Purpose
+    layer: physical
+    dir: Purpose
+  - name: ContextDefinition
+    layer: physical
+    dir: ContextDefinition
+  - name: Industry
+    layer: physical
+    dir: Industry
