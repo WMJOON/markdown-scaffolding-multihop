@@ -180,6 +180,29 @@ flowchart LR
 
 ---
 
+## 설치
+
+```bash
+git clone https://github.com/WMJOON/markdown-scaffolding-multihop.git
+cd markdown-scaffolding-multihop
+./install.sh
+```
+
+`install.sh`는 `skills/` 하위 스킬을 `~/.claude/skills/`에 심볼릭 링크로 연결한다. 이미 같은 이름의 디렉토리가 존재하면 건너뛰고 경고를 출력한다.
+
+**설치 확인**
+
+```bash
+python3 ~/.claude/skills/mso-skill-governance/scripts/validate_gov.py \
+  --pack-root ~/.claude \
+  --pack msm \
+  --json
+```
+
+`"status": "ok"`, `"findings": []`이면 정상. (`mso-skill-governance`가 먼저 설치되어 있어야 한다.)
+
+---
+
 ## Roadmap
 
 ```text
