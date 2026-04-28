@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.2.0 (2026-04-28)
+
+> md-mece-validator 완전 자동화(--auto/--ollama), 보안 강화(git 이력 정화 + .gitignore).
+
+### Added
+- `md-mece-validator/scripts/mece_interview.py`
+  - `--auto` 플래그 — LLM이 직접 인터뷰 답변 생성, 무인 MECE 검증 루프
+  - `--ollama` 플래그 — Ollama 확인 프롬프트 자동 수락, 로컬 모델 전용 실행 지원
+  - 질문 중복 조기 종료 — 반복 질문 감지 시 루프 자동 종료
+
+### Changed
+- `md-mece-validator/SKILL.md` — --auto / --ollama 플래그 사용법, false-positive 방지 가이드 추가
+- Ollama 클라이언트 모델 `qwen3.5:4b` 전환
+
+### Security
+- `skills/md-ralph-etl/data/ontology-entities/` (ETL 추출 엔티티 78개 파일) git 이력 전체 정화 (git filter-repo)
+- `.gitignore`에 Ralph ETL 런타임 산출물 경로 추가 — archive/, data/ontology-entities/, data/ontology-relations/, evidence_corpus/
+
+---
+
 ## v0.1.6 (2026-04-27)
 
 > md-mece-validator 신규 스킬 추가. graph-ontology.yaml 온톨로지 설계·검증을 위한 Calibrated Validation 루프 구현.
