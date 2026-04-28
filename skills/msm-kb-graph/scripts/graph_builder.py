@@ -67,10 +67,17 @@ def load_config(config_path: Optional[Path] = None) -> tuple[dict, Path]:
 
 
 def resolve_entity_dirs(cfg: dict, base_dir: Path) -> dict[str, Path]:
-    return {
-        etype: base_dir / rel_path
-        for etype, rel_path in cfg.get("entity_dirs", {}).items()
-    }
+    # 신규: entity_dirs: {class: path}
+    if "entity_dirs" in cfg:
+        return {etype: base_dir / rel_path for etype, rel_path in cfg["entity_dirs"].items()}
+    # 레거시: entities: {class: {dir: path, ...}}
+    if "entities" in cfg and isinstance(cfg["entities"], dict):
+        return {
+            etype: base_dir / v["dir"]
+            for etype, v in cfg["entities"].items()
+            if isinstance(v, dict) and "dir" in v
+        }
+    return {}
 
 
 def resolve_instance_dirs(cfg: dict, base_dir: Path) -> dict[str, Path]:
