@@ -1,10 +1,10 @@
-# markdown-scaffolding-multihop (v0.1.6)
+# markdown-scaffolding-multihop (v0.2.0)
 
 이 스킬셋은 **"Markdown 파일은 많이 쌓였는데, 그 안의 연결을 구조적으로 읽고 유지하고 확장하기가 어렵다"**는 문제를 풀기 위해 만들어졌습니다.
 
 단일 문서 검색은 하나의 노트 안에 있는 정보만 돌려줍니다. 하지만 실제 인사이트는 여러 노트를 가로질러 존재합니다. markdown-scaffolding-multihop은 frontmatter와 wikilink로 선언된 관계를 실제 그래프로 파싱하고, BFS 멀티홉 추론과 유지보수 레이어를 통해 **검색·추론·구조화·유지보수**를 하나의 skillset으로 다룹니다.
 
-v0.1.4에서 `md-kb-rewrite`를 maintenance/governance wrapper layer로 추가해 KB entropy 문제를 다루기 시작했고, **v0.1.5에서는 `ollama_mcp`로 execution plane을 분리**해 토큰 최적화를 다뤘습니다. 반복적·저위험 작업(개념 추출, 초안 생성, 유사도 필터링)을 로컬 경량 모델(`qwen3.5:4b`)에 위임하고, 의미 판단과 governance는 상위 모델이 맡는 2-plane 구조입니다. **v0.1.6에서는 온톨로지 구조 자체를 더 단단하게** 만들었습니다. `ontology/concept/[domain]/`·`ontology/instance/[domain]/` 분리로 TBox-lite와 ABox를 명확히 구분하고, 도메인 축을 `evidence/`와 정렬했습니다. 여기에 `md-mece-validator`가 추가되어 온톨로지 설계 단계부터 MECE 품질을 검증할 수 있게 됐습니다.
+v0.1.4에서 `md-kb-rewrite`를 maintenance/governance wrapper layer로 추가해 KB entropy 문제를 다루기 시작했고, **v0.1.5에서는 `ollama_mcp`로 execution plane을 분리**해 토큰 최적화를 다뤘습니다. 반복적·저위험 작업(개념 추출, 초안 생성, 유사도 필터링)을 로컬 경량 모델(`qwen3.5:4b`)에 위임하고, 의미 판단과 governance는 상위 모델이 맡는 2-plane 구조입니다. **v0.1.6에서는 온톨로지 구조 자체를 더 단단하게** 만들었습니다. `ontology/concept/[domain]/`·`ontology/instance/[domain]/` 분리로 TBox-lite와 ABox를 명확히 구분하고, 도메인 축을 `evidence/`와 정렬했습니다. 여기에 `md-mece-validator`가 추가되어 온톨로지 설계 단계부터 MECE 품질을 검증할 수 있게 됐습니다. **v0.2.0에서는 `md-mece-validator`를 완전 자동화**했습니다. `--auto` 플래그로 LLM이 인터뷰 답변까지 생성해 무인 검증 루프를 돌릴 수 있고, `--ollama` 플래그로 로컬 모델 단독 실행을 지원합니다. 중복 질문 감지 조기 종료로 토큰 낭비도 줄었습니다. 함께 Ralph ETL 런타임 산출물을 git 이력에서 완전 정화해 보안 기반을 정비했습니다.
 
 ---
 
@@ -146,7 +146,7 @@ flowchart LR
 
 `md-scaffolding-design` — KB를 처음 만들거나 새 프로젝트에 그래프 구조를 심을 때 씁니다. `graph-ontology.yaml`을 자동 생성하고, Top-Down/Bottom-Up 구축 흐름을 지원합니다.
 
-`md-mece-validator` — `graph-ontology.yaml`의 클래스·관계 구조가 MECE(상호배제·전체포괄)한지 검증하고 개선할 때 씁니다. Calibrated Validation 루프(light/medium/deep)로 리소스 투입량을 조절하며, `md-scaffolding-design`의 `--mece` 플래그로 연계 실행할 수 있습니다.
+`md-mece-validator` — `graph-ontology.yaml`의 클래스·관계 구조가 MECE(상호배제·전체포괄)한지 검증하고 개선할 때 씁니다. Calibrated Validation 루프(light/medium/deep)로 리소스 투입량을 조절하며, `--auto` 플래그로 LLM 자동 답변 루프를, `--ollama` 플래그로 로컬 모델 단독 실행을 지원합니다. `md-scaffolding-design`의 `--mece` 플래그로 연계 실행할 수 있습니다.
 
 `md-ralph-etl` — URL이나 로컬 문서를 크롤링해서 KB에 새 증거 노드를 추가할 때 씁니다. 웹 페이지, 논문, 기사를 읽어 `evidence/[domain]/sources/`에 구조화된 노트로 넣습니다. v0.1.5부터 arxiv 등 PDF URL 직접 처리를 지원합니다(`step_pdf.py`).
 
@@ -199,8 +199,9 @@ flowchart LR
 ## Roadmap
 
 ```text
-v0.1.x  개인 업무 환경 검증 — Evidence-first KB 구조 정립
-v0.2.x  rewrite/governance/semantic framing 레이어 고도화
+v0.1.x  개인 업무 환경 검증 — Evidence-first KB 구조 정립          ✓ 완료
+v0.2.x  rewrite/governance/semantic framing 레이어 고도화           ← 현재
+v0.3.x  멀티-도메인 KB 통합, 스킬 자동 갱신 루프
 ```
 
 ---
