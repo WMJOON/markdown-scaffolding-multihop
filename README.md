@@ -6,6 +6,8 @@
 
 **v0.2.0은 스킬을 얇게 많이 두는 방식에서 굵게 적게 두는 방식으로 전환한 버전입니다.** 기존 10개 `md-*` 스킬을 7개 `msm-*` 스킬로 통합·재편했습니다. 역할이 겹치거나 단독으로는 워크플로우 완결성이 낮았던 스킬들을 흡수·병합해, 각 스킬이 더 넓은 범위를 맥락 전환 없이 스스로 해결할 수 있도록 두텁게 만들었습니다. `msm-kb-graph`는 그래프 구조 초기화·멀티홉 추론·벡터 검색·인사이트 저장을 단일 진입점으로 통합했고, `msm-ralph-etl`은 ETL과 집계(Rollup)를 함께 다룹니다. 함께 `msm-mece-validator`의 `--auto`/`--ollama` 플래그로 온톨로지 검증 루프를 완전 자동화하고, Ralph ETL 런타임 산출물을 git 이력에서 정화해 보안 기반도 정비했습니다.
 
+> **현재 구조**: MSM 스킬셋은 `msm-orchestration`과 MSO 스킬셋의 `mso-orchestration`, 두 오케스트레이션 스킬을 진입점으로 두고 나머지 서브스킬을 on-demand로 로드하는 방식으로 운영된다. 향후 두 팩의 역할이 충분히 수렴하면 단일 Thick 스킬로 통합하는 방안을 검토 중이다.
+
 ---
 
 ## 설계 철학: Bounded Rationality, Calibrated Validation
@@ -86,10 +88,12 @@ Detect  →  Diagnose  →  Draft  →  Review  →  Merge  →  Observe
 
 ## 스킬 구성
 
-현재 7개 스킬이 4개 영역(온톨로지 설계 · 그래프추론 · 유지보수 · 운영분석)에서 협업합니다.
+현재 7개 스킬이 4개 영역(온톨로지 설계 · 그래프추론 · 유지보수 · 운영분석)에서 협업합니다. `msm-orchestration`이 진입점이며, 서브스킬은 on-demand로 로드됩니다.
 
 ```mermaid
 flowchart LR
+    ORCH["msm-orchestration<br/><small>진입점 · On-Demand 라우팅</small>"]
+
     subgraph 온톨로지["온톨로지 설계·관리"]
         mece["msm-mece-validator<br/><small>온톨로지 MECE 설계·검증</small>"]
         ralph["msm-ralph-etl<br/><small>증거 기반 온톨로지 확장 + rollup</small>"]
@@ -105,6 +109,11 @@ flowchart LR
         obsidian["msm-obsidian-cli<br/><small>Obsidian vault 조작</small>"]
         analysis["msm-data-analysis<br/><small>통계 분석</small>"]
     end
+
+    ORCH -.->|on-demand| 온톨로지
+    ORCH -.->|on-demand| 그래프추론
+    ORCH -.->|on-demand| 유지보수
+    ORCH -.->|on-demand| 운영분석
 
     config[/"graph-ontology.yaml"/]
     entities[/"Entity MD 파일"/]
@@ -195,6 +204,32 @@ cd markdown-scaffolding-multihop
 ```
 
 이미 같은 이름의 디렉토리가 존재하면 건너뛰고 경고를 출력한다.
+
+### 서브스킬 On-Demand 로딩
+
+minimal 모드에서는 `~/.claude/skills/`에 `msm-orchestration`만 존재한다. 서브스킬이 필요할 때는 아래 명령으로 실제 경로를 확인한 뒤 Read한다:
+
+```bash
+python3 -c "
+import pathlib
+p = pathlib.Path('~/.claude/skills/msm-orchestration').expanduser().resolve().parent
+print(p / 'SKILL_NAME' / 'SKILL.md')
+"
+```
+
+`SKILL_NAME`을 아래 라우팅 테이블의 스킬명으로 교체하면 절대 경로가 반환된다.
+
+### 스킬 라우팅
+
+| 요청 유형 | 담당 스킬 |
+|----------|----------|
+| KB 데이터 분석 · 인사이트 추출 | `msm-data-analysis` |
+| KB 그래프 구조 설계 · 멀티홉 추론 | `msm-kb-graph` |
+| KB 노트 재작성 · 구조 유지보수 | `msm-kb-rewrite` |
+| MECE 검증 · 온톨로지 구조 점검 | `msm-mece-validator` |
+| Obsidian 파일 · 폴더 CLI 조작 | `msm-obsidian-cli` |
+| Evidence ETL · Rollup 집계 | `msm-ralph-etl` |
+| RDF/OWL 온톨로지 브릿지 | `msm-rdf-owl-bridge` |
 
 **설치 확인**
 
