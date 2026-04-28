@@ -1,0 +1,17 @@
+{
+  "pack_id": "msm",
+  "description": "Markdown Scaffolding Multihop",
+  "prefix": "msm-",
+  "version": "v0.2.0",
+  "repo_url": "https://github.com/WMJOON/markdown-scaffolding-multihop",
+  "overload_threshold": 10,
+  "required_skills": [
+    "msm-data-analysis",
+    "msm-kb-graph",
+    "msm-kb-rewrite",
+    "msm-mece-validator",
+    "msm-obsidian-cli",
+    "msm-ralph-etl",
+    "msm-rdf-owl-bridge"
+  ]
+}
