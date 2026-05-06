@@ -9,7 +9,8 @@ description: >
   외부 DB·API 키 없이 로컬/GitHub 모두 동작.
   트리거: "멀티홉 추론해줘", "그래프 기반 분석", "GraphRAG 구조 만들어줘",
   "graph-config 생성해줘", "벡터 검색으로 노드 찾아줘", "zvec 인덱스 빌드",
-  "추론 결과 노드로 저장해줘", "knowledge graph 인사이트 뽑아줘"
+  "추론 결과 노드로 저장해줘", "knowledge graph 인사이트 뽑아줘",
+  "클러스터링", "커뮤니티 탐지", "Leiden", "cluster_id", "브릿지 노드", "synthesis 후보"
 ---
 
 # md-kb-graph
@@ -22,6 +23,7 @@ description: >
 | 기존 그래프에서 멀티홉 추론 | [B] Graph RAG |
 | 자연어로 관련 노드 탐색 | [C] Vector Search |
 | 추론 결과를 그래프에 다시 저장 | [D] Save Insight |
+| KB 노드 자동 커뮤니티 클러스터링 | [E] Leiden Clustering |
 
 ---
 
@@ -110,6 +112,58 @@ python3 save_insight.py \
 ```
 
 저장 후 `graph_builder.py` 재실행하면 인사이트 노드가 그래프에 포함되어 다음 멀티홉에서 활용 가능.
+
+---
+
+---
+
+## [E] Leiden Clustering — 커뮤니티 자동 탐지
+
+`scripts/leiden_cluster.py` (Leiden 알고리즘으로 KB 노드를 자동 클러스터링)
+
+```bash
+# 클러스터 리포트 출력 (파일 변경 없음)
+python3 scripts/leiden_cluster.py
+
+# frontmatter에 cluster / cluster_idx 기록
+python3 scripts/leiden_cluster.py --write-back
+
+# 기록 대상 미리보기 (dry-run)
+python3 scripts/leiden_cluster.py --dry-run
+
+# 브릿지 노드 상세 출력 (클러스터 간 연결 노드)
+python3 scripts/leiden_cluster.py --report-bridges
+
+# 해상도 조정 (↓ → 큰 클러스터, ↑ → 작은 클러스터)
+python3 scripts/leiden_cluster.py --resolution 0.5
+
+# 3노드 미만 클러스터 숨김
+python3 scripts/leiden_cluster.py --min-size 3
+
+# JSON 출력 (파이프 연계용)
+python3 scripts/leiden_cluster.py --json > clusters.json
+```
+
+**설계 원칙**
+
+- `inferred=True` 엣지(composition 추론) 제외 — 사용자가 직접 작성한 wikilink만 클러스터링 신호로 사용
+- 클러스터 레이블(`cluster` 키): 클러스터 내 최고차수 노드명 → 실행 간 안정적
+- `cluster_idx`: 현재 실행의 정수 인덱스 — 재실행 시 재할당될 수 있으므로 Dataview 쿼리는 `cluster` 키를 사용
+
+**Dataview 예시 (write-back 후)**
+
+```dataview
+TABLE cluster, cluster_idx
+FROM ""
+WHERE cluster != null
+SORT cluster ASC
+```
+
+**의존성 설치**
+
+```bash
+pip install leidenalg igraph
+```
 
 ---
 

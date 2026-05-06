@@ -15,3 +15,8 @@ numpy>=1.24
 scipy>=1.11
 statsmodels>=0.14
 tabulate>=0.9
+
+# msm-kb-graph Leiden 클러스터링 (선택 — leiden_cluster.py 사용 시만 필요)
+# pip install leidenalg igraph
+leidenalg>=0.10
+igraph>=0.10
