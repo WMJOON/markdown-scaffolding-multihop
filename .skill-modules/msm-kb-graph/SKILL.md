@@ -110,16 +110,18 @@ python3 github_adapter.py --repo owner/repo --query "..." --hops 2
 `scripts/zvec_graph_index.py` 참조: `references/zvec-graph-ops.md`
 
 ```bash
-# 인덱스 빌드
-python3 scripts/zvec_graph_index.py index
+# 인덱스 빌드 (한국어 KB: multilingual 권장)
+python3 scripts/zvec_graph_index.py index --embedder multilingual --include-body --force
 
-# 시맨틱 노드 검색
-python3 scripts/zvec_graph_index.py search "경쟁사의 시장 진입 전략"
+# 시맨틱 노드 검색 (인덱싱과 동일한 embedder 사용)
+python3 scripts/zvec_graph_index.py search "이미지 분류 모델" --embedder multilingual
 
 # Graph RAG와 연계 (벡터 검색 → 멀티홉)
-NODE_ID=$(python3 scripts/zvec_graph_index.py search "시장 점유율" --top1)
+NODE_ID=$(python3 scripts/zvec_graph_index.py search "시장 점유율" --embedder multilingual --top1)
 python3 graph_rag.py --entity "$NODE_ID" --hops 2 --context-only
 ```
+
+**embedder 옵션**: `hash`(기본·오프라인) | `multilingual`(한국어 권장) | `local`(영어) | `openai` | `qwen`
 
 embedder 변경 시 `--force`로 재인덱싱. 인덱싱과 검색에 동일한 embedder 사용 필수.
 
