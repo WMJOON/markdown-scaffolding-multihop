@@ -37,3 +37,6 @@ skills/md-ralph-etl/archive/
 skills/md-ralph-etl/data/ontology-entities/
 skills/md-ralph-etl/data/ontology-relations/
 skills/md-ralph-etl/evidence_corpus/
+
+# skill-modules Ralph ETL 런타임 아카이브
+.skill-modules/msm-ralph-etl/archive/
