@@ -144,6 +144,24 @@ def _prepare_embedder(kind: str, dimension: int) -> tuple[Any | None, str]:
         except TypeError:
             return cls(dimension=dimension), cls.__name__
 
+    if kind == "multilingual":
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError:
+            raise RuntimeError(
+                "sentence-transformers가 설치되지 않음.\n"
+                "설치: pip install sentence-transformers"
+            )
+        _model_name = "paraphrase-multilingual-MiniLM-L12-v2"
+        _st_model = SentenceTransformer(_model_name)
+
+        class _MultilingualEmbedder:
+            def embed(self, text: str) -> list[float]:
+                vec = _st_model.encode(text, normalize_embeddings=True)
+                return vec.tolist() if hasattr(vec, "tolist") else list(vec)
+
+        return _MultilingualEmbedder(), f"SentenceTransformer({_model_name})"
+
     raise ValueError(f"unsupported embedder: {kind}")
 
 
@@ -557,9 +575,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_index.add_argument("--collection", default=DEFAULT_COLLECTION_PATH, help="zvec collection 경로")
     p_index.add_argument(
         "--embedder",
-        choices=["hash", "local", "openai", "qwen"],
+        choices=["hash", "local", "multilingual", "openai", "qwen"],
         default="hash",
-        help="임베딩 백엔드 (기본: hash)",
+        help="임베딩 백엔드 (기본: hash | 한국어 권장: multilingual)",
     )
     p_index.add_argument("--dimension", type=int, default=DEFAULT_DIMENSION, help="벡터 차원 (기본: 384)")
     p_index.add_argument("--include-body", action="store_true", help="노드 본문도 인덱싱에 포함")
@@ -573,9 +591,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_search.add_argument("--collection", default=DEFAULT_COLLECTION_PATH, help="zvec collection 경로")
     p_search.add_argument(
         "--embedder",
-        choices=["hash", "local", "openai", "qwen"],
+        choices=["hash", "local", "multilingual", "openai", "qwen"],
         default="hash",
-        help="검색 embedder (인덱싱과 동일해야 함)",
+        help="검색 embedder (인덱싱과 동일해야 함 | 한국어 권장: multilingual)",
     )
     p_search.add_argument("--dimension", type=int, default=DEFAULT_DIMENSION, help="벡터 차원")
     p_search.add_argument("--limit", type=int, default=5, help="Top-K (기본: 5)")

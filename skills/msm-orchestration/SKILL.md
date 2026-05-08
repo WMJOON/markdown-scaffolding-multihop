@@ -27,15 +27,15 @@ description: |-
 
 ## 1. 요청 분석 — 인텐트 → 스킬 매핑
 
-| 인텐트 | 신호 키워드 | 담당 스킬 |
-|--------|-----------|---------|
-| Evidence 수집·온톨로지 확장 | "Ralph", "ETL", "논문 수집", "URL 크롤링", "온톨로지 확장" | [A] ralph-etl 시작 |
-| 그래프 설계·멀티홉 추론 | "멀티홉", "GraphRAG", "그래프 분석", "Knowledge Graph" | [B] kb-graph |
-| KB 데이터 분석·인사이트 | "KB 분석", "인사이트", "데이터 분석" | [C] data-analysis |
-| KB 재작성·구조 유지보수 | "노트 재작성", "KB 정리", "구조 유지보수" | [D] mece-validator → kb-rewrite |
-| MECE 검증·온톨로지 점검 | "MECE 검증", "온톨로지 점검", "구조 검증" | mece-validator |
-| Obsidian 파일 조작 | "파일 생성", "폴더 이동", "Obsidian CLI" | obsidian-cli |
-| RDF/OWL 변환 | "RDF", "OWL", "온톨로지 브릿지", "Turtle" | rdf-owl-bridge |
+| 인텐트                 | 신호 키워드                                         | 담당 스킬                           |
+| ------------------- | ---------------------------------------------- | ------------------------------- |
+| Evidence 수집·온톨로지 확장 | "Ralph", "ETL", "논문 수집", "URL 크롤링", "온톨로지 확장"  | [A] ralph-etl 시작                |
+| 그래프 설계·멀티홉 추론       | "멀티홉", "GraphRAG", "그래프 분석", "Knowledge Graph" | [B] kb-graph                    |
+| KB 데이터 분석·인사이트      | "KB 분석", "인사이트", "데이터 분석"                      | [C] data-analysis               |
+| KB 재작성·구조 유지보수      | "노트 재작성", "KB 정리", "구조 유지보수"                   | [D] mece-validator → kb-rewrite |
+| MECE 검증·온톨로지 점검     | "MECE 검증", "온톨로지 점검", "구조 검증"                  | mece-validator                  |
+| Obsidian 파일 조작      | "파일 생성", "폴더 이동", "Obsidian CLI"               | obsidian-cli                    |
+| RDF/OWL 변환          | "RDF", "OWL", "온톨로지 브릿지", "Turtle"             | rdf-owl-bridge                  |
 
 특정 서브스킬이 직접 언급된 경우: 해당 스킬만 로드하여 위임.
 
