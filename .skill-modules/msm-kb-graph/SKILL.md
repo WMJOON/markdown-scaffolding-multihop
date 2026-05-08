@@ -15,6 +15,31 @@ description: >
 
 # md-kb-graph
 
+## 권장 검색 흐름: Vector-First
+
+온톨로지 탐색 시 항상 **Vector Search → Graph RAG** 순서로 수행한다.
+
+```
+자연어 질의
+    ↓  [C] Vector Search  (zvec 인덱스 — 관련 시드 노드 빠르게 식별)
+시드 노드 1~3개
+    ↓  [B] Graph RAG      (BFS 멀티홉 — 연결 인사이트 탐색)
+컨텍스트 서브그래프
+    ↓  Claude 추론
+최종 답변
+```
+
+**이유**: 전체 그래프에서 텍스트 매칭으로 시작하면 관련 없는 노드에서 멀티홉이 시작될 수 있다.
+벡터 검색으로 의미적으로 가장 가까운 시드를 먼저 찾으면 멀티홉의 정밀도가 올라간다.
+
+```bash
+# 원라이너 패턴
+NODE=$(python3 scripts/zvec_graph_index.py search "질의" --top1)
+python3 graph_rag.py --entity "$NODE" --hops 2 --context-only
+```
+
+---
+
 ## 워크플로우 선택
 
 | 목적 | 워크플로우 |
@@ -22,6 +47,7 @@ description: >
 | 새 프로젝트에 그래프 구조 세팅 | [A] Scaffolding |
 | 기존 그래프에서 멀티홉 추론 | [B] Graph RAG |
 | 자연어로 관련 노드 탐색 | [C] Vector Search |
+| **온톨로지 탐색 (권장)** | **[C] → [B] Vector-First** |
 | 추론 결과를 그래프에 다시 저장 | [D] Save Insight |
 | KB 노드 자동 커뮤니티 클러스터링 | [E] Leiden Clustering |
 
