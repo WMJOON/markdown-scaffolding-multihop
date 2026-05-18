@@ -3,42 +3,113 @@
 ## 설치
 
 ```bash
+git clone https://github.com/WMJOON/markdown-scaffolding-multihop.git
+cd markdown-scaffolding-multihop
 pip install -r requirements.txt
+./install.sh   # ~/.claude/skills/msm-orchestration 심링크 생성
 ```
+
+Graphify ETL을 사용하려면:
+
+```bash
+pip install graphifyy
+```
+
+---
+
+## 새 KB 부트스트랩
+
+```bash
+# 미리보기
+skills/msm-repository-setup/scripts/msm init \
+  --target my-kb --domain ai_agent --dry-run
+
+# 적용
+skills/msm-repository-setup/scripts/msm init \
+  --target my-kb --domain ai_agent --apply --yes
+
+# 생성 결과
+# my-kb/
+#   canonical_root_hub.yaml      ← locked SSOT
+#   ontology/Tbox/ai_agent/      ← 클래스·관계 정의 (md + jsonl)
+#   ontology/Abox/ai_agent/      ← 인스턴스 (md + jsonl)
+#   evidence/                    ← 원본·seed
+#   workflow/                    ← yaml 정의 워크플로우
+#   memory/                      ← task-context + ontology-index
+#   harness/                     ← L0~L3 런타임
+```
+
+---
+
+## Evidence 수집
+
+### URL / 로컬 MD
+
+```bash
+skills/msm-evidence/scripts/msm-evidence collect \
+  --target my-kb \
+  --source https://arxiv.org/abs/2310.01848 \
+  --apply
+
+skills/msm-evidence/scripts/msm-evidence list --target my-kb
+```
+
+### Graphify ETL (코드베이스 → concept 노드)
+
+```bash
+# 1) 코드베이스 분석
+graphify .
+
+# 2) concept 노드만 추출 → MSM JSONL 변환
+python skills/msm-evidence/scripts/graphify_to_msm.py \
+  graphify-out/graph.json \
+  --output-dir my-kb/evidence/graphify/
+
+# 출력
+# evidence/graphify/entity_candidates.jsonl   ← concept 노드 (hub_candidate 태그 포함)
+# evidence/graphify/relation_candidates.jsonl ← concept 간 관계
+```
+
+---
+
+## Ontology 구축
+
+```bash
+# entity 추가
+skills/msm-ontology/scripts/msm-ontology add \
+  --target my-kb --cluster ai_agent \
+  --type Concept --label "Reinforcement Learning" --apply
+
+# MECE 검증
+skills/msm-ontology/scripts/msm-ontology mece \
+  --target my-kb --cluster ai_agent --depth light
+
+# entity 목록
+skills/msm-ontology/scripts/msm-ontology list --target my-kb
+```
+
+---
+
+## 자연어 라우팅
+
+```bash
+# intent → workflow → skill 자동 연결
+skills/msm-orchestration/msm-orchestrate run \
+  --intent "evidence 수집해줘" \
+  --target my-kb --tier L0 --mode dry-run
+
+# 명시적 workflow 호출
+skills/msm-orchestration/msm-orchestrate run \
+  --workflow workflow/evidence/evidence-collection.yaml \
+  --target my-kb --tier L0 --mode dry-run
+```
+
+---
 
 ## 지원 소스
 
-| 소스 | 설명 |
+| 소스 | 방식 |
 |------|------|
-| **로컬 디렉토리** | 모든 Markdown 파일 (Obsidian vault 포함) |
-| **GitHub 레포** | GitHub API 경유, 로컬 클론 불필요 |
-| **Git 레포 (로컬)** | git clone 후 로컬 파일로 처리 |
-
-## 기본 사용
-
-```bash
-# 1. KB 구조 초기화
-python3 skills/md-scaffolding-design/scripts/scaffold_project.py \
-  --local ./my-kb --template kb-structure --output graph-config.yaml
-
-# 2. 그래프 구축 확인
-python3 skills/md-graph-multihop/scripts/graph_builder.py
-
-# 3-a. 키워드 검색 + 멀티홉 추론
-python3 skills/md-graph-multihop/scripts/graph_rag.py \
-  --query "X와 Y의 관계는?" --hops 2 --context-only
-
-# 3-b. 벡터 인덱싱 → 시맨틱 검색
-python3 skills/md-vector-search/scripts/zvec_graph_index.py index
-python3 skills/md-vector-search/scripts/zvec_graph_index.py search "시장 진입 전략"
-
-# 4. 롤업 (값 집계)
-python3 skills/md-frontmatter-rollup/scripts/rollup_engine.py --dry-run
-```
-
-## GitHub repo 대상
-
-```bash
-python3 skills/md-graph-multihop/scripts/github_adapter.py \
-  --repo owner/repo --config graph-config.yaml --query "..."
-```
+| URL (웹 페이지·논문) | `msm-evidence collect --source URL` |
+| 로컬 MD 파일 | `msm-evidence collect --source ./path` |
+| Graphify `graph.json` | `graphify_to_msm.py graph.json` |

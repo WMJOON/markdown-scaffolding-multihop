@@ -1,82 +1,135 @@
 # 워크플로우 가이드
 
-어떤 상황에서 시작하느냐에 따라 4가지 워크플로우 중 하나를 선택합니다.
-
-| 워크플로우 | 시작 상황 | 핵심 스킬 |
-|-----------|----------|---------|
-| A | KB를 처음 만든다 | `md-scaffolding-design`, `md-mece-validator` |
-| B | Claude 인사이트를 KB 노드로 저장한다 | `md-scaffolding-design` (`save_insight.py`) |
-| C | KB가 낡거나 지저분해졌다 | `md-kb-rewrite` |
-| D | raw/ 소스를 wiki 노드로 컴파일한다 | `md-scaffolding-design`, `ollama_mcp` |
+v1.0.0의 모든 워크플로우는 `workflow/{category}/*.yaml`로 외부 정의되고, 스킬이 yaml을 소비합니다.
 
 ---
 
-## Workflow A — 새 KB를 처음 만드는 상황
+## 워크플로우 카테고리
 
-"도메인은 정해졌는데 Markdown 구조가 아직 없다. 어디서부터 시작하지?"
+| 카테고리 | yaml 위치 | 담당 스킬 |
+|---------|----------|---------|
+| evidence | `workflow/evidence/` | `msm-evidence` |
+| ontology | `workflow/ontology/` | `msm-ontology` |
+| maintain | `workflow/maintain/` | `msm-maintain` |
+| explorer | `workflow/explorer/` | `msm-graph-reasoning` (v1.x 예정) |
 
-`md-scaffolding-design`을 실행합니다. 프로젝트 디렉토리나 GitHub repo를 분석해 `graph-ontology.yaml`을 자동 생성하고, `ontology/` · `schema/` · `evidence/` · `context/` · `docs/` 폴더 구조를 초기화합니다. 프리셋(personal-memory, obsidian-vault, git-repo 등)을 사용하면 즉시 시작할 수 있습니다.
+---
+
+## Workflow A — 새 KB 부트스트랩
 
 ```bash
-python3 scaffold_project.py --local ./my-docs --output ./graph-ontology.yaml
-python3 scaffold_project.py --template obsidian-vault --output ./graph-ontology.yaml
+skills/msm-repository-setup/scripts/msm init \
+  --target my-kb --domain ai_agent --apply --yes
 
-# MECE 온톨로지 검증 포함 (md-mece-validator 연계)
-python3 scaffold_project.py --local ./my-docs --mece medium --domain "도메인 설명"
+# canonical_root_hub.yaml + 5-Layer 골격 생성
+# msm-orchestration이 workflow/index.yaml 자동 등록
 ```
 
-→ 상세: [KB 구축 흐름](kb-build-flows.md) · [온톨로지 설정](ontology-config.md)
+→ [quickstart.md](quickstart.md)
 
 ---
 
-## Workflow B — 추론 결과를 KB에 저장하는 상황
-
-"Claude가 분석한 인사이트를 그냥 대화로 끝내지 않고, KB 노드로 남기고 싶다."
-
-`md-scaffolding-design`의 `save_insight.py`를 씁니다. Claude의 추론 결과에 wikilink를 연결해 기존 그래프와 이어지는 노드로 저장합니다. 나중에 `md-graph-multihop`이 이 노드를 다시 추론 경로에 포함시킬 수 있습니다.
+## Workflow B — Evidence 수집
 
 ```bash
-python3 save_insight.py --title "분석 제목" --content "..." --links "node-a,node-b" --config graph-ontology.yaml
+# workflow/evidence/evidence-collection.yaml 소비
+skills/msm-orchestration/msm-orchestrate run \
+  --workflow workflow/evidence/evidence-collection.yaml \
+  --target my-kb --tier L1 --mode dry-run
+```
+
+또는 직접 호출:
+
+```bash
+skills/msm-evidence/scripts/msm-evidence collect \
+  --target my-kb --source https://arxiv.org/abs/2310.01848 --apply
 ```
 
 ---
 
-## Workflow C — KB가 낡거나 지저분해진 상황
+## Workflow C — Graphify ETL
 
-"노트가 너무 길어졌거나, 같은 내용이 여러 곳에 흩어졌거나, 새 논문을 추가했는데 기존 노드에 반영이 안 됐다."
+코드베이스를 KB evidence로 수집합니다.
 
-`md-kb-rewrite`를 씁니다. H-A~H-X 휴리스틱으로 문제를 진단하고, 6단계 rewrite loop(Detect → Diagnose → Draft → Review → Merge → Observe)로 개선합니다. 위험도가 낮은 작업은 자동 반영, 높은 작업은 human review를 거칩니다.
+```bash
+# workflow/evidence/graphify-etl.yaml 소비
+skills/msm-orchestration/msm-orchestrate run \
+  --workflow workflow/evidence/graphify-etl.yaml \
+  --target my-kb \
+  --inputs '{"graph_json": "graphify-out/graph.json"}' \
+  --tier L1 --mode dry-run
+```
 
-v0.1.4부터 H-X가 **interesting connection / missing synthesis** 후보도 탐지합니다. 즉 이 워크플로우는 단순 cleanup뿐 아니라 "아직 쓰이지 않은 article이나 concept가 있는가?"까지 점검합니다.
+또는 직접 호출:
 
-→ 상세: [KB 유지보수 가이드](kb-maintenance.md)
+```bash
+graphify .
+python skills/msm-evidence/scripts/graphify_to_msm.py \
+  graphify-out/graph.json --output-dir my-kb/evidence/graphify/
+```
 
 ---
 
-## Workflow D — Raw 소스를 Wiki 노드로 컴파일하는 상황
+## Workflow D — Ontology 구축
 
-"클리핑해둔 문서, 논문 초록, 메모들이 `raw/` 폴더에 쌓여 있다. 이걸 KB 구조로 정리하고 싶다."
-
-Karpathy의 "LLM Knowledge Bases" 접근에서 착안한 흐름입니다. `md-scaffolding-design`이 `raw/[domain]/` 디렉토리를 스캔하고, 각 문서를 `ontology/` 또는 `evidence/`로 분류·컴파일합니다. 저위험 초안 작성이나 개념 목록 추출은 `ollama_mcp`(로컬 Gemma)에게 위임할 수 있습니다.
-
+```bash
+# workflow/ontology/ontology-construction.yaml 소비
+skills/msm-orchestration/msm-orchestrate run \
+  --workflow workflow/ontology/ontology-construction.yaml \
+  --target my-kb --tier L1 --mode dry-run
 ```
-raw/[domain]/source.md (status: raw)
-  → ontology/instance/[domain]/[instance].md (status: draft, type: [class])
-  → evidence/[domain]/sources/[source].md
+
+또는 직접 호출:
+
+```bash
+skills/msm-ontology/scripts/msm-ontology add \
+  --target my-kb --cluster ai_agent \
+  --type Concept --label "RLHF" --apply
+
+skills/msm-ontology/scripts/msm-ontology mece \
+  --target my-kb --cluster ai_agent --depth medium
 ```
+
+---
+
+## Workflow E — KB 유지보수
+
+```bash
+# workflow/maintain/validation.yaml 소비
+skills/msm-orchestration/msm-orchestrate run \
+  --workflow workflow/maintain/validation.yaml \
+  --target my-kb --tier L1 --mode dry-run
+```
+
+또는 직접 호출:
+
+```bash
+skills/msm-maintain/scripts/msm-maintain scan --target my-kb
+skills/msm-maintain/scripts/msm-maintain report --target my-kb
+```
+
+---
+
+## 자연어 라우팅
+
+`msm-orchestration`이 자연어 인텐트를 workflow yaml로 자동 매핑합니다.
+
+```bash
+skills/msm-orchestration/msm-orchestrate run \
+  --intent "graphify로 이 레포 분석해서 KB에 넣어줘" \
+  --target my-kb --tier L0 --mode dry-run
+```
+
+라우팅 규칙: [skills/msm-orchestration/references/router-trigger-map.yaml](../../skills/msm-orchestration/references/router-trigger-map.yaml)
 
 ---
 
 ## ollama_mcp 연동
 
-`ollama_mcp`는 필수 의존성이 아닌 **비용 절감·반복 작업 위임 보조 레이어**입니다. 모든 유지보수/합성 작업을 상위 모델에 맡기면 단순 반복 작업까지 고비용 reasoning 경로를 타게 됩니다.
+반복적·저비용 작업을 로컬 모델에 위임해 Claude 토큰을 절약합니다.
 
-**권장 모델:** `qwen3.5:4b` — concept extraction / lightweight semantic filtering / draft condensation / rewrite pre-pass 역할
-
-**대표 사용 패턴:**
-
-1. **H-X Connection Candidate 탐지** — `ollama_extract_concepts`로 여러 노드의 핵심 개념 목록 추출 → Claude가 교차 분석해 gap·synthesis·missing node 후보 도출
-2. **Rewrite pre-pass** — 긴 note를 로컬 모델이 summary draft로 압축 → 상위 레이어가 semantic framing risk 재검토
-3. **Evidence freshness triage** — 새 evidence note와 기존 summary note 간 키워드 차이 1차 비교
-
-**fallback:** `ollama_mcp`가 없거나 오류 나면 상위 모델이 직접 노드 본문을 읽어 처리하고, 처리 대상 수를 줄여 토큰 낭비를 최소화합니다.
+| 작업 | 위임 여부 |
+|------|---------|
+| evidence 청킹·요약 | ✓ ollama |
+| concept 추출 초안 | ✓ ollama |
+| MECE 판단·semantic bias 검출 | ✗ Claude 직접 |
