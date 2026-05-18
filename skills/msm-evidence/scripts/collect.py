@@ -1,0 +1,357 @@
+#!/usr/bin/env python3
+"""Main collect pipeline for msm-evidence.
+
+Flow: fetch → extract → strip-frontmatter → chunk → dedup → write seed + md note.
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as _dt
+import hashlib
+import json
+import os
+import re
+import sys
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPT_DIR))
+
+import chunker as _chunker  # noqa: E402
+import extractor as _extractor  # noqa: E402
+import fetcher as _fetcher  # noqa: E402
+
+TOOL_VERSION = "msm-evidence/1.0.0"
+GENERATED_COMMENT = '<!-- msm:generated:file skill="msm-evidence" version="1.0.0" -->'
+
+
+# ---------------------------------------------------------------------------
+# Slug helpers
+# ---------------------------------------------------------------------------
+
+def _slug_from_uri(uri: str) -> str:
+    """Derive deterministic slug from URI (max 40 chars)."""
+    import urllib.parse
+    lower = uri.lower()
+    if lower.startswith("http://") or lower.startswith("https://"):
+        parsed = urllib.parse.urlparse(uri)
+        base = parsed.hostname or ""
+        path = parsed.path.strip("/").replace("/", "_")
+        raw = (base + "_" + path).lower()
+    elif lower.startswith("file://"):
+        parsed = urllib.parse.urlparse(uri)
+        p = Path(parsed.path)
+        raw = p.stem.lower()
+    else:
+        p = Path(uri)
+        raw = p.stem.lower()
+    # Keep only alnum and underscore
+    slug = re.sub(r'[^a-z0-9]+', '_', raw)
+    slug = slug.strip('_')
+    return slug[:40] or "source"
+
+
+# ---------------------------------------------------------------------------
+# Frontmatter stripper
+# ---------------------------------------------------------------------------
+
+def _strip_frontmatter(text: str) -> str:
+    """Remove YAML frontmatter block (--- ... ---) from start of text."""
+    m = re.match(r'^---\s*\n.*?\n---\s*\n', text, re.DOTALL)
+    if m:
+        return text[m.end():]
+    return text
+
+
+# ---------------------------------------------------------------------------
+# Hash helpers
+# ---------------------------------------------------------------------------
+
+def _sha256(text: str) -> str:
+    return "sha256:" + hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# Seeds JSONL I/O
+# ---------------------------------------------------------------------------
+
+def _load_existing_hashes(seeds_path: Path) -> set[str]:
+    """Return set of content_hash strings already in seeds.jsonl."""
+    hashes: set[str] = set()
+    if not seeds_path.exists():
+        return hashes
+    with seeds_path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                obj = json.loads(line)
+                h = obj.get("content_hash", "")
+                if h:
+                    hashes.add(h)
+            except json.JSONDecodeError:
+                pass
+    return hashes
+
+
+def _append_seed(seeds_path: Path, seed: dict) -> None:
+    """Atomic-append a single seed JSON line to seeds.jsonl."""
+    line = json.dumps(seed, ensure_ascii=False, separators=(",", ":")) + "\n"
+    seeds_path.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(str(seeds_path), os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
+    try:
+        os.write(fd, line.encode("utf-8"))
+    finally:
+        os.close(fd)
+
+
+# ---------------------------------------------------------------------------
+# MD note writer
+# ---------------------------------------------------------------------------
+
+def _write_md_note(md_dir: Path, slug: str, idx: int, seed: dict, chunk_text: str) -> None:
+    """Write evidence/md/<slug>_<pad4>.md for a single chunk."""
+    filename = f"{slug}_{idx:04d}.md"
+    out_path = md_dir / filename
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    title = seed.get("title") or slug
+    uri = seed.get("uri", "")
+    retrieved = seed.get("retrieved_at", "")
+    content_hash = seed.get("content_hash", "")
+    chunk_total = seed["chunk"]["total"]
+
+    content = (
+        f"{GENERATED_COMMENT}\n"
+        f"---\n"
+        f"id: {seed['id']}\n"
+        f"uri: {uri}\n"
+        f"retrieved_at: {retrieved}\n"
+        f"content_hash: {content_hash}\n"
+        f"chunk_index: {idx}\n"
+        f"chunk_total: {chunk_total}\n"
+        f"status: collected\n"
+        f"---\n"
+        f"\n"
+        f"# {title}\n"
+        f"\n"
+        f"> Source: {uri}\n"
+        f"\n"
+        f"{chunk_text}\n"
+    )
+    out_path.write_text(content, encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# Trajectory writer
+# ---------------------------------------------------------------------------
+
+def _emit_trajectory(target: Path, run_id: str | None, event: dict) -> None:
+    if not run_id:
+        return
+    traj_dir = target / "harness" / "trajectory"
+    traj_dir.mkdir(parents=True, exist_ok=True)
+    ts = _dt.datetime.now(tz=_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+    record = {"run_id": run_id, "ts": ts, **event}
+    line = json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n"
+    path = traj_dir / f"run-{run_id}.jsonl"
+    fd = os.open(str(path), os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o644)
+    try:
+        os.write(fd, line.encode("utf-8"))
+    finally:
+        os.close(fd)
+
+
+# ---------------------------------------------------------------------------
+# Core collect logic
+# ---------------------------------------------------------------------------
+
+def collect_uri(
+    uri: str,
+    target: Path,
+    chunk_size: int,
+    chunk_overlap: int,
+    cluster: str | None,
+    apply: bool,
+    run_id: str | None,
+    user_agent: str,
+    max_retry: int,
+) -> dict:
+    """Collect a single URI. Returns stats dict."""
+    stats = {"uri": uri, "added": 0, "skipped": 0, "error": None}
+
+    # Fetch
+    try:
+        kind, raw, content_type, effective_uri = _fetcher.fetch(
+            uri, user_agent=user_agent, max_retry=max_retry
+        )
+    except Exception as exc:
+        stats["error"] = str(exc)
+        return stats
+
+    slug = _slug_from_uri(uri)
+    retrieved_at = _dt.datetime.now(tz=_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # Extract text
+    if "html" in content_type.lower() or raw[:200].lstrip()[:5].lower() in (b"<!doc", b"<html"):
+        title, text = _extractor.extract_html(raw)
+    else:
+        title_raw = ""
+        text = raw.decode("utf-8", errors="replace")
+        # Strip frontmatter for MD files
+        text = _strip_frontmatter(text)
+        title_raw = slug
+
+    if "html" in content_type.lower() or raw[:200].lstrip()[:5].lower() in (b"<!doc", b"<html"):
+        pass  # title already set above
+    else:
+        title = title_raw
+
+    if not text.strip():
+        stats["error"] = "empty content after extraction"
+        return stats
+
+    # Chunk
+    chunks = _chunker.chunk_text(text, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    if not chunks:
+        stats["error"] = "no chunks produced"
+        return stats
+
+    total = len(chunks)
+
+    if not apply:
+        # Dry run: just report what would be added
+        stats["added"] = total
+        stats["dry_run"] = True
+        return stats
+
+    # Load existing hashes for dedup
+    seeds_path = target / "evidence" / "seeds.jsonl"
+    md_dir = target / "evidence" / "md"
+    existing_hashes = _load_existing_hashes(seeds_path)
+
+    for idx, chunk_text in enumerate(chunks):
+        content_hash = _sha256(chunk_text)
+        if content_hash in existing_hashes:
+            stats["skipped"] += 1
+            _emit_trajectory(target, run_id, {
+                "event_type": "seed_dedup_skip",
+                "content_hash": content_hash,
+                "uri": uri,
+                "chunk_index": idx,
+            })
+            continue
+
+        seed_id = f"evidence:seed:{slug}_{idx:04d}"
+        md_rel = f"evidence/md/{slug}_{idx:04d}.md"
+        seed = {
+            "id": seed_id,
+            "kind": kind,
+            "uri": uri,
+            "retrieved_at": retrieved_at,
+            "content_hash": content_hash,
+            "title": title or slug,
+            "chunk": {
+                "index": idx,
+                "total": total,
+                "char_start": 0,  # approximate (overlap makes exact start ambiguous)
+                "char_end": len(chunk_text),
+                "text_preview": chunk_text[:200],
+            },
+            "claims": [],
+            "status": "collected",
+            "cluster_hint": cluster,
+            "md_path": md_rel,
+            "tool_version": TOOL_VERSION,
+        }
+
+        # Write md note
+        _write_md_note(md_dir, slug, idx, seed, chunk_text)
+
+        # Append seed
+        _append_seed(seeds_path, seed)
+        existing_hashes.add(content_hash)
+        stats["added"] += 1
+
+        _emit_trajectory(target, run_id, {
+            "event_type": "seed_collected",
+            "seed_id": seed_id,
+            "content_hash": content_hash,
+            "chunk_index": idx,
+            "chunk_total": total,
+        })
+
+    return stats
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    p = argparse.ArgumentParser(prog="collect")
+    p.add_argument("--target", default=".", help="KB root path")
+    p.add_argument("--source", nargs="+", default=[], metavar="URI")
+    p.add_argument("--sources-file", default=None, metavar="PATH")
+    p.add_argument("--chunk-size", type=int, default=1200)
+    p.add_argument("--chunk-overlap", type=int, default=100)
+    p.add_argument("--cluster", default=None)
+    p.add_argument("--dry-run", action="store_true", default=False)
+    p.add_argument("--apply", action="store_true", default=False)
+    p.add_argument("--max-retry", type=int, default=1)
+    p.add_argument("--user-agent", default="msm-evidence/1.0")
+    p.add_argument("--run-id", default=None)
+    return p.parse_args(argv)
+
+
+def main(argv: list[str]) -> int:
+    args = parse_args(argv)
+    target = Path(args.target).resolve()
+
+    # Gather URIs
+    uris: list[str] = list(args.source)
+    if args.sources_file:
+        sf = Path(args.sources_file)
+        if sf.exists():
+            for line in sf.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    uris.append(line)
+
+    if not uris:
+        print("No sources specified.", file=sys.stderr)
+        return 2
+
+    apply = args.apply and not args.dry_run
+
+    all_stats: list[dict] = []
+    for uri in uris:
+        stats = collect_uri(
+            uri=uri,
+            target=target,
+            chunk_size=args.chunk_size,
+            chunk_overlap=args.chunk_overlap,
+            cluster=args.cluster,
+            apply=apply,
+            run_id=args.run_id,
+            user_agent=args.user_agent,
+            max_retry=args.max_retry,
+        )
+        all_stats.append(stats)
+        if stats.get("error"):
+            print(f"ERROR: {uri}: {stats['error']}", file=sys.stderr)
+        else:
+            mode = "dry-run" if not apply else "applied"
+            print(f"[{mode}] {uri}: added={stats['added']} skipped={stats['skipped']}")
+
+    total_added = sum(s["added"] for s in all_stats)
+    total_skipped = sum(s["skipped"] for s in all_stats)
+    errors = [s for s in all_stats if s.get("error")]
+    print(f"\nSummary: added={total_added} skipped={total_skipped} errors={len(errors)}")
+    return 0 if not errors else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

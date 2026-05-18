@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# msm-ontology — CLI entrypoint for the msm-ontology skill.
+# Usage: msm-ontology <command> [options]
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PY="${PYTHON:-python3}"
+
+sub="${1:-}"
+shift || true
+
+case "$sub" in
+  add)
+    exec "$PY" "$SCRIPT_DIR/add.py" "$@"
+    ;;
+  mece)
+    exec "$PY" "$SCRIPT_DIR/mece.py" "$@"
+    ;;
+  list)
+    exec "$PY" "$SCRIPT_DIR/list.py" "$@"
+    ;;
+  project)
+    exec "$PY" "$SCRIPT_DIR/project_md.py" "$@"
+    ;;
+  ""|-h|--help)
+    cat <<EOF
+msm-ontology — Ontology Manager for MSM v1.0.0
+
+Commands:
+  add       Register entity / relation / instance
+  mece      Run MECE violation checks
+  list      List registered objects
+  project   Regenerate MD projections from JSONL
+
+add options:
+  --target PATH               KB root (default: .)
+  --cluster NAME              Tbox/Abox cluster name (required)
+  --entity LABEL [LABEL...]   Add one or more Tbox entities
+  --relation LABEL            Add a Tbox relation
+    --source ENTITY_ID        Relation source entity id
+    --target-id ENTITY_ID     Relation target entity id
+  --instance LABEL            Add an Abox instance
+    --type ENTITY_ID          Instance-of Tbox entity id
+  --evidence URI [URI...]     evidence:seed:... references (required)
+  --status STATUS             draft|accepted|stable|deprecated (default: draft)
+  --apply                     Actually write files (default: dry-run)
+
+mece options:
+  --target PATH               KB root
+  --cluster NAME              Limit to one cluster (default: all)
+
+list options:
+  --target PATH               KB root
+  --cluster NAME              Limit to one cluster
+  --kind entity|relation|instance
+
+project options:
+  --target PATH               KB root
+  --cluster NAME              Cluster to project
+  --apply                     Write MD files (default: dry-run)
+EOF
+    ;;
+  *)
+    echo "unknown subcommand: $sub" >&2
+    echo "Use 'msm-ontology --help' for usage." >&2
+    exit 2
+    ;;
+esac

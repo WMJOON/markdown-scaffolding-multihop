@@ -1,0 +1,22 @@
+# Reference copy of templates/canonical_root_hub.yaml.
+# Authoritative version is at templates/canonical_root_hub.yaml.
+# Schema: canonical-hub-SPEC §4.
+
+version: "1.0"
+locked: true
+
+domains: []
+
+scan:
+  include:
+    - "ontology/Tbox/**/*.md"
+    - "ontology/Abox/**/*.md"
+  exclude:
+    - "ontology/**/_*.md"
+    - "ontology/**/.*/**"
+  orphan_exit_code: 1
+
+sync:
+  structural_ssot: jsonl
+  projection_target: md
+  auto_apply_md_to_jsonl: false

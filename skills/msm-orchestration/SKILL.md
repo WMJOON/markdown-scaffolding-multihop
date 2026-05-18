@@ -1,117 +1,48 @@
 ---
 name: msm-orchestration
-description: |-
-  MSM(Markdown Scaffolding Multihop) 스킬 팩 오케스트레이터. 상시 로드 스킬.
-  Markdown KB 구조화·온톨로지·그래프 작업 관련 모든 요청의 진입점.
-  트리거: "멀티홉 추론", "GraphRAG", "그래프 분석", "Knowledge Graph",
-  "KB 분석", "인사이트 추출", "데이터 분석",
-  "노트 재작성", "KB 정리", "구조 유지보수",
-  "MECE 검증", "온톨로지 점검", "온톨로지 확장",
-  "Ralph", "ETL", "논문 수집", "URL 크롤링",
-  "RDF", "OWL", "온톨로지 브릿지",
-  "MSM", "msm", "markdown scaffolding".
+version: "1.0.0"
+description: |
+  MSM v1.0.0 정책·라우팅 레이어. 사용자 의도를 워크플로우로 라우팅하고,
+  CC 계약·HITL 정책·5-axis gate를 강제한다. msm-harness의 측정값을 소비해
+  gate_decision을 emit. PreToolUse hook으로 위험 동작을 차단.
+triggers:
+  - "msm 실행"
+  - "워크플로우 디스패치"
+  - "ontology 작업"
+  - "evidence 수집"
+  - "MECE 검증"
+  - "GraphRAG"
+  - "5-axis gate"
+  - "HITL 정책"
+spec: planning/msm_v1.0.0/msm-orchestration-v1.0.0-SPEC.md
 ---
 
-# msm-orchestration
+# msm-orchestration (v1.0.0)
 
-팩 정의: [references/pack_config.json](references/pack_config.json)
+## What
 
----
+MSM의 단일 사용자 진입점. 트리거 매칭 → 워크플로우 선택 → harness 호출 → 측정값 소비 → gate 판정.
+정책은 본 스킬이, 측정은 `msm-harness`가 담당 (책임 분리).
 
-## 오케스트레이터 역할
+상세 동작은 [core.md](core.md).
 
-라우터 + 3-Phase 제어기다. 서브스킬 내부 로직(3-Phase 세부, 종료 판정)은 복제하지 않고 서브스킬에 위임한다.  
-**전역 원칙**: dry-run 먼저, 사용자 확인 후 apply. 모든 KB 변경 작업에 적용.
+## Entry Points
 
----
+| 진입점 | 명령 |
+|--------|------|
+| CLI | `router/dispatch.py --intent TEXT --target REPO` |
+| Gate | `policy/gate_evaluator.py --target REPO --run-id RUN_ID` |
+| Hook | `hooks/pretool_use.py` (stdin payload, PreToolUse) |
+| CC check | `policy/cc_check.py --target REPO` |
 
-## 1. 요청 분석 — 인텐트 → 스킬 매핑
+## Dependencies
 
-| 인텐트                 | 신호 키워드                                         | 담당 스킬                           |
-| ------------------- | ---------------------------------------------- | ------------------------------- |
-| Evidence 수집·온톨로지 확장 | "Ralph", "ETL", "논문 수집", "URL 크롤링", "온톨로지 확장"  | [A] ralph-etl 시작                |
-| 그래프 설계·멀티홉 추론       | "멀티홉", "GraphRAG", "그래프 분석", "Knowledge Graph" | [B] kb-graph                    |
-| KB 데이터 분석·인사이트      | "KB 분석", "인사이트", "데이터 분석"                      | [C] data-analysis               |
-| KB 재작성·구조 유지보수      | "노트 재작성", "KB 정리", "구조 유지보수"                   | [D] mece-validator → kb-rewrite |
-| MECE 검증·온톨로지 점검     | "MECE 검증", "온톨로지 점검", "구조 검증"                  | mece-validator                  |
-| Obsidian 파일 조작      | "파일 생성", "폴더 이동", "Obsidian CLI"               | obsidian-cli                    |
-| RDF/OWL 변환          | "RDF", "OWL", "온톨로지 브릿지", "Turtle"             | rdf-owl-bridge                  |
+- Python 3.10+ (stdlib only)
+- `msm-harness` (run dispatch)
 
-특정 서브스킬이 직접 언급된 경우: 해당 스킬만 로드하여 위임.
+## Non-Goals
 
----
-
-## 2. 서브스킬 로드 절차
-
-```
-1. 인텐트 → 스킬 결정
-2. Read: ~/.skill-modules/msm-skills/{SKILL_NAME}/SKILL.md
-3. 3-Phase 프로토콜 확인
-4. Phase 0(DESIGN): scope · mode · 종료 기준 사용자와 합의
-5. Phase 1(EXECUTE): dry-run → 확인 → apply
-6. Phase 2(EVALUATE): 종료 판정 결과 보고
-```
-
----
-
-## 3. 캐노니컬 파이프라인
-
-### [A] 온톨로지 확장 (Ralph ETL)
-
-```
-msm-ralph-etl       →  Evidence Seed (.jsonl)
-msm-kb-graph        →  그래프 확장 결과
-msm-mece-validator  →  구조 검증 리포트
-```
-
-Step 1 시작 전 사용자와 scope(URL/파일 목록, similarity threshold) 합의 필수.
-
-### [B] 그래프 설계·멀티홉 추론
-
-```
-msm-kb-graph  →  멀티홉 인사이트 / 그래프 구조
-```
-
-### [C] KB 분석 → 인사이트
-
-```
-msm-data-analysis  →  인사이트 리포트
-msm-kb-graph       →  멀티홉 연결 인사이트 (선택)
-```
-
-### [D] KB 재구조화
-
-```
-msm-mece-validator  →  구조 점검 결과
-msm-kb-rewrite      →  재작성 노트
-```
-
----
-
-## 4. 실행 종료 조건
-
-| 파이프라인 | 종료 조건 |
-|-----------|---------|
-| [A] ETL | Evidence Seed 봉인 완료 + mece-validator 통과 |
-| [B] 그래프 | 인사이트 노드 vault 저장 완료 |
-| [C] 분석 | 리포트 생성 완료 |
-| [D] 재구조화 | 재작성 노트 갱신 + 검증 통과 |
-
-모든 apply 직전 사용자 확인 게이트 통과 필수.
-
----
-
-## 설치
-
-```bash
-git clone https://github.com/WMJOON/markdown-scaffolding-multihop.git
-cd markdown-scaffolding-multihop
-./install.sh
-```
-
-## 거버넌스 검증
-
-```bash
-python3 ~/.claude/skills/mso-skill-governance/scripts/validate_gov.py \
-  --pack-root ~/.claude --pack msm --json
-```
+- 측정값 생성 → `msm-harness`
+- 디렉토리 부트스트랩 → `msm-repository-setup`
+- 도메인 작업 실행 → 도메인 스킬
+- workflow yaml 구조 검증 (기계적) → `msm-workflow-yaml-schema-SPEC` 검증기

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# msm-maintain — CLI entrypoint for the msm-maintain skill.
+# Usage: msm-maintain <command> [options]
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PY="${PYTHON:-python3}"
+
+sub="${1:-}"
+shift || true
+
+case "$sub" in
+  scan)
+    exec "$PY" "$SCRIPT_DIR/scan.py" "$@"
+    ;;
+  rewrite)
+    exec "$PY" "$SCRIPT_DIR/rewrite.py" "$@"
+    ;;
+  analyze)
+    exec "$PY" "$SCRIPT_DIR/analyze.py" "$@"
+    ;;
+  report)
+    exec "$PY" "$SCRIPT_DIR/report.py" "$@"
+    ;;
+  ""|-h|--help)
+    cat <<EOF
+msm-maintain — KB Maintenance Tool for MSM v1.0.0
+
+Commands:
+  scan      Detect drift / orphan / eval issues
+  rewrite   Apply auto_fixes from a scan plan
+  analyze   Generate cluster eval statistics + analysis report
+  report    Generate troubleshooting report for a date range
+
+Common options:
+  --target PATH       KB root (default: .)
+
+scan options:
+  --cluster NAME      Scope to specific cluster
+  --kind drift|orphan|eval|all  Scan type (default: all)
+  --run-id STR        Trajectory run identifier
+
+rewrite options:
+  --plan PATH         Path to scan plan JSON (required)
+  --apply             Actually apply fixes (default: dry-run)
+  --run-id STR        Trajectory run identifier
+
+analyze options:
+  --cluster NAME      Scope to specific cluster
+  --run-id STR        Run identifier for report filename
+
+report options:
+  --since YYYY-MM-DD  Show events from this date (required)
+  --run-id STR        Run identifier for report filename
+EOF
+    ;;
+  *)
+    echo "unknown subcommand: $sub" >&2
+    echo "Use 'msm-maintain --help' for usage." >&2
+    exit 2
+    ;;
+esac

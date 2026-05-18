@@ -1,0 +1,17 @@
+x_msm_generated:
+  skill: msm-harness
+  version: "1.0.0"
+
+fixture:
+  name: minimal_init
+  description: |
+    빈 target에 대해 msm-repository-setup이 50+ entry를 create로 분류해야 한다.
+  inputs:
+    target: ":scratch:"
+    options:
+      targets: "claude,codex"
+  expected:
+    plan:
+      creates_min: 48
+      conflicts: 0
+      hitl_requests: 0

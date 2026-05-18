@@ -1,0 +1,85 @@
+# core — msm-evidence
+
+## 1. 공통 프로토콜 (COLLECT / VERIFY / EVALUATE)
+
+| 단계 | 책임 | 산출 |
+|------|------|------|
+| COLLECT | URI fetch → 텍스트 추출 → 청킹 → content-hash dedup → seed append | `evidence/seeds.jsonl`, `evidence/md/<slug>_<pad4>.md` |
+| VERIFY | seeds.jsonl 읽기 → md_path 존재 확인 + content_hash 형식 검증 | exit 0/1 + 실패 목록 |
+| EVALUATE | oracle score 계산 → trajectory에 `oracle_evaluation` 이벤트 | score ∈ [0,1] |
+
+## 2. CLI
+
+```bash
+# dry-run (기본 — 파일 변경 없음)
+scripts/msm-evidence collect --target ./my-kb --source https://example.com/doc
+
+# 실제 수집
+scripts/msm-evidence collect --target ./my-kb --source https://example.com/doc --apply
+
+# 여러 소스
+scripts/msm-evidence collect --target ./my-kb \
+  --source https://example.com/a https://example.com/b \
+  --apply --chunk-size 1200 --chunk-overlap 100
+
+# 로컬 MD
+scripts/msm-evidence collect --target ./my-kb --source ./notes/paper.md --apply
+
+# file:// 로컬 HTML (테스트용)
+scripts/msm-evidence collect --target ./my-kb --source file:///tmp/page.html --apply
+
+# 검증
+scripts/msm-evidence verify --target ./my-kb
+
+# 목록
+scripts/msm-evidence list --target ./my-kb
+```
+
+## 3. Slug 생성 규칙
+
+| URI 종류 | Slug 파생 |
+|----------|-----------|
+| http/https | `hostname + path` 기반, 소문자, `[a-z0-9_]`만 유지, 최대 40자 |
+| file:// | path의 basename (확장자 제외), 같은 정규화 |
+| 로컬 파일 경로 | basename (확장자 제외), 같은 정규화 |
+
+## 4. Chunking 알고리즘 (SPEC §5.1)
+
+1. 문단 분리 (`\n\n+`)
+2. 문단 > chunk_size → 문장 단위 분할 (`[.?!]\s+`)
+3. 짧은 청크 (< 300 chars) → 인접 청크와 병합
+4. 마지막 chunk_overlap 문자를 다음 청크 앞에 접합
+
+단일 비분리 텍스트 → sliding-window: ⌈N / (chunk_size - chunk_overlap)⌉ 청크.
+
+## 5. Dedup 규칙
+
+- hash = `sha256(chunk_text)` — URI는 포함하지 않음
+- 기존 seeds.jsonl에서 hash set 로드 → per-chunk 비교
+- 중복 시: skip + trajectory에 `seed_dedup_skip` 이벤트
+
+## 6. Generated Marker
+
+| 파일 종류 | Marker |
+|----------|--------|
+| MD note | `<!-- msm:generated:file skill="msm-evidence" version="1.0.0" -->` |
+| JSONL | (없음 — 모든 줄은 유효 JSON이어야 함) |
+
+## 7. Oracle — evidence_seed_readiness
+
+| 지표 | 계산 |
+|------|------|
+| URI 다양성 | unique URI 수 / 전체 seed 수 |
+| 평균 청크 길이 적합성 | avg(chunk_length) ∈ [300, chunk_size] → 1.0, 아니면 0.0 |
+| 모든 seed content_hash 존재 | 전체 OK → 1.0, 아니면 0.0 |
+| MD 파일 존재 | 존재하는 md 수 / 전체 seed 수 |
+
+Score = 4개 지표의 평균. Gate: ≥0.85 pass, ≥0.70 warn, <0.70 fail.
+
+## 8. 산출 위치
+
+| 경로 | 내용 |
+|------|------|
+| `evidence/seeds.jsonl` | seed 레코드 (append-only JSONL) |
+| `evidence/md/<slug>_<pad4>.md` | 청크별 노트 |
+| `harness/trajectory/run-<id>.jsonl` | 이벤트 로그 (run_id 있을 때) |

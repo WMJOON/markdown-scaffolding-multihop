@@ -1,73 +1,50 @@
 ---
 name: msm-repository-setup
-description: |-
-  MSM v1.0.0 repository setup Fat Skill.
-  Creates and validates the 5-layer MSM KB scaffold: ontology, evidence, workflow,
-  memory, harness, docs, canonical_root_hub.yaml, and workflow templates.
-  Triggers: "msm init", "MSM v1 repo setup", "repository setup",
-  "canonical hub scaffold", "workflow template scaffold".
+version: "1.0.0"
+description: |
+  MSM v1.0.0 Fat Skill — 신규 KB 프로젝트를 5-Layer 구조로 부트스트랩한다.
+  canonical_root_hub.yaml, workflow 템플릿, memory/harness/docs 골격, .claude/.codex skill scaffold를 생성한다.
+triggers:
+  - "msm init"
+  - "5-layer bootstrap"
+  - "repository scaffold"
+  - "canonical_root_hub 초기화"
+  - "MSM v1.0.0 init"
+spec: planning/msm_v1.0.0/msm-repository-setup-SPEC.md
+prd: planning/msm_v1.0.0/msm_v1.0.0-PRD.md
 ---
 
-# msm-repository-setup
+# msm-repository-setup (v1.0.0)
 
-`msm-repository-setup` bootstraps an MSM v1.0.0 KB project.
+## What
 
-It is the implementation home for `msm init`.
+신규 markdown KB를 MSM v1.0.0의 5-Layer 토폴로지로 부트스트랩하는 Fat Skill.
+실제 entity/relation/instance/evidence 내용은 만들지 않는다 — 골격, 템플릿, 계약만 채운다.
 
-## Protocol
+자세한 동작은 [core.md](core.md) 참조.
 
-### DESIGN
+## Entry Points
 
-Confirm:
+| 진입점 | 명령 |
+|--------|------|
+| CLI | `scripts/msm init [options]` |
+| Harness | `harness/run.sh --skill msm-repository-setup --tier L0 --mode validate-only --target PATH` |
 
-- target directory
-- KB name
-- optional domain
-- mode: `dry-run`, `apply`, or `validate-only`
-- whether skill links should be installed
+## Triggers
 
-Default mode is `dry-run`.
+- "msm init", "이 KB 부트스트랩", "5-Layer 스캐폴드 생성"
+- "canonical_root_hub.yaml 만들어줘"
+- "MSM v1.0.0 repository 구조"
 
-### EXECUTE
+## Dependencies
 
-Use the local CLI:
+- Python 3.10+
+- 외부 패키지 없음 (stdlib만 사용; 검증은 텍스트 기반)
+- Bash (CLI wrapper, harness stub)
 
-```bash
-python3 scripts/msm_init.py --target ./my-kb --domain ai_agent --dry-run
-python3 scripts/msm_init.py --target ./my-kb --domain ai_agent --apply --yes
-python3 scripts/msm_init.py --target ./my-kb --validate-only
-```
+## Non-Goals
 
-Harness-compatible entrypoint:
-
-```bash
-harness/run.sh --skill msm-repository-setup --tier L0 --mode validate-only --target ./my-kb
-```
-
-### EVALUATE
-
-Report:
-
-- created files
-- skipped files
-- conflicts
-- readiness score
-- whether a HITL gate is required
-
-## Safety
-
-- Dry-run is the default.
-- Existing non-generated files are never overwritten.
-- Generated files are updated only when they contain an MSM generated marker.
-- `canonical_root_hub.yaml` is locked by default.
-- Skill links are not installed unless `--with-skill-links` is explicitly provided.
-
-## Files
-
-| Path | Purpose |
-|------|---------|
-| `scripts/msm_init.py` | Main `msm init` implementation |
-| `harness/run.sh` | L0 harness wrapper |
-| `references/scaffold-tree.md` | Scaffold contract summary |
-| `fixtures/minimal_init_plan.yaml` | Minimal fixture |
-
+- entity/relation 생성 → `msm-ontology`
+- evidence 수집 → `msm-evidence`
+- full harness runtime → `msm-harness`
+- HITL gate 판정 → `msm-orchestration`
