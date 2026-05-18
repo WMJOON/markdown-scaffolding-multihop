@@ -75,7 +75,7 @@ def _locate_skill(name: str) -> Path | None:
     spots):
       1) MSM_SKILL_<UPPER_SNAKE>_HOME env var
       2) Sibling of msm-harness in the same skills/ directory
-      3) ~/.skill-modules/msm-skills/<name>
+      3) ~/.claude/skills/<name>
     """
     env_key = f"MSM_SKILL_{name.replace('-', '_').upper()}_HOME"
     override = os.environ.get(env_key)

@@ -2,12 +2,12 @@
 
 ## 1. 공통 프로토콜 (SCAN / REWRITE / ANALYZE / REPORT)
 
-| 단계 | 책임 | 산출 |
-|------|------|------|
-| SCAN | KB 탐색 → drift/orphan/eval 탐지 → plan JSON 출력 | stdout plan JSON, `harness/trajectory/run-<id>.jsonl` |
-| REWRITE | plan.auto_fixes 적용 (create_md_placeholder) | md placeholder 파일, `memory/task-context/troubleshooting/<id>__rewrite.md` |
-| ANALYZE | cluster별 eval 통계 계산 → report 저장 | stdout report, `harness/reports/maintain-analysis-<id>.md` |
-| REPORT | trajectory 읽기 → troubleshooting 요약 | `memory/task-context/troubleshooting/<id>__report.md` |
+| 단계      | 책임                                          | 산출                                                                        |
+| ------- | ------------------------------------------- | ------------------------------------------------------------------------- |
+| SCAN    | KB 탐색 → drift/orphan/eval 탐지 → plan JSON 출력 | stdout plan JSON, `harness/trajectory/run-<id>.jsonl`                     |
+| REWRITE | plan.auto_fixes 적용 (create_md_placeholder)  | md placeholder 파일, `memory/task-context/troubleshooting/<id>__rewrite.md` |
+| ANALYZE | cluster별 eval 통계 계산 → report 저장             | stdout report, `harness/reports/maintain-analysis-<id>.md`                |
+| REPORT  | trajectory 읽기 → troubleshooting 요약          | `memory/task-context/troubleshooting/<id>__report.md`                     |
 
 ## 2. CLI
 

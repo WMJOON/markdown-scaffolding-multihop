@@ -4,7 +4,7 @@
 
 | 대상 | 링크 |
 |------|------|
-| modules | `~/.skill-modules/msm-skills -> <repo>/repository/.skill-modules` |
+| modules | `~/.claude/skills -> <repo>/repository/.skill-modules` |
 | Claude orchestration | `~/.claude/skills/msm-orchestration -> <repo>/repository/skills/msm-orchestration` |
 | Codex orchestration | `~/.codex/skills/msm-orchestration -> <repo>/repository/skills/msm-orchestration` |
 

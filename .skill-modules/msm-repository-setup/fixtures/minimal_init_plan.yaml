@@ -1,0 +1,9 @@
+version: "1.0"
+target: "."
+domain: ai_agent
+mode: dry-run
+expected:
+  canonical_root_hub: canonical_root_hub.yaml
+  workflow_index: workflow/index.yaml
+  readiness_minimum: 0.85
+

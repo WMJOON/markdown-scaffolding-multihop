@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 EXPECTED_HOME_LINKS = (
-    "~/.skill-modules/msm-skills",
+    "~/.claude/skills",
     "~/.claude/skills/msm-orchestration",
 )
 
