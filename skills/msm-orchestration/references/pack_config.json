@@ -5,7 +5,22 @@
   "version": "v0.2.0",
   "repo_url": "https://github.com/WMJOON/markdown-scaffolding-multihop",
   "overload_threshold": 10,
+  "migration": {
+    "target_version": "v1.0.0",
+    "mode": "compatibility",
+    "v1_required_skills": [
+      "msm-repository-setup",
+      "msm-evidence",
+      "msm-ontology",
+      "msm-maintain",
+      "msm-graph-reasoning",
+      "msm-semantic-search",
+      "msm-harness",
+      "msm-orchestration"
+    ]
+  },
   "required_skills": [
+    "msm-repository-setup",
     "msm-data-analysis",
     "msm-kb-graph",
     "msm-kb-rewrite",
