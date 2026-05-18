@@ -1,54 +1,59 @@
-#!/bin/bash
-# MSM Skill Pack — install symlinks into ~/.{claude,codex}/skills/ and ~/.skill-modules/
-# Targets: CLAUDE_CODE (default), CODEX, ALL
+#!/usr/bin/env bash
+# MSM v1.0.0 — install symlinks into ~/.{claude,codex}/skills/
+# Usage:
+#   ./install.sh          Claude Code only (default)
+#   ./install.sh --codex  Codex only
+#   ./install.sh --all    Claude Code + Codex
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILL_MODULES_SRC="$REPO_DIR/.skill-modules"
-ORCHESTRATION_SRC="$REPO_DIR/skills/msm-orchestration"
-MODULES_DST="${HOME}/.skill-modules"
+SKILLS_SRC="$REPO_DIR/skills"
+
+MSM_SKILLS=(
+  msm-orchestration
+  msm-evidence
+  msm-harness
+  msm-maintain
+  msm-ontology
+  msm-repository-setup
+)
 
 # Parse args
 TARGETS=()
 for arg in "$@"; do
-    case "$arg" in
-        --codex)      TARGETS+=(codex) ;;
-        --all)        TARGETS+=(claude codex) ;;
-        *)            ;;
-    esac
+  case "$arg" in
+    --codex) TARGETS+=(codex) ;;
+    --all)   TARGETS+=(claude codex) ;;
+    *)       ;;
+  esac
 done
 [[ ${#TARGETS[@]} -eq 0 ]] && TARGETS=(claude)
 
-echo "MSM Skill Pack Install"
+echo "MSM v1.0.0 Install"
+echo "  Skills  : ${MSM_SKILLS[*]}"
 echo "  Targets : ${TARGETS[*]}"
 echo ""
 
-link_target() {
-    local src="$1" dst="$2" label="$3"
-    if [ -L "$dst" ]; then
-        echo "  SKIP  $label  (symlink already exists)"
-    elif [ -e "$dst" ]; then
-        echo "  SKIP  $label  (path exists — remove manually to re-link)"
-    else
-        ln -s "$src" "$dst"
-        echo "  LINK  $label"
-    fi
+link_skill() {
+  local src="$1" dst="$2" label="$3"
+  if [ -L "$dst" ]; then
+    echo "  SKIP  $label  (already linked)"
+  elif [ -e "$dst" ]; then
+    echo "  SKIP  $label  (path exists — remove manually to re-link)"
+  else
+    ln -sf "$src" "$dst"
+    echo "  LINK  $label"
+  fi
 }
 
-# 1) ~/.skill-modules/msm-skills → .skill-modules/
-mkdir -p "$MODULES_DST"
-link_target "$SKILL_MODULES_SRC" "$MODULES_DST/msm-skills" "~/.skill-modules/msm-skills"
-
-echo ""
-
-# 2) orchestration skill → each target
 for target in "${TARGETS[@]}"; do
-    SKILLS_DST="${HOME}/.${target}/skills"
-    mkdir -p "$SKILLS_DST"
-    echo "  [$target]"
-    link_target "$ORCHESTRATION_SRC" "$SKILLS_DST/msm-orchestration" "msm-orchestration"
+  SKILLS_DST="${HOME}/.${target}/skills"
+  mkdir -p "$SKILLS_DST"
+  echo "[$target]"
+  for skill in "${MSM_SKILLS[@]}"; do
+    link_skill "$SKILLS_SRC/$skill" "$SKILLS_DST/$skill" "$skill"
+  done
+  echo ""
 done
 
-echo ""
-echo "Done. Sub-skills are available at ~/.skill-modules/msm-skills/"
-echo "Tip: run with --codex or --all to also install for Codex."
+echo "Done."
