@@ -33,6 +33,26 @@ Ralph형 업무를 수행할 때 **반드시 3-Phase 프로토콜**을 따른다
   - `opendataloader-pdf` + Java 11+: `pip install opendataloader-pdf` (품질 최상)
   - `pymupdf4llm`: `pip install pymupdf4llm` (순수 Python fallback)
 
+## Graphify ETL 어댑터 (v1.0.0 — Semantic Lifting Layer)
+
+코드베이스를 Graphify로 분석한 결과를 MSM SSOT로 변환하는 어댑터.
+`file_type==concept` 노드만 통과시키고 god node를 `hub_candidate`로 태깅한다.
+
+```bash
+# 실행
+graphify .
+python scripts/graphify_to_msm.py graphify-out/graph.json --output-dir evidence/graphify/
+
+# 출력
+# evidence/graphify/entity_candidates.jsonl
+# evidence/graphify/relation_candidates.jsonl
+```
+
+워크플로우: `workflow/evidence/graphify-etl.yaml`
+v1.0.0에서 `msm-evidence` 스킬로 이관 예정.
+
+---
+
 ## 스크립트
 
 ```
