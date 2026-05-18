@@ -1,5 +1,36 @@
 # Changelog
 
+## v1.0.0 (2026-05-18)
+
+> 5-Layer 아키텍처로 전면 재편. `.skill-modules/` 정책 폐지, v1.0.0 스킬 6개 승격, Graphify ETL 어댑터 추가.
+
+### Breaking — 스킬 구조 재편
+
+- `.skill-modules/` 디렉토리 정책 폐지 → 모든 스킬을 `skills/`로 통합
+- v0.x 스킬 7개 (`msm-data-analysis`, `msm-kb-graph`, `msm-kb-rewrite`, `msm-mece-validator`, `msm-obsidian-cli`, `msm-ralph-etl`, `msm-rdf-owl-bridge`) 제거
+- v1.0.0 스킬 6개 승격 (`msm-evidence`, `msm-harness`, `msm-maintain`, `msm-ontology`, `msm-orchestration`, `msm-repository-setup`)
+
+### Added — 5-Layer 아키텍처
+
+- `msm-repository-setup`: `msm init` — 5-Layer KB 디렉토리 골격 부트스트랩 (L0 score 1.0 검증 완료)
+- `msm-harness`: memory 2-tier · L0~L3 런타임 · 5-Axis 계측 (비결정성·궤적·오라클·비용·HITL)
+- `msm-orchestration` v1.0.0: 자연어 인텐트 라우팅 · CC 계약 · HITL 2층 정책 · workflow yaml 바인딩
+- `msm-evidence`: URL/MD 수집 · 청킹 · dedup · seed 등록
+- `msm-ontology`: entity·relation 생성 · MECE 검증 · Tbox/Abox 승격
+- `msm-maintain`: scan · rewrite · data-analysis
+- `workflow/evidence/graphify-etl.yaml`: Graphify ETL 워크플로우 정의
+
+### Added — Graphify ETL 어댑터
+
+- `skills/msm-evidence/scripts/graphify_to_msm.py`
+  - Graphify `graph.json` → MSM entity/relation JSONL 변환 (Semantic Lifting Layer Option A)
+  - `file_type == "concept"` 노드만 통과, `code` 타입 제거
+  - god node (degree > mean + 2σ) → `tags: ["hub_candidate"]` 자동 태깅
+  - Leiden `community_name` → `extra.leiden_community_name` 보존
+  - LLM 재호출 없음 (Graphify Step 2 concept 노드 재활용)
+
+---
+
 ## v0.2.0 (2026-04-28)
 
 > 스킬 10개 → 7개 통합 재편 (md-* → msm-*). 각 스킬의 워크플로우 완결성을 높이고 구성을 간소화. mece-validator 완전 자동화, 보안 강화.
