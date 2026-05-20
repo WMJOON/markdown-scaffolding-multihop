@@ -1,10 +1,10 @@
-# markdown-scaffolding-multihop (v1.0.0)
+# markdown-scaffolding-multihop (v1.0.1)
 
 이 스킬셋은 **"Markdown 파일은 많이 쌓였는데, 그 안의 연결을 구조적으로 읽고 유지하고 확장하기가 어렵다"**는 문제를 풀기 위해 만들어졌습니다.
 
 단일 문서 검색은 하나의 노트 안에 있는 정보만 돌려줍니다. 하지만 실제 인사이트는 여러 노드를 가로질러 존재합니다. markdown-scaffolding-multihop은 frontmatter와 wikilink로 선언된 관계를 실제 그래프로 파싱하고, BFS 멀티홉 추론과 유지보수 레이어를 통해 **검색·추론·구조화·유지보수**를 하나의 skillset으로 다룹니다.
 
-**v1.0.0은 온톨로지 구축에 특화된 5-Layer 아키텍처로 전환한 버전입니다.** 기존 v0.x의 `md-*` / `msm-*` 스킬 구조를 해체하고, Repository · Workflow · Memory · Tool · Governance 5개 레이어 기반의 6개 스킬팩으로 완전 재편했습니다. 모든 스킬은 `skills/` 디렉토리에 위치하며(`.skill-modules/` 정책 폐지), 외부 코드베이스를 MSM KB로 수집하는 Graphify ETL 어댑터(`msm-evidence`)가 추가되었습니다.
+**v1.0.1은 v1.0.0 기반으로 Antigravity 플랫폼 지원을 추가한 버전입니다.** Claude Code · Codex · Antigravity 세 플랫폼 모두에서 MSM 스킬을 설치하고 실행할 수 있습니다. v1.0.0은 온톨로지 구축에 특화된 5-Layer 아키텍처로 전환한 버전이며, 기존 v0.x의 `md-*` / `msm-*` 스킬 구조를 해체하고, Repository · Workflow · Memory · Tool · Governance 5개 레이어 기반의 6개 스킬팩으로 완전 재편했습니다. 모든 스킬은 `skills/` 디렉토리에 위치하며(`.skill-modules/` 정책 폐지), 외부 코드베이스를 MSM KB로 수집하는 Graphify ETL 어댑터(`msm-evidence`)가 추가되었습니다.
 
 ---
 
@@ -153,9 +153,10 @@ flowchart LR
 ```bash
 git clone https://github.com/WMJOON/markdown-scaffolding-multihop.git
 cd markdown-scaffolding-multihop
-./install.sh          # Claude Code만
-./install.sh --codex  # Codex만
-./install.sh --all    # Claude Code + Codex
+./install.sh                # Claude Code만
+./install.sh --codex        # Codex만
+./install.sh --antigravity  # Antigravity만
+./install.sh --all          # Claude Code + Codex + Antigravity
 ```
 
 `install.sh`는 진입점 스킬을 `~/.claude/skills/msm-orchestration`에 심링크합니다.

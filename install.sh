@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# MSM v1.0.0 — install symlinks into ~/.{claude,codex}/skills/
+# MSM v1.0.1 — install symlinks into ~/.{claude,codex,antigravity}/skills/
 # Usage:
-#   ./install.sh          Claude Code only (default)
-#   ./install.sh --codex  Codex only
-#   ./install.sh --all    Claude Code + Codex
+#   ./install.sh                Claude Code only (default)
+#   ./install.sh --codex        Codex only
+#   ./install.sh --antigravity  Antigravity only
+#   ./install.sh --all          Claude Code + Codex + Antigravity
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -22,14 +23,15 @@ MSM_SKILLS=(
 TARGETS=()
 for arg in "$@"; do
   case "$arg" in
-    --codex) TARGETS+=(codex) ;;
-    --all)   TARGETS+=(claude codex) ;;
-    *)       ;;
+    --codex)       TARGETS+=(codex) ;;
+    --antigravity) TARGETS+=(antigravity) ;;
+    --all)         TARGETS+=(claude codex antigravity) ;;
+    *)             ;;
   esac
 done
 [[ ${#TARGETS[@]} -eq 0 ]] && TARGETS=(claude)
 
-echo "MSM v1.0.0 Install"
+echo "MSM v1.0.1 Install"
 echo "  Skills  : ${MSM_SKILLS[*]}"
 echo "  Targets : ${TARGETS[*]}"
 echo ""
@@ -47,7 +49,11 @@ link_skill() {
 }
 
 for target in "${TARGETS[@]}"; do
-  SKILLS_DST="${HOME}/.${target}/skills"
+  if [ "$target" == "antigravity" ]; then
+    SKILLS_DST="${HOME}/.gemini/antigravity/skills"
+  else
+    SKILLS_DST="${HOME}/.${target}/skills"
+  fi
   mkdir -p "$SKILLS_DST"
   echo "[$target]"
   for skill in "${MSM_SKILLS[@]}"; do

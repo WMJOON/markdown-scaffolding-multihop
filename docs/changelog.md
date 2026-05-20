@@ -1,5 +1,29 @@
 # Changelog
 
+## v1.0.1 (2026-05-20)
+
+> Antigravity 플랫폼 지원 추가. Claude Code · Codex · Antigravity 세 플랫폼에서 일관된 스킬 설치 및 실행 가능.
+
+### Added
+
+- Antigravity 플랫폼 공식 지원
+  - `install.sh --antigravity` — Antigravity 설치 옵션 추가
+  - `install.sh --all` — 세 플랫폼 일괄 설치 (Claude Code + Codex + Antigravity)
+  - `.antigravity/` 설정 디렉토리 추가
+
+### Changed
+
+- `install.sh`
+  - 사용 문법 확대 (`--antigravity`, `--all` 옵션)
+  - 타겟 플랫폼 경로 매핑 추가: `~/.gemini/antigravity/skills/` (Antigravity)
+
+### Documentation
+
+- README 플랫폼 지원 섹션 확대
+- install.sh 코멘트 및 버전 번호 v1.0.1로 동기화
+
+---
+
 ## v1.0.0 (2026-05-18)
 
 > 5-Layer 아키텍처로 전면 재편. `.skill-modules/` 정책 폐지, v1.0.0 스킬 6개 승격, Graphify ETL 어댑터 추가.
