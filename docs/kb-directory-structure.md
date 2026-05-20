@@ -1,8 +1,46 @@
-# KnowledgeBase 디렉토리 구조 (v1.1.0)
+# KnowledgeBase 디렉토리 구조 (v1.1.1)
 
 > **MSM = Human-Agent KnowledgeBase Management System**
 > 인간과 에이전트가 함께 운용하는 KnowledgeBase를 관리하는 시스템.
-> 본 문서는 v1.1.0 디렉토리 룰(D-1~D-7)을 기준으로 한다.
+> 본 문서는 v1.1.0 디렉토리 룰(D-1~D-7) + v1.1.1 거버넌스 오버레이를 기준으로 한다.
+
+---
+
+## 거버넌스 오버레이 (v1.1.1)
+
+> [!important] Concept/Instance 관리 정책
+> Concept은 HITL 필수, Instance는 연결 깊이에 따라 차등 자동화.
+
+| 계층 | 관리 정책 | 자동화 |
+|------|---------|--------|
+| **Concept** (이론/정의, Tbox) | HITL / HITLFE 검수 필수 | ❌ 사람 승인 없이 자동 생성·수정 금지 |
+| **Instance — 상위 Concept 직접 연결** | 관리 대상 (Human-supervised) | ⚠️ 수동 생성 또는 검수 후 자동화 |
+| **Instance — 하위 Concept 간접 연결** | 동적 자동화 (Self-healing) | ✅ 에이전트 자율 처리 |
+
+### 적용 예
+
+```text
+concept__statistics                          ← Concept (HITL 필수)
+  └─ Has Instances (직접 연결)
+      ├─ instance__descriptive-statistics    ← 관리 대상 (상위 직접)
+      ├─ instance__inferential-statistics    ← 관리 대상 (상위 직접)
+      └─ instance__regression-analysis       ← 관리 대상 (상위 직접)
+
+concept__descriptive-statistics              ← 하위 Concept (HITL 필수)
+  └─ Has Instances (간접 연결, 동적)
+      ├─ instance__descriptive-example-1     ← 동적 자동화 (하위 간접)
+      ├─ instance__descriptive-example-2     ← 동적 자동화 (하위 간접)
+      └─ ...                                  ← 자동 생성 가능
+```
+
+### Why
+
+- **Concept = 온톨로지 백본** → 실수 시 전체 구조 붕괴 → HITL 필수
+- **상위 Instance** = 대표 사례 → 품질 보증 필요 → 관리 대상
+- **하위 Instance** = 패턴화된 대량 사례 → 자동화 효율 우선 → 동적 처리
+
+> [!note] Enforcement
+> 정책의 자동 강제(가드, 검증)는 v1.2.0에서 `msm-ontology` HITL 가드 및 `msm-maintain` instance 티어 검증으로 구현 예정. v1.1.1은 문서화 레이어.
 
 ---
 

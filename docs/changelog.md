@@ -1,5 +1,41 @@
 # Changelog
 
+## v1.1.1 (2026-05-20)
+
+> **거버넌스 정책 문서화: Concept HITL + Instance 차등 자동화.**
+> v1.1.0 OI-E (ABox SPEC)의 사전 단계로 거버넌스 레이어 명시.
+
+### Added — 거버넌스 정책
+
+| 계층 | 정책 | 자동화 레벨 |
+|------|------|---------|
+| **Concept** | HITL / HITLFE 검수 필수 | 사람 승인 없이 자동 생성·수정 금지 |
+| **Instance (상위 직접 연결)** | 관리 대상 (Human-supervised) | 수동 또는 검수 후 자동화 |
+| **Instance (하위 간접 연결)** | 동적 자동화 (Self-healing) | 에이전트 자율 처리 |
+
+**원칙**:
+- Concept = 온톨로지 백본 (이론·정의) → 실수 시 구조 붕괴 → HITL 필수
+- Instance 직접 연결 = 대표 사례 → 품질 보증 필요
+- Instance 간접 연결 = 패턴화된 세부 사례 → 자동화 효율 우선
+
+### Validation — 첫 적용 사례
+
+- `concept__statistics` ↔ 6개 instance (descriptive/inferential/regression/bayesian/multivariate/time-series)
+- `concept__gemini-family` ↔ 4개 instance (gemini-3-5-flash/pro/omni/spark)
+- `concept__instance` (메타) — 기존 고아 파일 `instance__class.md`를 concept으로 재분류
+
+### Documentation
+
+- `docs/kb-directory-structure.md` — 거버넌스 오버레이 섹션 추가
+- README MSM identity에 거버넌스 정책 한 줄 명시
+
+### Deferred to v1.2.0
+
+- Enforcement (msm-ontology HITL 가드, msm-maintain instance 티어 검증)
+- ABox SPEC 본격 정의 (OI-E)
+
+---
+
 ## v1.1.0 (2026-05-20)
 
 > **Parent Node Alignment 내재화 + 4계층 KnowledgeBase 구조 도입.**

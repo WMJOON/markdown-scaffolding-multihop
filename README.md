@@ -1,4 +1,4 @@
-# MSM — Human-Agent KnowledgeBase Management System (v1.1.0)
+# MSM — Human-Agent KnowledgeBase Management System (v1.1.1)
 
 > [!info] Identity
 > **MSM**은 단순 Markdown scaffolding 도구가 아닙니다.
@@ -8,6 +8,12 @@
 이 스킬셋은 **"Markdown 파일은 많이 쌓였는데, 그 안의 연결을 구조적으로 읽고 유지하고 확장하기가 어렵다"**는 문제를 풀기 위해 만들어졌습니다.
 
 단일 문서 검색은 하나의 노트 안에 있는 정보만 돌려줍니다. 하지만 실제 인사이트는 여러 노드를 가로질러 존재합니다. MSM은 frontmatter와 wikilink로 선언된 관계를 실제 그래프로 파싱하고, BFS 멀티홉 추론과 유지보수 레이어를 통해 **검색·추론·구조화·유지보수**를 하나의 skillset으로 다룹니다.
+
+**v1.1.1** — Concept/Instance 거버넌스 정책 문서화.
+- Concept = HITL / HITLFE 검수 필수 (사람 승인 없이 자동 생성·수정 금지)
+- Instance (상위 직접 연결) = 관리 대상 (Human-supervised)
+- Instance (하위 간접 연결) = 동적 자동화 (Self-healing)
+- Enforcement는 v1.2.0 예정 (`msm-ontology` 가드, `msm-maintain` 티어 검증)
 
 **v1.1.0** — Parent Node Alignment 내재화 및 4계층 KB 구조 도입.
 - D-1: 부모 anchor `__class.md` 명명 통일 (구 `__hub.md`)
@@ -213,9 +219,11 @@ v0.1.x  Evidence-first KB 구조 정립                              ✓ 완료
 v0.2.x  rewrite/governance/semantic framing 레이어               ✓ 완료
 v1.0.0  5-Layer 아키텍처 · 6개 스킬 · Graphify ETL              ✓ 완료
 v1.0.1  Antigravity 플랫폼 지원                                  ✓ 완료
-v1.1.0  Parent Alignment · 4계층 KB 구조 (D-1~D-7)              ← 현재
+v1.1.0  Parent Alignment · 4계층 KB 구조 (D-1~D-7)              ✓ 완료
+v1.1.1  Concept HITL · Instance 차등 자동화 정책 문서화          ← 현재
 v1.2.0  ontology/system/ formal logic 도입 (advanced layer)
         ABox SPEC 확정 · explain ↔ system 매핑
+        Concept HITL 가드 · Instance 티어 enforcement
 v1.x    msm-graph-reasoning · msm-semantic-search 추가
 ```
 
