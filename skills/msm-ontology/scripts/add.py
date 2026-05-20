@@ -26,8 +26,18 @@ import id_utils  # noqa: E402
 import mece as _mece  # noqa: E402  (for label_duplicate check)
 import project_md as _proj  # noqa: E402
 
-TOOL_VERSION = "msm-ontology/1.0.0"
+TOOL_VERSION = "msm-ontology/1.1.0"
 TODAY = datetime.date.today().isoformat()
+
+
+# ---------------------------------------------------------------------------
+# Logging helper
+# ---------------------------------------------------------------------------
+
+def _log(msg: str, level: str = "info") -> None:
+    """Log to stderr with consistent prefix."""
+    prefix = {"info": "[*]", "ok": "[+]", "warn": "[!]", "err": "[x]"}[level]
+    print(f"{prefix} {msg}", file=sys.stderr, flush=True)
 
 
 # ---------------------------------------------------------------------------
@@ -86,8 +96,15 @@ def add_entities(
     existing_ids = {r.get("id", "") for r in existing}
     existing_labels_norm = {r.get("label", "").lower().strip() for r in existing}
 
+    added_count = 0
+    skipped_count = 0
+    failed_count = 0
     rc = 0
-    for label in labels:
+
+    if apply:
+        _log(f"adding {len(labels)} entities to cluster '{cluster}'")
+
+    for i, label in enumerate(labels, start=1):
         label_norm = label.lower().strip()
 
         # MECE: label duplicate check
@@ -105,8 +122,8 @@ def add_entities(
             }
             print(json.dumps(report))
             if apply:
-                print(f"ERROR: label_duplicate — '{label}' already exists in cluster '{cluster}'", file=sys.stderr)
-                return 1
+                _log(f"({i}/{len(labels)}) skip: label_duplicate '{label}' in cluster '{cluster}'", "warn")
+            skipped_count += 1
             rc = 1
             continue
 
@@ -131,14 +148,25 @@ def add_entities(
         if not apply:
             print(json.dumps({"event_type": "plan_entity_add", "record": record}))
         else:
-            _atomic_append(entities_path, record)
-            existing_ids.add(entity_id)
-            existing_labels_norm.add(label_norm)
-            existing.append(record)
-            # md projection
-            md_path = target / md_rel
-            _proj.write_entity_md(md_path, record, entities_path)
-            print(json.dumps({"event_type": "entity_added", "id": entity_id, "md_path": md_rel}))
+            _log(f"({i}/{len(labels)}) {entity_id} ← '{label}'")
+            try:
+                _atomic_append(entities_path, record)
+                existing_ids.add(entity_id)
+                existing_labels_norm.add(label_norm)
+                existing.append(record)
+                # md projection
+                md_path = target / md_rel
+                _proj.write_entity_md(md_path, record, entities_path)
+                _log(f"({i}/{len(labels)}) wrote {md_rel}", "ok")
+                print(json.dumps({"event_type": "entity_added", "id": entity_id, "md_path": md_rel}))
+                added_count += 1
+            except Exception as e:
+                _log(f"({i}/{len(labels)}) error: {label} — {e}", "err")
+                failed_count += 1
+                rc = 1
+
+    if apply:
+        _log(f"summary: {added_count} added, {skipped_count} skipped, {failed_count} failed")
 
     return rc
 
@@ -180,8 +208,14 @@ def add_relation(
     if not apply:
         print(json.dumps({"event_type": "plan_relation_add", "record": record}))
     else:
-        _atomic_append(relations_path, record)
-        print(json.dumps({"event_type": "relation_added", "id": rel_id}))
+        _log(f"adding relation '{label}' ({source_id} → {target_id})")
+        try:
+            _atomic_append(relations_path, record)
+            _log(f"relation_added: {rel_id}", "ok")
+            print(json.dumps({"event_type": "relation_added", "id": rel_id}))
+        except Exception as e:
+            _log(f"error: {label} — {e}", "err")
+            return 1
 
     return 0
 
@@ -223,11 +257,17 @@ def add_instance(
     if not apply:
         print(json.dumps({"event_type": "plan_instance_add", "record": record}))
     else:
-        _atomic_append(instances_path, record)
-        # md projection
-        md_path = target / md_rel
-        _proj.write_instance_md(md_path, record, instances_path)
-        print(json.dumps({"event_type": "instance_added", "id": instance_id, "md_path": md_rel}))
+        _log(f"adding instance '{label}' (type: {type_id})")
+        try:
+            _atomic_append(instances_path, record)
+            # md projection
+            md_path = target / md_rel
+            _proj.write_instance_md(md_path, record, instances_path)
+            _log(f"instance_added: {instance_id} → {md_rel}", "ok")
+            print(json.dumps({"event_type": "instance_added", "id": instance_id, "md_path": md_rel}))
+        except Exception as e:
+            _log(f"error: {label} — {e}", "err")
+            return 1
 
     return 0
 
@@ -263,7 +303,7 @@ def main(argv: list[str]) -> int:
 
     # AC-ON-5: evidence required
     if not args.evidence:
-        print("ERROR: source_refs_missing — --evidence is required", file=sys.stderr)
+        _log("source_refs_missing — --evidence is required", "err")
         return 1
 
     target = Path(args.target).resolve()
@@ -281,10 +321,7 @@ def main(argv: list[str]) -> int:
     elif args.relation_label:
         # AC-ON-2: --source and --target-id required
         if not args.rel_source or not args.rel_target_id:
-            print(
-                "ERROR: --source and --target-id are required for --relation",
-                file=sys.stderr,
-            )
+            _log("--source and --target-id are required for --relation", "err")
             return 2
         return add_relation(
             target=target,
@@ -299,7 +336,7 @@ def main(argv: list[str]) -> int:
 
     elif args.instance_label:
         if not args.instance_type:
-            print("ERROR: --type is required for --instance", file=sys.stderr)
+            _log("--type is required for --instance", "err")
             return 2
         return add_instance(
             target=target,

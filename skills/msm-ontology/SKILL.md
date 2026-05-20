@@ -1,9 +1,10 @@
 ---
 name: msm-ontology
-version: "1.0.0"
+version: "1.1.0"
 description: |
-  MSM v1.0.0 Fat Skill — evidence seed를 입력으로 받아 entity / relation / instance를
+  MSM v1.1.0 Fat Skill — evidence seed를 입력으로 받아 entity / relation / instance를
   JSONL에 등록하고, MECE 원칙을 강제하며, Markdown projection을 유지한다.
+  v1.1.0: 실시간 진행상황 로깅 추가, continue-on-error 동작 개선.
 triggers:
   - "msm-ontology add"
   - "entity 등록"
@@ -17,7 +18,7 @@ spec: planning/msm_v1.0.0/msm-ontology-SPEC.md
 prd: planning/msm_v1.0.0/msm_v1.0.0-PRD.md
 ---
 
-# msm-ontology (v1.0.0)
+# msm-ontology (v1.1.0)
 
 ## What
 
