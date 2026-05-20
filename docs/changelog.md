@@ -1,5 +1,72 @@
 # Changelog
 
+## v1.1.0 (2026-05-20)
+
+> **Parent Node Alignment 내재화 + 4계층 KnowledgeBase 구조 도입.**
+> MSM identity 재정의: Human-Agent KnowledgeBase Management System.
+
+### Identity
+
+- MSM = Human-Agent KnowledgeBase Management System (단순 Markdown scaffolding 도구가 아님)
+- `ontology/`, `evidence/` 등 KB 전 구성 요소가 책임 범위
+
+### Added — 결정사항 D-1 ~ D-7
+
+| D# | 결정 |
+|----|------|
+| **D-1** | 부모 노드 명명: `{dir-name}__class.md` (구 `__hub.md`) |
+| **D-2** | 단일 부모 원칙 (다중 도메인은 `cross_reference`) |
+| **D-3** | 레벨 체계 L0~L4 권장, L5+ 자유 |
+| **D-4** | 5축 분류(Model/Runtime/Reasoning/Action/Safety) 비강제 |
+| **D-5** | `unclassified/` 디렉토리 운영 (분류 보류 entity) |
+| **D-6** | TBox = 모두 Class / ABox = 모두 Instance |
+| **D-7** | 4계층 KB 구조 — `ontology/{system,explain}` + `evidence/` |
+
+### Added — 디렉토리 구조
+
+- `ontology/explain/concept/` — TBox(구 `ontology/Tbox/`) 마이그레이션
+- `ontology/explain/instance/` — ABox(구 `ontology/Abox/`) 마이그레이션
+- `ontology/system/{semantic,kinetic,dynamic}/` — v1.2.0 작업 영역 placeholder
+- 7개 신규 부모 anchor `__class.md` 생성
+
+### Added — 스킬 명령
+
+- `msm-ontology create-parent` — 부모 노드 자동 생성
+- `msm-ontology add-belongs-to` — 자식 노드 belongs_to 일괄 추가
+- `msm-ontology move-to-unclassified` — 미분류 디렉토리 격리
+- `msm-maintain scan --kind parent-alignment` — 6규칙 검증
+- `msm-maintain rewrite --kind parent-alignment` — 정합 회복 계획
+- `msm-maintain analyze --view parent-tree` — 부모-자식 트리 시각화
+
+### Changed
+
+- `__hub.md` → `__class.md` 일괄 rename (106 파일)
+- 자식 노드 frontmatter에 `belongs_to` 일괄 추가 (463 파일)
+- `entities.jsonl` source_file 경로 동기화 (`Tbox/` → `explain/concept/`, `Abox/` → `explain/instance/`)
+- 외부 markdown 181 파일의 wikilink 경로 자동 치환
+
+### Migration Results
+
+- 시작 위반: 626건
+- 최종 위반: 0건 (실질) + L5+ deep_nesting 경고 (D-3 허용)
+- 정합도: 100% (허용 경고 제외)
+
+### Open Issues (v1.2.0 작업 대상)
+
+- OI-A: `explain` ↔ `system` 매핑 관계 정의
+- OI-B: `kinetic` vs `dynamic` 경계 — workflow 위치
+- OI-C: 마이그레이션 시점 — `system/` 채우기 전략
+- OI-D: `evidence` ↔ `ontology` backref 자동화
+- OI-E: ABox SPEC — instance 명명·디렉토리 룰
+
+### Documentation
+
+- `docs/kb-directory-structure.md` v1.1.0으로 전면 재작성
+- README MSM identity 및 4계층 구조 반영
+- `planning/msm_v1.1.0/` — PRD, parent-alignment SPEC, ontology/maintain DELTA
+
+---
+
 ## v1.0.1 (2026-05-20)
 
 > Antigravity 플랫폼 지원 추가. Claude Code · Codex · Antigravity 세 플랫폼에서 일관된 스킬 설치 및 실행 가능.

@@ -31,8 +31,8 @@ skills/msm-repository-setup/scripts/msm init \
 # 생성 결과
 # my-kb/
 #   canonical_root_hub.yaml      ← locked SSOT
-#   ontology/Tbox/ai_agent/      ← 클래스·관계 정의 (md + jsonl)
-#   ontology/Abox/ai_agent/      ← 인스턴스 (md + jsonl)
+#   ontology/explain/concept/ai_agent/      ← 클래스·관계 정의 (md + jsonl)
+#   ontology/explain/instance/ai_agent/      ← 인스턴스 (md + jsonl)
 #   evidence/                    ← 원본·seed
 #   workflow/                    ← yaml 정의 워크플로우
 #   memory/                      ← task-context + ontology-index

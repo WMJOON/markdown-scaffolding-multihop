@@ -28,7 +28,7 @@ skills/msm-maintain/scripts/msm-maintain analyze --target my-kb
 
 # rewrite (dry-run 먼저)
 skills/msm-maintain/scripts/msm-maintain rewrite \
-  --target my-kb --node ontology/Tbox/ai_agent/md/concept__rlhf.md \
+  --target my-kb --node ontology/explain/concept/ai_agent/md/concept__rlhf.md \
   --dry-run
 
 # 리포트

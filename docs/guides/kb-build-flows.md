@@ -24,7 +24,7 @@ graph.json (nodes: code + concept + document)
 evidence/graphify/entity_candidates.jsonl   ← concept 노드만
 evidence/graphify/relation_candidates.jsonl ← concept 간 엣지
     ↓ msm-ontology add --apply
-ontology/Tbox/{cluster}/entities.jsonl      ← MECE 검증 후 승격
+ontology/explain/concept/{cluster}/entities.jsonl      ← MECE 검증 후 승격
 ```
 
 ---
@@ -44,13 +44,13 @@ ontology/Tbox/{cluster}/entities.jsonl      ← MECE 검증 후 승격
 구조를 먼저 설계하고 evidence를 채웁니다.
 
 ```
-msm init (Tbox/Abox 골격)
+msm init (explain/concept · explain/instance 골격)
     ↓
-msm-ontology add (Tbox 클래스 정의)
+msm-ontology add (explain/concept (TBox) 클래스 정의)
     ↓
 msm-evidence collect (URL/MD → seeds)
     ↓
-msm-ontology add (Abox 인스턴스 승격)
+msm-ontology add (explain/instance (ABox) 인스턴스 승격)
     ↓
 msm-ontology mece (MECE 검증)
     ↓
@@ -68,9 +68,9 @@ msm-evidence collect (URL/MD → seeds)
     ↓
 반복 등장 개념 추출
     ↓
-msm-ontology add (Tbox 클래스 귀납 정의)
+msm-ontology add (explain/concept (TBox) 클래스 귀납 정의)
     ↓
-msm-ontology add (Abox 인스턴스 배치)
+msm-ontology add (explain/instance (ABox) 인스턴스 배치)
     ↓
 msm-ontology mece (MECE 검증 + 보완)
     ↓
@@ -82,8 +82,8 @@ status 승격
 ## 핵심 규칙
 
 **Rule 1. ontology ≠ evidence**
-- `ontology/Tbox/` = 클래스·관계 정의 (normalization)
-- `ontology/Abox/` = 인스턴스 (normalization)
+- `ontology/explain/concept/` = 클래스·관계 정의 (normalization)
+- `ontology/explain/instance/` = 인스턴스 (normalization)
 - `evidence/` = 정당화 근거 (justification)
 
 **Rule 2. 검증 깊이**
