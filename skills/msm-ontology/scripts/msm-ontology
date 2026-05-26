@@ -23,15 +23,71 @@ case "$sub" in
   project)
     exec "$PY" "$SCRIPT_DIR/project_md.py" "$@"
     ;;
+  definition)
+    exec "$PY" "$SCRIPT_DIR/definition.py" "$@"
+    ;;
+  contract-validate)
+    exec "$PY" "$SCRIPT_DIR/contract_validate.py" "$@"
+    ;;
+  eca-run)
+    exec "$PY" "$SCRIPT_DIR/eca_run.py" "$@"
+    ;;
+  eca-schedule)
+    exec "$PY" "$SCRIPT_DIR/eca_schedule.py" "$@"
+    ;;
+  gen-ddl)
+    exec "$PY" "$SCRIPT_DIR/gen_ddl.py" "$@"
+    ;;
+  compile)
+    exec "$PY" "$SCRIPT_DIR/compile.py" "$@"
+    ;;
+  reason)
+    exec "$PY" "$SCRIPT_DIR/reason.py" "$@"
+    ;;
+  materialize)
+    exec "$PY" "$SCRIPT_DIR/materialize.py" "$@"
+    ;;
+  explain)
+    exec "$PY" "$SCRIPT_DIR/explain.py" "$@"
+    ;;
   ""|-h|--help)
     cat <<EOF
-msm-ontology — Ontology Manager for MSM v1.0.0
+msm-ontology — Ontology Manager for MSM v0.13.0
 
-Commands:
-  add       Register entity / relation / instance
-  mece      Run MECE violation checks
-  list      List registered objects
-  project   Regenerate MD projections from JSONL
+Commands (v0.12.0):
+  add                Register entity / relation / instance
+  mece               Run MECE violation checks
+  list               List registered objects
+  project            Regenerate MD projections from JSONL
+  definition         Load / query definition YAML
+  contract-validate  Validate instance against contract rules
+  eca-run            Execute ECA rules on a table row
+  eca-schedule       Schedule ECA rules for a domain
+  gen-ddl            Generate SQL DDL from definition
+
+Commands (v0.13.0 — OWL reasoning):
+  compile            LinkML YAML → OWL/Turtle  (requires: pip install linkml)
+  reason             OWL reasoning → inferred JSONL  (requires: pip install owlready2 + Java)
+  materialize        compile + reason in sequence
+  explain            Show inference result for a specific instance
+
+compile options:
+  --target PATH      KB root
+  --domain NAME      Specific domain only (default: all)
+  --apply            Write .ttl files (default: dry-run)
+
+reason options:
+  --target PATH      KB root
+  --apply            Write inferred.jsonl (default: dry-run)
+
+materialize options:
+  --target PATH      KB root
+  --domain NAME      Specific domain only (default: all)
+  --apply            Write files (default: dry-run)
+
+explain options:
+  --target PATH      KB root
+  --instance ID      Instance ID to explain
 
 add options:
   --target PATH               KB root (default: .)
