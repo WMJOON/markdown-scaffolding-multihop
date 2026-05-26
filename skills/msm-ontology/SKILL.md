@@ -1,10 +1,11 @@
 ---
 name: msm-ontology
-version: "1.1.0"
+version: "1.2.0"
 description: |
-  MSM v1.1.0 Fat Skill — evidence seed를 입력으로 받아 entity / relation / instance를
+  MSM v1.2.0 Fat Skill — evidence seed를 입력으로 받아 entity / relation / instance를
   JSONL에 등록하고, MECE 원칙을 강제하며, Markdown projection을 유지한다.
   v1.1.0: 실시간 진행상황 로깅 추가, continue-on-error 동작 개선.
+  v1.2.0: definition/contract-validate/eca-run/eca-schedule/gen-ddl CLI 추가 (skeleton).
 triggers:
   - "msm-ontology add"
   - "entity 등록"
@@ -18,7 +19,7 @@ spec: planning/msm_v1.0.0/msm-ontology-SPEC.md
 prd: planning/msm_v1.0.0/msm_v1.0.0-PRD.md
 ---
 
-# msm-ontology (v1.1.0)
+# msm-ontology (v1.2.0)
 
 ## What
 
@@ -42,6 +43,11 @@ evidence seed를 입력으로 받아 structured ontology 객체를 생성하는 
 | CLI — mece | `scripts/msm-ontology mece --target REPO [--cluster NAME]` |
 | CLI — list | `scripts/msm-ontology list --target REPO [--cluster NAME] [--kind entity\|relation\|instance]` |
 | CLI — project | `scripts/msm-ontology project --target REPO --cluster NAME [--apply]` |
+| CLI — definition | `scripts/msm-ontology definition --target REPO --domain NAME [--list]` |
+| CLI — contract-validate | `scripts/msm-ontology contract-validate --target REPO --domain NAME --entity TYPE --data JSON` |
+| CLI — eca-run | `scripts/msm-ontology eca-run --target REPO --table TABLE --row JSON` |
+| CLI — eca-schedule | `scripts/msm-ontology eca-schedule --target REPO [--domain NAME] [--dry-run]` |
+| CLI — gen-ddl | `scripts/msm-ontology gen-ddl --target REPO --domain NAME [--apply]` |
 | Harness | `harness/run.sh --skill msm-ontology --tier L0 --mode validate-only --target REPO` |
 
 ## Triggers

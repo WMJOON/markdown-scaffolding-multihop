@@ -202,6 +202,23 @@ def apply(plan: dict, args: argparse.Namespace) -> int:
             subprocess.run([sys.executable, "-m", "venv", str(venv_path)], check=False)
             write_trajectory(target, run_id, {"event_type": "venv_created", "path": str(venv_path)})
 
+    # Generate / update index.yaml (mso-scaffold-design v2 schema)
+    # dry-run: generate 없이 결과만 출력. apply: 실제 파일 생성.
+    try:
+        from gen_index import gen_or_update_index  # noqa: WPS433
+        idx_result = gen_or_update_index(
+            target,
+            name=getattr(args, "name", None),
+            domain=getattr(args, "domain", None),
+            dry_run=not hitl_ack,
+        )
+        write_trajectory(
+            target, run_id,
+            {"event_type": "index_yaml_gen", "result": idx_result, "path": "index.yaml"},
+        )
+    except Exception as exc:  # noqa: BLE001
+        sys.stderr.write(f"[apply_init] index.yaml 생성 건너뜀: {exc}\n")
+
     # Readiness scoring
     score_path = Path(__file__).resolve().parent / "score_readiness.py"
     rc = subprocess.run(
