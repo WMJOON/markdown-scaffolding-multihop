@@ -5,13 +5,6 @@ description: |
   MSM v1.2.0 Fat Skill — 신규 KB 프로젝트를 5-Layer 구조로 부트스트랩한다.
   canonical_root_hub.yaml, workflow 템플릿, memory/harness/docs 골격, .claude/.codex skill scaffold를 생성한다.
   v1.2.0: init 완료 시 index.yaml 자동 생성·갱신 (mso-scaffold-design v2 스키마).
-triggers:
-  - "msm init"
-  - "5-layer bootstrap"
-  - "repository scaffold"
-  - "canonical_root_hub 초기화"
-  - "MSM v1.0.0 init"
-  - "index.yaml 생성"
 spec: planning/msm_v1.0.0/msm-repository-setup-SPEC.md
 prd: planning/msm_v1.2.0/msm_v1.2.0-PRD.md
 ---

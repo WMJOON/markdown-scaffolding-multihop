@@ -5,18 +5,6 @@ description: |
   MSM v1.0.0 Fat Skill — 외부 URL/로컬 MD를 수집·청킹·dedup하여
   evidence/seeds.jsonl 및 evidence/md/ 노트를 생성한다.
   entity/relation 생성은 하지 않는다. seed는 msm-ontology의 입력.
-triggers:
-  - "msm-evidence collect"
-  - "evidence 수집"
-  - "URL 크롤링"
-  - "Ralph"
-  - "ETL"
-  - "논문 수집"
-  - "seed 수집"
-  - "evidence seed 생성"
-  - "graphify ETL"
-  - "graphify 변환"
-  - "graph.json 변환"
 spec: planning/msm_v1.0.0/msm-evidence-SPEC.md
 prd: planning/msm_v1.0.0/msm_v1.0.0-PRD.md
 ---

@@ -4,17 +4,6 @@ version: "0.12.0"
 description: |
   MSM v1.2.0 — DuckDB 기반 property graph instance layer 관리.
   evidence → DuckDB insert, contract validate, ECA rule_runner 실행.
-triggers:
-  - "msm-instance init"
-  - "instance DB 초기화"
-  - "instance insert"
-  - "instance query"
-  - "instance migrate"
-  - "export-snapshot"
-  - "ECA 실행"
-  - "market_signal 등록"
-  - "SQLite runtime"
-  - "DuckDB analytics"
 ---
 
 # msm-instance (v1.2.0)

@@ -5,11 +5,6 @@ description: |
   MSM v1.0.0 측정·저장 레이어. 4-Tier 런타임(L0~L3), run context slot 운영,
   trajectory event ontology 기록, 5-axis 계측, memory 2-tier 운영을 담당한다.
   정책 판정은 하지 않는다 (msm-orchestration 책임).
-triggers:
-  - "harness 실행"
-  - "trajectory 분석"
-  - "5-axis 측정"
-  - "run context"
 spec: planning/msm_v1.0.0/msm-harness-SPEC.md
 ---
 

@@ -6,15 +6,6 @@ description: |
   JSONL에 등록하고, MECE 원칙을 강제하며, Markdown projection을 유지한다.
   v1.1.0: 실시간 진행상황 로깅 추가, continue-on-error 동작 개선.
   v1.2.0: definition/contract-validate/eca-run/eca-schedule/gen-ddl CLI 추가 (skeleton).
-triggers:
-  - "msm-ontology add"
-  - "entity 등록"
-  - "relation 등록"
-  - "instance 등록"
-  - "MECE 검증"
-  - "온톨로지 확장"
-  - "Knowledge Graph"
-  - "KB 구조화"
 spec: planning/msm_v1.0.0/msm-ontology-SPEC.md
 prd: planning/msm_v1.0.0/msm_v1.0.0-PRD.md
 ---

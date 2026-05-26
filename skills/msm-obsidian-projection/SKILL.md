@@ -4,13 +4,6 @@ version: "0.12.0"
 description: |
   MSM v1.2.0 — DuckDB → Obsidian MD + .base 생성 스킬.
   explain layer. 모든 출력 파일은 generated artifact — 직접 편집 금지.
-triggers:
-  - "obsidian projection 생성"
-  - "DuckDB → Obsidian"
-  - "msm-obsidian-projection run"
-  - ".base 생성"
-  - "KB projection"
-  - "obsidian projection"
 ---
 
 # msm-obsidian-projection (v1.2.0)
