@@ -1,4 +1,4 @@
-# MSM — Human-Agent KnowledgeBase Management System (v1.1.1)
+# MSM — Human-Agent KnowledgeBase Management System (v1.2.0)
 
 > [!info] Identity
 > **MSM**은 단순 Markdown scaffolding 도구가 아닙니다.
@@ -9,11 +9,21 @@
 
 단일 문서 검색은 하나의 노트 안에 있는 정보만 돌려줍니다. 하지만 실제 인사이트는 여러 노드를 가로질러 존재합니다. MSM은 frontmatter와 wikilink로 선언된 관계를 실제 그래프로 파싱하고, BFS 멀티홉 추론과 유지보수 레이어를 통해 **검색·추론·구조화·유지보수**를 하나의 skillset으로 다룹니다.
 
+**v1.2.0** — Instance Layer 내재화 + MSO 스키마 정렬.
+- **msm-instance 신규**: SQLite runtime DB (OLTP) + DuckDB analytics (OLAP) 하이브리드
+  - `instance/runtime.db` — ECA 상태, market_signal 등 property graph (WAL 모드)
+  - `instance/snapshots/*.parquet` — DuckDB analytics bridge
+- **msm-ontology 확장**: definition YAML (OWL-inspired) + contract YAML (SHACL-inspired) + ECA rules
+  - Kinetic = ECA (Event-Condition-Action): 상태 변이 규칙만 해당, SQL VIEW 아님
+  - Dynamic = read-only SQL VIEW: kinetic 결과 + 파생 계산
+- **msm-repository-setup**: `msm init` 시 `index.yaml` 자동 생성 (mso-scaffold-design v2 스키마)
+- **MSO 스키마 정렬**: `index.yaml` (mso-scaffold-design) + `*-workflow.yaml` (mso-workflow-design) 준수
+- **msm-obsidian-projection 신규**: DuckDB → Obsidian MD + .base generated layer
+
 **v1.1.1** — Concept/Instance 거버넌스 정책 문서화.
 - Concept = HITL / HITLFE 검수 필수 (사람 승인 없이 자동 생성·수정 금지)
 - Instance (상위 직접 연결) = 관리 대상 (Human-supervised)
 - Instance (하위 간접 연결) = 동적 자동화 (Self-healing)
-- Enforcement는 v1.2.0 예정 (`msm-ontology` 가드, `msm-maintain` 티어 검증)
 
 **v1.1.0** — Parent Node Alignment 내재화 및 4계층 KB 구조 도입.
 - D-1: 부모 anchor `__class.md` 명명 통일 (구 `__hub.md`)
@@ -220,73 +230,56 @@ v0.2.x  rewrite/governance/semantic framing 레이어               ✓ 완료
 v1.0.0  5-Layer 아키텍처 · 6개 스킬 · Graphify ETL              ✓ 완료
 v1.0.1  Antigravity 플랫폼 지원                                  ✓ 완료
 v1.1.0  Parent Alignment · 4계층 KB 구조 (D-1~D-7)              ✓ 완료
-v1.1.1  Concept HITL · Instance 차등 자동화 정책 문서화          ← 현재
-v1.2.0  ontology/system/ formal logic 도입 (advanced layer)
-        ABox SPEC 확정 · explain ↔ system 매핑
-        Concept HITL 가드 · Instance 티어 enforcement
+v1.1.1  Concept HITL · Instance 차등 자동화 정책 문서화          ✓ 완료
+v1.2.0  Instance Layer (SQLite+DuckDB) · ECA Kinetic · MSO 정렬  ← 현재
+        msm-instance · msm-obsidian-projection 신규
+        index.yaml 자동 생성 · workflow YAML MSO 스키마 준수
 v1.x    msm-graph-reasoning · msm-semantic-search 추가
 ```
 
 ---
 
-## v1.2.0 방향성
+## v1.2.0 구현 내용
 
-> [!info] v1.2.0 = "formal logic은 선택적 advanced layer"
-> v1.1.0은 모든 사용자가 즉시 운영 가능한 narrative-first KB를 완성했습니다.
-> v1.2.0은 **선택적으로** formal logic 레이어를 추가합니다.
-> **명시적 필요가 없는 사용자는 v1.1.0 그대로 사용해도 무방합니다.**
+### Storage 레이어 — SQLite + DuckDB 하이브리드
 
-### 1. `ontology/system/` 채우기 (OWL/RDF formal logic)
+```
+SQLite runtime.db  (기억 — OLTP)    DuckDB analytics  (사고 — OLAP)
+  market_signal                        read_parquet('snapshots/*.parquet')
+  industry_threat_cache                Capital metrics, ROI, token/attention
+  ECA kinetic state                    Workflow 성과 분석
+```
 
-| 서브 | 책임 | 예시 |
-|------|------|------|
-| **semantic/** | 정적 의미 관계·OWL class/property 정의 | `Class`, `subClassOf`, `domain/range` |
-| **kinetic/** | 작용·변환·workflow의 형식 표현 | action ontology, transformation rules |
-| **dynamic/** | 변화·시간성·event 시퀀스 | state-change, temporal logic, event sourcing |
+**원칙: SQLite로 살아가고, DuckDB로 생각한다.**
 
-→ 학습 비용이 큰 영역. **명시적 필요가 있을 때**만 도입 권장.
+### Ontology 레이어 — 3종 YAML
 
-### 2. ABox SPEC 확정 (OI-E)
+| 파일 | 역할 |
+|------|------|
+| `ontology/definition/*.yaml` | entity/relation 타입 정의 (OWL-inspired) |
+| `ontology/contract/*.yaml` | 유효성 규칙 (SHACL-inspired, required/enum/URI) |
+| `ontology/kinetic/rules/*.yaml` | ECA rules — 상태 변이 전용 (SQL VIEW ≠ kinetic) |
 
-- `ontology/explain/instance/` 의 명명·디렉토리·frontmatter 규칙 확정
-- `type_of: [[X__class]]` 관계 강제
-- TBox class와 instance 간 1:N 매핑
+### ECA (Event-Condition-Action) 패턴
 
-### 3. `explain` ↔ `system` 매핑 (OI-A)
+```yaml
+trigger: {type: on_insert, source: market_signal, filter: "NEW.threat_level = 'high'"}
+condition: {sql: "SELECT COUNT(*) >= 2 FROM market_signal WHERE ..."}
+action: {type: mutate_property, target: industry_threat_cache, mutation: {...}}
+```
 
-- 한 의미를 두 표현으로 — Markdown narrative + OWL formal
-- 어떤 방식으로 매핑? (frontmatter cross-link / 별도 매핑 파일 / 자동 생성)
+DuckDB 네이티브 트리거 미지원 → `rule_runner.py`로 보완.
 
-### 4. `system/` 도입 ROI 평가 (OI-F)
+### MSO 스키마 정렬
 
-다음 use-case에서 `system/` 도입의 ROI 양수 여부 검증:
-- 다중 에이전트 협업 (에이전트가 RDF 그래프로 공통 의미 공유)
-- SPARQL 쿼리 (복잡한 multi-hop 추론)
-- 외부 RDF 그래프 통합 (DBpedia, Wikidata 등)
-- 형식 검증 (consistency check, classification)
+- `index.yaml` — mso-scaffold-design v2 준수 (`sf_node.py validate`)
+- `*-workflow.yaml` — mso-workflow-design v2 준수 (`wf_node.py validate`)
+- `msm init` 시 `index.yaml` 자동 생성·갱신 (`gen_index.py`)
 
-→ **explain만으로 충분한 use-case**에서는 system 도입을 지양.
+### 신규 스킬
 
-### 5. evidence ↔ ontology backref 자동화 (OI-D)
-
-- evidence note → 인용한 ontology 노드 자동 backref
-- ontology 노드 → 근거 evidence 자동 색인
-- Sorcelink Rule의 양방향 강제
-
-### 6. 미해결 결정 (OI-B, OI-C)
-
-- **kinetic vs dynamic 경계**: workflow는 어디로? (작용=kinetic vs 변화=dynamic)
-- **마이그레이션 시점**: system 룰 확정 후 한 번에 vs 점진적 도입
-
----
-
-### v1.2.0 비목표
-
-- 기존 v1.1.0 KB 강제 마이그레이션 (선택적)
-- `explain/` 사용자에게 `system/` 학습 강요
-- 모든 노드에 OWL 형식 표현 의무화
-
-→ v1.2.0은 **추가 가능 옵션**이지 **기본 변경**이 아닙니다.
+- **msm-instance**: `init / insert / query / migrate / export-snapshot`
+- **msm-obsidian-projection**: DuckDB → Obsidian MD + .base (generated artifact)
 
 ---
 
