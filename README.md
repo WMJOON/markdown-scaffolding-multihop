@@ -1,58 +1,20 @@
 # MSM — Human-Agent KnowledgeBase Management System (v1.2.0)
 
-> [!info] Identity
-> **MSM**은 단순 Markdown scaffolding 도구가 아닙니다.
-> 인간과 에이전트가 함께 운용하는 **KnowledgeBase 자체**를 관리하는 시스템입니다.
-> `ontology/`, `evidence/` 등 KB의 모든 구성 요소가 책임 범위입니다.
+MSM은 단순 Markdown scaffolding 도구가 아니다. 인간과 에이전트가 함께 운용하는 **KnowledgeBase 자체**를 관리하는 시스템이다. `ontology/`, `evidence/` 등 KB의 모든 구성 요소가 책임 범위다.
 
-이 스킬셋은 **"Markdown 파일은 많이 쌓였는데, 그 안의 연결을 구조적으로 읽고 유지하고 확장하기가 어렵다"**는 문제를 풀기 위해 만들어졌습니다.
+이 스킬셋은 **"Markdown 파일은 많이 쌓였는데, 그 안의 연결을 구조적으로 읽고 유지하고 확장하기가 어렵다"**는 문제를 풀기 위해 만들어졌다.
 
-단일 문서 검색은 하나의 노트 안에 있는 정보만 돌려줍니다. 하지만 실제 인사이트는 여러 노드를 가로질러 존재합니다. MSM은 frontmatter와 wikilink로 선언된 관계를 실제 그래프로 파싱하고, BFS 멀티홉 추론과 유지보수 레이어를 통해 **검색·추론·구조화·유지보수**를 하나의 skillset으로 다룹니다.
-
-**v1.2.0** — Instance Layer 내재화 + MSO 스키마 정렬.
-- **msm-instance 신규**: SQLite runtime DB (OLTP) + DuckDB analytics (OLAP) 하이브리드
-  - `instance/runtime.db` — ECA 상태, market_signal 등 property graph (WAL 모드)
-  - `instance/snapshots/*.parquet` — DuckDB analytics bridge
-- **msm-ontology 확장**: definition YAML (OWL-inspired) + contract YAML (SHACL-inspired) + ECA rules
-  - Kinetic = ECA (Event-Condition-Action): 상태 변이 규칙만 해당, SQL VIEW 아님
-  - Dynamic = read-only SQL VIEW: kinetic 결과 + 파생 계산
-- **msm-repository-setup**: `msm init` 시 `index.yaml` 자동 생성 (mso-scaffold-design v2 스키마)
-- **MSO 스키마 정렬**: `index.yaml` (mso-scaffold-design) + `*-workflow.yaml` (mso-workflow-design) 준수
-- **msm-obsidian-projection 신규**: DuckDB → Obsidian MD + .base generated layer
-
-**v1.1.1** — Concept/Instance 거버넌스 정책 문서화.
-- Concept = HITL / HITLFE 검수 필수 (사람 승인 없이 자동 생성·수정 금지)
-- Instance (상위 직접 연결) = 관리 대상 (Human-supervised)
-- Instance (하위 간접 연결) = 동적 자동화 (Self-healing)
-
-**v1.1.0** — Parent Node Alignment 내재화 및 4계층 KB 구조 도입.
-- D-1: 부모 anchor `__class.md` 명명 통일 (구 `__hub.md`)
-- D-2: 단일 부모 원칙 (다중 도메인은 `cross_reference`)
-- D-3: 레벨 체계 L0~L4 권장, L5+ 자유
-- D-4: 5축 분류 비강제
-- D-5: `unclassified/` 디렉토리 운영
-- D-6: TBox=Class / ABox=Instance 분리
-- D-7: 4계층 ontology (`system/{semantic,kinetic,dynamic}` + `explain/{concept,instance}`) + `evidence/`
-
-> [!tip] 기본 운영 원칙 (Narrative-first)
-> **대부분의 사용자는 `evidence/` + `ontology/explain/`만으로 충분합니다.**
-> `ontology/system/`(OWL/RDF formal logic)은 advanced layer — 도입 비용이 크므로 명시적 필요(기계 추론·SPARQL·외부 RDF 통합 등)가 있을 때만 사용. MSM 기본 모드는 자연어 우선.
-
-**v1.0.1**은 v1.0.0 기반으로 Antigravity 플랫폼 지원을 추가했습니다. Claude Code · Codex · Antigravity 세 플랫폼 모두에서 MSM 스킬을 설치하고 실행할 수 있습니다. v1.0.0은 온톨로지 구축에 특화된 5-Layer 아키텍처로 전환한 버전이며, Repository · Workflow · Memory · Tool · Governance 5개 레이어 기반의 6개 스킬팩으로 재편했습니다.
+단일 문서 검색은 하나의 노트 안에 있는 정보만 돌려준다. 하지만 실제 인사이트는 여러 노드를 가로질러 존재한다. MSM은 frontmatter와 wikilink로 선언된 관계를 실제 그래프로 파싱하고, BFS 멀티홉 추론과 유지보수 레이어를 통해 **검색·추론·구조화·유지보수**를 하나의 skillset으로 다룬다.
 
 ---
 
 ## 설계 철학: Bounded Rationality, Calibrated Validation
 
-> 우리는 언제나 제한된 정보와 시간 안에서 판단한다.
-> 즉, 모든 의사결정은 제한된 합리성(Bounded Rationality) 위에서 이루어진다.
->
-> markdown-scaffolding-multihop은 이 전제를 기반으로,
-> 무조건 깊은 검증이 아니라 인지 비용을 최소화하면서도 충분히 신뢰 가능한 판단을 가능하게 하는 구조를 지향한다.
->
-> 이를 위해 검증 깊이를 고정하지 않고
-> Light · Medium · Deep 수준으로 조정 가능한 파라미터로 두며,
-> 문제의 스케일과 의사결정 중요도에 따라 최적의 검증 수준을 선택해야 한다.
+우리는 언제나 제한된 정보와 시간 안에서 판단한다. 즉, 모든 의사결정은 제한된 합리성(Bounded Rationality) 위에서 이루어진다.
+
+MSM은 이 전제를 기반으로, 무조건 깊은 검증이 아니라 인지 비용을 최소화하면서도 충분히 신뢰 가능한 판단을 가능하게 하는 구조를 지향한다. 검증 깊이를 고정하지 않고 Light · Medium · Deep 수준으로 조정 가능한 파라미터로 두며, 문제의 스케일과 의사결정 중요도에 따라 최적의 검증 수준을 선택한다.
+
+> **기본 운영 원칙 (Narrative-first)**: 대부분의 사용자는 `evidence/` + `ontology/explain/`만으로 충분하다. `ontology/system/`(OWL/RDF formal logic)은 advanced layer — 도입 비용이 크므로 명시적 필요(기계 추론·SPARQL·외부 RDF 통합 등)가 있을 때만 사용한다.
 
 ---
 
@@ -63,10 +25,10 @@
 | **노드 출처** | 어디서 왔는지 불분명 | Evidence에서 ETL된 것만 Ontology로 승격 |
 | **관계 정의** | 노트 안 wikilink 임의 연결 | `canonical_root_hub.yaml` 기반 명시적 관계 정의 |
 | **그래프 탐색** | 모든 파일이 같은 계층 | 4계층(system/explain/evidence) 명시적 분리 |
-| **온톨로지 구조** | 개념·인스턴스 구분 없음 | `ontology/explain/concept/` (Class) · `ontology/explain/instance/` (Instance) 분리 |
+| **온톨로지 구조** | 개념·인스턴스 구분 없음 | `ontology/explain/concept/` (TBox) · `ontology/explain/instance/` (ABox) 분리 |
 | **부모-자식 관계** | 디렉토리만 있음, 부모 anchor 불분명 | `{name}__class.md` 부모 anchor + `belongs_to` 강제 |
 | **단일 부모** | 없음, 무제한 belongs_to | D-2: 단일 부모, 다중 도메인 = `cross_reference` |
-| **유지보수** | 낡은 노트·중복·semantic drift를 수동으로 정리 | `msm-maintain`이 scan(parent-alignment 포함)/rewrite/eval 루프 제공 |
+| **유지보수** | 낡은 노트·중복·semantic drift 수동 정리 | `msm-maintain`이 scan/rewrite/eval 루프 제공 |
 | **워크플로우** | 스킬에 내장 | `workflow/*.yaml`로 외부화, 스킬이 yaml 소비 |
 | **외부 코드 수집** | 수동 | Graphify ETL → concept 노드 자동 추출·승격 |
 | **지식 신뢰도** | draft와 validated 구분 없음 | `status: raw → draft → experimental → validated` 승격 모델 |
@@ -107,11 +69,20 @@ Scan  →  Analyze  →  Rewrite  →  Report
 (msm-maintain: drift · orphan · eval · rewrite loop)
 ```
 
+**Instance Layer (v1.2.0):**
+```
+SQLite runtime.db  (기억 — OLTP)    DuckDB analytics  (사고 — OLAP)
+  market_signal                        read_parquet('snapshots/*.parquet')
+  industry_threat_cache                Capital metrics, ROI, token/attention
+  ECA kinetic state                    Workflow 성과 분석
+```
+원칙: **SQLite로 살아가고, DuckDB로 생각한다.**
+
 ---
 
-## 스킬 구성 (v1.0.0)
+## 스킬 구성 (v1.2.0)
 
-6개 스킬이 5-Layer에서 협업합니다. `msm-orchestration`이 진입점이며, 서브스킬은 workflow yaml을 통해 on-demand로 실행됩니다.
+6개 스킬이 5-Layer에서 협업한다. `msm-orchestration`이 진입점이며, 서브스킬은 workflow yaml을 통해 on-demand로 실행된다.
 
 ```mermaid
 flowchart LR
@@ -140,21 +111,16 @@ flowchart LR
     rs -- "canonical_root_hub.yaml" --> ORCH
 ```
 
-### 스킬별 역할 요약
-
-**`msm-repository-setup`** — 5-Layer KB 디렉토리 골격을 부트스트랩합니다. `msm init --target REPO --domain DOMAIN --apply` 한 번으로 `canonical_root_hub.yaml` · `ontology/` · `evidence/` · `workflow/` · `memory/` · `harness/`를 생성합니다.
-
-**`msm-evidence`** — 외부 원본을 KB evidence로 수집합니다. URL/로컬 MD는 청킹 후 `evidence/seeds.jsonl`로 등록하고, Graphify `graph.json`은 `graphify_to_msm.py`로 concept 노드만 추출해 `evidence/graphify/entity_candidates.jsonl`로 변환합니다.
-
-**`msm-ontology`** — entity·relation을 생성하고 MECE + parent-alignment(D-1~D-7)를 검증합니다. `evidence/` 후보를 받아 `ontology/explain/concept/` 또는 `ontology/explain/instance/`에 승격하고 `canonical_root_hub.yaml`을 갱신합니다. v1.1.0에서 `create-parent`, `add-belongs-to`, `move-to-unclassified` 명령 추가.
-
-**`msm-maintain`** — KB 상태를 유지합니다. orphan / drift 탐지, **parent-alignment scan**(v1.1.0 신규), 노트 rewrite, 통계 분석을 담당합니다.
-
-**`msm-harness`** — 측정·저장 레이어입니다. memory 2-tier 운영, L0~L3 런타임 라우팅, 5-Axis(비결정성·궤적·오라클·비용·HITL) 계측을 담당합니다.
-
-**`msm-orchestration`** — 규범·정책 레이어입니다. 자연어 인텐트 → workflow yaml 라우팅, CC 계약, HITL 2층 설계, 5-Axis 임계치 판정을 담당합니다.
-
-> **v1.x 예정**: `msm-graph-reasoning` (multi-hop·BFS·GraphRAG·RDF/OWL), `msm-semantic-search` (zvec·RRF)
+| 스킬 | 역할 |
+|------|------|
+| `msm-repository-setup` | 5-Layer KB 디렉토리 골격 부트스트랩. `index.yaml` 자동 생성 (MSO 스키마 준수) |
+| `msm-evidence` | URL/로컬 MD 수집·청킹 → `evidence/seeds.jsonl`. Graphify ETL 어댑터 포함 |
+| `msm-ontology` | entity·relation 생성 + MECE + parent-alignment(D-1~D-7) 검증 → `ontology/explain/` 승격 |
+| `msm-maintain` | orphan·drift 탐지, parent-alignment scan, 노트 rewrite, 통계 분석 |
+| `msm-harness` | memory 2-tier 운영, L0~L3 런타임 라우팅, 5-Axis 계측 |
+| `msm-orchestration` | 자연어 인텐트 → workflow yaml 라우팅, CC 계약, HITL 2층 설계 |
+| `msm-instance` _(v1.2.0)_ | SQLite OLTP + DuckDB OLAP 하이브리드. `init/insert/query/migrate/export-snapshot` |
+| `msm-obsidian-projection` _(v1.2.0)_ | DuckDB → Obsidian MD + .base generated layer |
 
 ### 스킬 라우팅
 
@@ -165,23 +131,20 @@ flowchart LR
 | Graphify 코드베이스 수집 | `msm-evidence` (`graphify_to_msm.py`) |
 | entity·relation 생성·MECE 검증 | `msm-ontology` |
 | KB 유지보수·rewrite·분석 | `msm-maintain` |
+| Instance DB 조작 | `msm-instance` |
+| Obsidian projection 생성 | `msm-obsidian-projection` |
 | 워크플로우 라우팅·HITL 판정 | `msm-orchestration` |
 | 5-Axis 계측·메모리·런타임 | `msm-harness` |
 
 ---
 
-## 문서
+## MSO 스키마 정렬
 
-| 문서 | 설명 |
-|------|------|
-| [빠른 시작](docs/guides/quickstart.md) | 설치, 지원 소스, 기본 명령어 |
-| [온톨로지 설정](docs/guides/ontology-config.md) | canonical_root_hub.yaml, Tbox/Abox 구조 |
-| [KB 디렉토리 구조](docs/kb-directory-structure.md) | 5-Layer 구조, ETL 흐름, 상태 모델 |
-| [KB 구축 흐름](docs/guides/kb-build-flows.md) | Top-Down / Bottom-Up 전략, Graphify ETL |
-| [워크플로우](docs/guides/workflows.md) | workflow yaml 카테고리, 스킬 바인딩 |
-| [KB 유지보수](docs/guides/kb-maintenance.md) | scan/rewrite/eval 루프 |
-| [스킬 구성](docs/skills.md) | 전체 스킬 목록, 역할, 레퍼런스 링크 |
-| [Changelog](docs/changelog.md) | 전체 버전별 변경 이력 |
+MSM v1.2.0부터 MSO(Multi-Swarm Orchestrator) 스키마를 준수한다.
+
+- `index.yaml` — mso-scaffold-design 스키마 준수 (`sf_node.py validate`)
+- `*-workflow.yaml` — mso-workflow-design 스키마 준수 (`wf_node.py validate`)
+- `msm init` 시 `index.yaml` 자동 생성·갱신 (`gen_index.py`)
 
 ---
 
@@ -195,8 +158,6 @@ cd markdown-scaffolding-multihop
 ./install.sh --antigravity  # Antigravity만
 ./install.sh --all          # Claude Code + Codex + Antigravity
 ```
-
-`install.sh`는 진입점 스킬을 `~/.claude/skills/msm-orchestration`에 심링크합니다.
 
 ### Quick Start
 
@@ -222,6 +183,21 @@ skills/msm-orchestration/msm-orchestrate run \
 
 ---
 
+## 문서
+
+| 문서 | 설명 |
+|------|------|
+| [빠른 시작](docs/guides/quickstart.md) | 설치, 지원 소스, 기본 명령어 |
+| [온톨로지 설정](docs/guides/ontology-config.md) | canonical_root_hub.yaml, Tbox/Abox 구조 |
+| [KB 디렉토리 구조](docs/kb-directory-structure.md) | 5-Layer 구조, ETL 흐름, 상태 모델 |
+| [KB 구축 흐름](docs/guides/kb-build-flows.md) | Top-Down / Bottom-Up 전략, Graphify ETL |
+| [워크플로우](docs/guides/workflows.md) | workflow yaml 카테고리, 스킬 바인딩 |
+| [KB 유지보수](docs/guides/kb-maintenance.md) | scan/rewrite/eval 루프 |
+| [스킬 구성](docs/skills.md) | 전체 스킬 목록, 역할, 레퍼런스 링크 |
+| [Changelog](docs/changelog.md) | 전체 버전별 변경 이력 |
+
+---
+
 ## Roadmap
 
 ```text
@@ -239,56 +215,14 @@ v1.x    msm-graph-reasoning · msm-semantic-search 추가
 
 ---
 
-## v1.2.0 구현 내용
-
-### Storage 레이어 — SQLite + DuckDB 하이브리드
-
-```
-SQLite runtime.db  (기억 — OLTP)    DuckDB analytics  (사고 — OLAP)
-  market_signal                        read_parquet('snapshots/*.parquet')
-  industry_threat_cache                Capital metrics, ROI, token/attention
-  ECA kinetic state                    Workflow 성과 분석
-```
-
-**원칙: SQLite로 살아가고, DuckDB로 생각한다.**
-
-### Ontology 레이어 — 3종 YAML
-
-| 파일 | 역할 |
-|------|------|
-| `ontology/definition/*.yaml` | entity/relation 타입 정의 (OWL-inspired) |
-| `ontology/contract/*.yaml` | 유효성 규칙 (SHACL-inspired, required/enum/URI) |
-| `ontology/kinetic/rules/*.yaml` | ECA rules — 상태 변이 전용 (SQL VIEW ≠ kinetic) |
-
-### ECA (Event-Condition-Action) 패턴
-
-```yaml
-trigger: {type: on_insert, source: market_signal, filter: "NEW.threat_level = 'high'"}
-condition: {sql: "SELECT COUNT(*) >= 2 FROM market_signal WHERE ..."}
-action: {type: mutate_property, target: industry_threat_cache, mutation: {...}}
-```
-
-DuckDB 네이티브 트리거 미지원 → `rule_runner.py`로 보완.
-
-### MSO 스키마 정렬
-
-- `index.yaml` — mso-scaffold-design v2 준수 (`sf_node.py validate`)
-- `*-workflow.yaml` — mso-workflow-design v2 준수 (`wf_node.py validate`)
-- `msm init` 시 `index.yaml` 자동 생성·갱신 (`gen_index.py`)
-
-### 신규 스킬
-
-- **msm-instance**: `init / insert / query / migrate / export-snapshot`
-- **msm-obsidian-projection**: DuckDB → Obsidian MD + .base (generated artifact)
-
----
-
 ## 의존성
 
-- Python 3.10+
-- `pip install -r requirements.txt`
-- 선택적: `graphifyy` (`pip install graphifyy`) — Graphify ETL 사용 시
-- 선택적 보조 레이어: `ollama_mcp` + Ollama 로컬 모델
+```
+Python 3.10+
+pip install -r requirements.txt
+graphifyy (선택)       # Graphify ETL 사용 시
+ollama_mcp (선택)      # 로컬 모델 보조 레이어
+```
 
 ## License
 
