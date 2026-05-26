@@ -1,6 +1,6 @@
 ---
 name: msm-evidence
-version: "1.0.0"
+version: "0.12.0"
 description: |
   MSM v1.0.0 Fat Skill — 외부 URL/로컬 MD를 수집·청킹·dedup하여
   evidence/seeds.jsonl 및 evidence/md/ 노트를 생성한다.

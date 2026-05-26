@@ -1,6 +1,6 @@
 ---
 name: msm-instance
-version: "1.2.0"
+version: "0.12.0"
 description: |
   MSM v1.2.0 — DuckDB 기반 property graph instance layer 관리.
   evidence → DuckDB insert, contract validate, ECA rule_runner 실행.

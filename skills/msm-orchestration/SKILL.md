@@ -1,6 +1,6 @@
 ---
 name: msm-orchestration
-version: "1.0.0"
+version: "0.12.0"
 description: |
   MSM v1.0.0 정책·라우팅 레이어. 사용자 의도를 워크플로우로 라우팅하고,
   CC 계약·HITL 정책·5-axis gate를 강제한다. msm-harness의 측정값을 소비해

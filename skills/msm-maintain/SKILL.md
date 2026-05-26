@@ -1,6 +1,6 @@
 ---
 name: msm-maintain
-version: "1.0.0"
+version: "0.12.0"
 description: |
   MSM v1.0.0 KB 유지보수 스킬. drift/orphan/eval 탐지, 정합 복구 계획 생성,
   analysis report 산출, troubleshooting 기록을 담당한다.

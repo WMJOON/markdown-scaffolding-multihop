@@ -1,6 +1,6 @@
 ---
 name: msm-repository-setup
-version: "1.2.0"
+version: "0.12.0"
 description: |
   MSM v1.2.0 Fat Skill — 신규 KB 프로젝트를 5-Layer 구조로 부트스트랩한다.
   canonical_root_hub.yaml, workflow 템플릿, memory/harness/docs 골격, .claude/.codex skill scaffold를 생성한다.

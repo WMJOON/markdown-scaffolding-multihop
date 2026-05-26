@@ -1,4 +1,4 @@
-# MSM — Human-Agent KnowledgeBase Management System (v1.2.0)
+# MSM — Human-Agent KnowledgeBase Management System (v0.12.0)
 
 MSM은 단순 Markdown scaffolding 도구가 아니다. 인간과 에이전트가 함께 운용하는 **KnowledgeBase 자체**를 관리하는 시스템이다. `ontology/`, `evidence/` 등 KB의 모든 구성 요소가 책임 범위다.
 
@@ -69,7 +69,7 @@ Scan  →  Analyze  →  Rewrite  →  Report
 (msm-maintain: drift · orphan · eval · rewrite loop)
 ```
 
-**Instance Layer (v1.2.0):**
+**Instance Layer (v0.12.0):**
 ```
 SQLite runtime.db  (기억 — OLTP)    DuckDB analytics  (사고 — OLAP)
   market_signal                        read_parquet('snapshots/*.parquet')
@@ -80,7 +80,7 @@ SQLite runtime.db  (기억 — OLTP)    DuckDB analytics  (사고 — OLAP)
 
 ---
 
-## 스킬 구성 (v1.2.0)
+## 스킬 구성 (v0.12.0)
 
 6개 스킬이 5-Layer에서 협업한다. `msm-orchestration`이 진입점이며, 서브스킬은 workflow yaml을 통해 on-demand로 실행된다.
 
@@ -119,8 +119,8 @@ flowchart LR
 | `msm-maintain` | orphan·drift 탐지, parent-alignment scan, 노트 rewrite, 통계 분석 |
 | `msm-harness` | memory 2-tier 운영, L0~L3 런타임 라우팅, 5-Axis 계측 |
 | `msm-orchestration` | 자연어 인텐트 → workflow yaml 라우팅, CC 계약, HITL 2층 설계 |
-| `msm-instance` _(v1.2.0)_ | SQLite OLTP + DuckDB OLAP 하이브리드. `init/insert/query/migrate/export-snapshot` |
-| `msm-obsidian-projection` _(v1.2.0)_ | DuckDB → Obsidian MD + .base generated layer |
+| `msm-instance` _(v0.12.0)_ | SQLite OLTP + DuckDB OLAP 하이브리드. `init/insert/query/migrate/export-snapshot` |
+| `msm-obsidian-projection` _(v0.12.0)_ | DuckDB → Obsidian MD + .base generated layer |
 
 ### 스킬 라우팅
 
@@ -140,7 +140,7 @@ flowchart LR
 
 ## MSO 스키마 정렬
 
-MSM v1.2.0부터 MSO(Multi-Swarm Orchestrator) 스키마를 준수한다.
+MSM v0.12.0부터 MSO(Multi-Swarm Orchestrator) 스키마를 준수한다.
 
 - `index.yaml` — mso-scaffold-design 스키마 준수 (`sf_node.py validate`)
 - `*-workflow.yaml` — mso-workflow-design 스키마 준수 (`wf_node.py validate`)
@@ -207,7 +207,7 @@ v1.0.0  5-Layer 아키텍처 · 6개 스킬 · Graphify ETL              ✓ 완
 v1.0.1  Antigravity 플랫폼 지원                                  ✓ 완료
 v1.1.0  Parent Alignment · 4계층 KB 구조 (D-1~D-7)              ✓ 완료
 v1.1.1  Concept HITL · Instance 차등 자동화 정책 문서화          ✓ 완료
-v1.2.0  Instance Layer (SQLite+DuckDB) · ECA Kinetic · MSO 정렬  ← 현재
+v0.12.0  Instance Layer (SQLite+DuckDB) · ECA Kinetic · MSO 정렬  ← 현재
         msm-instance · msm-obsidian-projection 신규
         index.yaml 자동 생성 · workflow YAML MSO 스키마 준수
 v1.x    msm-graph-reasoning · msm-semantic-search 추가

@@ -1,6 +1,6 @@
 ---
 name: msm-harness
-version: "1.0.0"
+version: "0.12.0"
 description: |
   MSM v1.0.0 측정·저장 레이어. 4-Tier 런타임(L0~L3), run context slot 운영,
   trajectory event ontology 기록, 5-axis 계측, memory 2-tier 운영을 담당한다.
