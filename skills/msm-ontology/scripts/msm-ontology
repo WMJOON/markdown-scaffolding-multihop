@@ -5,7 +5,14 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PY="${PYTHON:-python3}"
+SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# 스킬 venv를 우선 사용 (pyshacl, rdflib 등 격리 설치)
+if [[ -x "$SKILL_DIR/.venv/bin/python3" ]]; then
+  PY="${PYTHON:-$SKILL_DIR/.venv/bin/python3}"
+else
+  PY="${PYTHON:-python3}"
+fi
 
 sub="${1:-}"
 shift || true
@@ -26,8 +33,8 @@ case "$sub" in
   definition)
     exec "$PY" "$SCRIPT_DIR/definition.py" "$@"
     ;;
-  contract-validate)
-    exec "$PY" "$SCRIPT_DIR/contract_validate.py" "$@"
+  shapes-validate)
+    exec "$PY" "$SCRIPT_DIR/shapes_validate.py" "$@"
     ;;
   eca-run)
     exec "$PY" "$SCRIPT_DIR/eca_run.py" "$@"
@@ -60,7 +67,7 @@ Commands (v0.12.0):
   list               List registered objects
   project            Regenerate MD projections from JSONL
   definition         Load / query definition YAML
-  contract-validate  Validate instance against contract rules
+  shapes-validate    SHACL 기반 Tbox 검증 (v0.14.0 — pyshacl)
   eca-run            Execute ECA rules on a table row
   eca-schedule       Schedule ECA rules for a domain
   gen-ddl            Generate SQL DDL from definition

@@ -28,9 +28,10 @@ msm-ontology mece     --target REPO [--cluster NAME]
 msm-ontology list     --target REPO [--cluster NAME] [--kind entity|relation|instance]
 msm-ontology project  --target REPO --cluster NAME [--apply]
 
-# 정의 / 계약
+# 정의 / 검증 (v0.14.0 — SHACL 기반)
 msm-ontology definition       --target REPO --domain NAME [--list]
-msm-ontology contract-validate --target REPO --domain NAME --entity TYPE --data JSON
+msm-ontology shapes-validate  --target REPO {--domain NAME | --all | --classes PATH --shapes PATH}
+                              [--inference {none,rdfs,owlrl,both}]   # 기본 none
 msm-ontology gen-ddl          --target REPO --domain NAME [--apply]
 
 # ECA

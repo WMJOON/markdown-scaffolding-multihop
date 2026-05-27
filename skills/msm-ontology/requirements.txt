@@ -1,0 +1,3 @@
+# msm-ontology skill dependencies (v0.14.0+)
+pyshacl>=0.31
+rdflib>=7.0
