@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.12.1 (2026-05-27)
+
+> **msm-ontology v0.14.0 (SHACL `shapes-validate`) 릴리스 포함.**
+> repo 레벨 패치 — 스킬 단위 변경 1건. 상세는 아래 `msm-ontology v0.14.0` 엔트리.
+
+### Highlight
+
+- `contract-validate` (NotImplementedError stub) → `shapes-validate` (pyshacl wrapper)로 교체
+- KB 위치 가정 변경: `{target}/ontology/Tbox/` → `{target}/ontology/system/semantic/`
+- 스킬 venv 도입 (`pyshacl>=0.31`, `rdflib>=7.0`)
+- 소비처 my-knowledge-base Phase 2a 파일럿 결과를 표준 호출 패턴으로 흡수
+
+---
+
 ## 2026-05-27 — msm-ontology v0.14.0
 
 > **SHACL 기반 `shapes-validate` 도입. `contract-validate` stub 폐기.**
