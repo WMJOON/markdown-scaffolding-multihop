@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-05-27 — msm-ontology v0.14.0
+
+> **SHACL 기반 `shapes-validate` 도입. `contract-validate` stub 폐기.**
+> 소비처 my-knowledge-base에서 Phase 2a 파일럿으로 검증된 호출 패턴을 이식.
+
+### Added
+
+- `scripts/shapes_validate.py` — pyshacl wrapper
+  - 입력: `{target}/ontology/system/semantic/{domain}/{name}.{classes,shapes}.ttl`
+  - 모드: `--domain NAME`, `--all`, `--classes/--shapes` 명시 경로
+  - `--inference {none,rdfs,owlrl,both}` (기본 `none` — Tbox 구조 검증은 asserted graph)
+- 스킬 venv (`.venv/`) + `requirements.txt` (`pyshacl>=0.31`, `rdflib>=7.0`)
+- dispatcher (`scripts/msm-ontology`): `$PY`를 venv python 우선 사용
+
+### Changed
+
+- CLI: `contract-validate` → `shapes-validate` (rename)
+- `SKILL.md`: "정의 / 검증 (v0.14.0)" 섹션 갱신
+- KB 위치 가정: `{target}/ontology/Tbox/` → `{target}/ontology/system/semantic/` (소비처 변경 반영)
+
+### Removed
+
+- `scripts/contract_validate.py` — `NotImplementedError` stub. YAML contract 노선 폐기, SHACL 단일 노선.
+
+### Pilot Findings (Phase 2a, my-knowledge-base/technical/semantic-web)
+
+- `inference="rdfs"` 켜면 `rdfs:subClassOf` 전이 닫힘이 cardinality shape과 충돌. Tbox 구조 검증은 `inference="none"`이 정답. Abox 의미 검증 단계에서만 inference 활성화.
+- `sh:or` + `sh:filterShape` 조합으로 root 면제 로직을 짜는 건 SHACL semantics와 맞지 않음. root는 보통 subClassOf 0개라 maxCount 1 자체로 자동 통과.
+- `pyshacl(advanced=True)` — SPARQLRule 지원, 추후 SHACL Advanced 기능에 필요.
+
+### Deferred
+
+- Abox SHACL shapes (현재 Tbox 메타-검증만)
+- 다른 도메인(workflow, marketing, technical/agent-system 등) classes/shapes 작성 (소비처에서 Phase 3 계획)
+- jsonl → ttl 흡수 (소비처 Phase 3)
+
+---
+
 ## v1.1.1 (2026-05-20)
 
 > **거버넌스 정책 문서화: Concept HITL + Instance 차등 자동화.**
