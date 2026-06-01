@@ -2,11 +2,11 @@
 name: msm-obsidian-projection
 version: "0.12.0"
 description: |
-  MSM v1.2.0 — DuckDB → Obsidian MD + .base 생성 스킬.
+  MSM v0.12.1 — DuckDB → Obsidian MD + .base 생성 스킬.
   explain layer. 모든 출력 파일은 generated artifact — 직접 편집 금지.
 ---
 
-# msm-obsidian-projection (v1.2.0)
+# msm-obsidian-projection (v0.12.1)
 
 ## What
 
