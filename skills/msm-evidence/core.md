@@ -33,6 +33,12 @@ scripts/msm-evidence verify --target ./my-kb
 
 # 목록
 scripts/msm-evidence list --target ./my-kb
+
+# 원문 스냅샷 캡처 포함 수집 (opt-in)
+scripts/msm-evidence collect --target ./my-kb --source https://example.com/x --apply --capture
+
+# 단독 캡처 (URL → PDF+PNG+HTML)
+scripts/msm-evidence capture --url https://example.com/x --target ./my-kb
 ```
 
 ## 3. Slug 생성 규칙
@@ -82,4 +88,32 @@ Score = 4개 지표의 평균. Gate: ≥0.85 pass, ≥0.70 warn, <0.70 fail.
 |------|------|
 | `evidence/seeds.jsonl` | seed 레코드 (append-only JSONL) |
 | `evidence/md/<slug>_<pad4>.md` | 청크별 노트 |
+| `evidence/captures/<sha12>.{pdf,png,html}` | 원문 스냅샷 (`--capture` 시에만, sha12=sha256(url)[:12]) |
 | `harness/trajectory/run-<id>.jsonl` | 이벤트 로그 (run_id 있을 때) |
+
+## 9. Source Snapshot Capture (v0.12.2, opt-in)
+
+`--capture` 플래그(또는 `capture` 서브명령)로 URL 원문을 검증 시점에 박제한다. 휘발성
+페이지(홈페이지·프로필)의 "그 시점에 그 내용이 있었다"를 사후 재검증 가능하게 한다.
+
+- **엔진**: playwright(chromium). **lazy import** — `--capture` 없는 경로에서는 playwright/
+  capture 모듈 자체를 import하지 않는다(코어 stdlib 경로 불변).
+- **URL당 1회**: chunk 루프 이전 1회 캡처 → 같은 URI의 모든 chunk-seed가 동일 `snapshot` 참조.
+- **graceful degrade**: playwright 부재·타임아웃·로드 실패 시 텍스트 수집은 계속하고
+  `snapshot.status="error"` + actionable 메시지를 기록한다.
+- **additive**: `snapshot`은 선택 필드. 부재 = 기존 seed. verify/oracle은 `.get()` 기반이라
+  `snapshot` 유무에 영향받지 않는다(score 불변).
+
+seed 스키마 추가 (선택):
+
+```jsonc
+"snapshot": {
+  "pdf":  "evidence/captures/<sha12>.pdf",
+  "png":  "evidence/captures/<sha12>.png",
+  "html": "evidence/captures/<sha12>.html",
+  "captured_at": "2026-06-02T03:42:17Z",   // UTC ISO-8601
+  "status": "ok"                            // 실패 시 "error" + "error" 키
+}
+```
+
+설치(캡처 사용 시에만): `pip install playwright && playwright install chromium`

@@ -14,6 +14,9 @@ case "$sub" in
   collect)
     exec "$PY" "$SCRIPT_DIR/collect.py" "$@"
     ;;
+  capture)
+    exec "$PY" "$SCRIPT_DIR/capture.py" "$@"
+    ;;
   verify)
     exec "$PY" "$SCRIPT_DIR/verify.py" "$@"
     ;;
@@ -26,6 +29,7 @@ msm-evidence — Evidence Collector for MSM v1.0.0
 
 Commands:
   collect   Fetch + chunk + dedup + write seeds
+  capture   URL 원문 스냅샷(PDF+PNG+HTML) 박제 (opt-in; requires playwright)
   verify    Validate seeds.jsonl integrity
   list      List collected seeds
 
@@ -43,6 +47,12 @@ collect options:
   --max-retry INT     HTTP retry limit (default: 1)
   --user-agent STR    HTTP User-Agent (default: msm-evidence/1.0)
   --run-id STR        Trajectory run identifier
+  --capture           URL 소스 원문 스냅샷 캡처 후 seed.snapshot 기록 (opt-in)
+
+capture options:
+  --url URL           캡처할 URL (필수)
+  --target PATH       KB root (출력: <target>/evidence/captures/<sha>.{pdf,png,html})
+  --outdir DIR        출력 디렉토리 직접 지정 (--target 대체)
 
 verify options:
   --id SEED_ID        Verify a specific seed

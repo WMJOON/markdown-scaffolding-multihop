@@ -178,6 +178,7 @@ def collect_uri(
     run_id: str | None,
     user_agent: str,
     max_retry: int,
+    capture: bool = False,
 ) -> dict:
     """Collect a single URI. Returns stats dict."""
     stats = {"uri": uri, "added": 0, "skipped": 0, "error": None}
@@ -232,6 +233,29 @@ def collect_uri(
     md_dir = target / "evidence" / "md"
     existing_hashes = _load_existing_hashes(seeds_path)
 
+    # Source snapshot capture (opt-in, URL당 1회 — chunk 루프 이전).
+    # 캡처 실패는 수집을 막지 않음(graceful degrade): snapshot.status="error" 기록 후 계속.
+    snapshot = None
+    if capture and kind == "url":
+        # lazy: capture 모듈은 이 분기에서만 import → 비캡처 경로 playwright 무관 (AC-6)
+        import capture as _capture  # noqa: E402
+        rec = _capture.capture_to_target(uri, target)
+        snapshot = {
+            "pdf": rec.get("pdf"),
+            "png": rec.get("png"),
+            "html": rec.get("html"),
+            "captured_at": rec.get("captured_at"),
+            "status": rec.get("status", "error"),
+        }
+        if rec.get("status") != "ok":
+            snapshot["error"] = rec.get("error")
+        _emit_trajectory(target, run_id, {
+            "event_type": "source_captured",
+            "uri": uri,
+            "sha": rec.get("sha"),
+            "status": rec.get("status"),
+        })
+
     for idx, chunk_text in enumerate(chunks):
         content_hash = _sha256(chunk_text)
         if content_hash in existing_hashes:
@@ -266,6 +290,9 @@ def collect_uri(
             "md_path": md_rel,
             "tool_version": TOOL_VERSION,
         }
+        # 같은 URI 의 모든 chunk-seed 가 동일 snapshot 참조 (URL당 1회 캡처)
+        if snapshot is not None:
+            seed["snapshot"] = snapshot
 
         # Write md note
         _write_md_note(md_dir, slug, idx, seed, chunk_text)
@@ -303,6 +330,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--max-retry", type=int, default=1)
     p.add_argument("--user-agent", default="msm-evidence/1.0")
     p.add_argument("--run-id", default=None)
+    p.add_argument("--capture", action="store_true", default=False,
+                   help="URL 소스 원문 스냅샷(PDF/PNG/HTML) 캡처 후 seed.snapshot 기록 "
+                        "(opt-in; requires: pip install playwright && playwright install chromium)")
     return p.parse_args(argv)
 
 
@@ -338,6 +368,7 @@ def main(argv: list[str]) -> int:
             run_id=args.run_id,
             user_agent=args.user_agent,
             max_retry=args.max_retry,
+            capture=args.capture,
         )
         all_stats.append(stats)
         if stats.get("error"):

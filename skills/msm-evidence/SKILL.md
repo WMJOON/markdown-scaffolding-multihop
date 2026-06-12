@@ -1,10 +1,11 @@
 ---
 name: msm-evidence
-version: "0.12.0"
+version: "0.12.2"
 description: |
   MSM v1.0.0 Fat Skill — 외부 URL/로컬 MD를 수집·청킹·dedup하여
   evidence/seeds.jsonl 및 evidence/md/ 노트를 생성한다.
   entity/relation 생성은 하지 않는다. seed는 msm-ontology의 입력.
+  v0.12.2: --capture 로 URL 원문 스냅샷(PDF/PNG/HTML) 박제 + seed.snapshot 기록 (opt-in).
 spec: planning/msm_v1.0.0/msm-evidence-SPEC.md
 prd: planning/msm_v1.0.0/msm_v1.0.0-PRD.md
 ---
@@ -27,7 +28,8 @@ prd: planning/msm_v1.0.0/msm_v1.0.0-PRD.md
 
 | 진입점 | 명령 |
 |--------|------|
-| CLI — collect | `scripts/msm-evidence collect --target REPO --source URI [...] [--apply]` |
+| CLI — collect | `scripts/msm-evidence collect --target REPO --source URI [...] [--apply] [--capture]` |
+| CLI — capture | `scripts/msm-evidence capture --url URL --target REPO` (opt-in; requires playwright) |
 | CLI — verify | `scripts/msm-evidence verify --target REPO` |
 | CLI — list | `scripts/msm-evidence list --target REPO` |
 | CLI — graphify ETL | `scripts/graphify_to_msm.py graph.json [--output-dir OUT] [--sigma 2.0]` |
