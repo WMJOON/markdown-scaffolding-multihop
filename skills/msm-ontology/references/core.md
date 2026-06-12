@@ -121,12 +121,12 @@ TBox 공리와 ABox individual이 같은 그래프에 있어야 reclassification
 
 검증 예 (main PRD §5): `gemma4_e4b` asserted=`[TransformerMLMModel]` → inferred=`[MultimodalModel]`.
 
-> [!warning] property-value 추론 한계 (AC-3/AC-4)
-> owlready2/Pellet은 **type(`is_a`)** 추론은 채우지만 **property value(`prop[ind]`)는 post-reason에
-> 안 돌려준다**(비대칭). inverseOf 는 owlready2 가 load 시 auto-materialize(reason 아님)한다.
-> 따라서 type reclassification(classification_rule)은 견고하나, inverseOf/transitive 를 *inferred
-> fact* 로 캡처하려면 reasoner-agnostic graph-diff(`world.as_rdflib_graph()` 전/후 비교) 재설계 필요.
-> 현재 `inferred_properties` 필드는 보유(explain 호환)하나 실측상 비어 있음.
+> [!success] property-value 추론 — 해소됨 (v0.14.0 RBox P3, 2026-06-12)
+> ~~owlready2/Pellet은 property value(`prop[ind]`)를 post-reason에 안 돌려준다~~ → **객체모델 접근(`prop[ind]`)의
+> 비대칭일 뿐, Pellet 은 추론 결과를 quadstore(`world.as_rdflib_graph()`)에는 실제로 쓴다**(probe 검증).
+> v0.14.0 부터 `reason.py` 는 **graph-diff** 로 전환: pre = raw asserted 병합 그래프, post = reason 후
+> `as_rdflib_graph()`, gained = (post−raw) 중 `(s∈Ind ∧ p∈ObjProp ∧ o∈Ind)`. 이로써 **chain / transitive /
+> inverse 가 `inferred_properties` 에 기록**된다(멀티홉 실측). type 재분류는 `_type_names` 객체모델 diff 유지(견고).
 
 ### 7.4 axiom — OWL 공리 HITL 저작
 
@@ -150,3 +150,53 @@ KB 스택을 두 층으로 나눈다: **RDF/ABox**(개별 사실: `instance_of`,
 **가시화 후 승인 시 병합**(axiom)할 뿐이다.
 
 의존성: `pip install linkml owlready2 rdflib ruamel.yaml` + Java(Pellet/HermiT).
+
+## 8. RBox — Role/Property Layer (v0.14.0, 1급)
+
+> SPEC: `planning/msm-ontology_v0.14.0/msm-ontology_v0.14.0-RBox-firstclass-SPEC.md`.
+> "RBox=SKOS" 안은 기각 — OWL 이 이미 들어가면 술어 통제어휘는 `owl:ObjectProperty`+`rdfs:label`+
+> à-la-carte `skos:altLabel`/`skos:definition`(owlgen 이 `aliases`/`description` 에서 자동 방출)로 충분.
+
+### 8.1 파일 레이아웃 + 티어링
+
+```
+ontology/Rbox/roles/{domain}.yaml   ← LinkML role schema (단일 정본, ruamel 라운드트립)
+ontology/owl/{domain}.rbox.ttl      ← compiled (생성물)
+```
+
+role = LinkML slot. **티어는 파일이 아니라 공리 무게**로 가른다 (write-path 게이트):
+- **선언부** (`rbox add-relation` — LLM/evidence): label/aliases/description + `status:draft` annotation. **추론 0**.
+- **공리부** (`axiom property` — HITL `--apply`): characteristic / inverse / subPropertyOf / chain / domain·range.
+
+네임스페이스: role IRI 는 도메인 TBox 의 `ex` prefix(`definition/{domain}.yaml`)를 재사용 → reason 병합 정렬.
+
+### 8.2 공리 = annotation 단일 경로 (owl_postprocess 확장)
+
+owlgen 이 드롭/미지원하는 RBox 공리를 **annotation carrier → owl_postprocess** 단일 경로로 주입한다
+(native owlgen 안 씀 → split-brain·double-emit 회피):
+
+| annotation (slot) | postprocess 산출 |
+|---|---|
+| `owl_characteristic: TransitiveProperty` | `a owl:TransitiveProperty` (7종) |
+| `subproperty_of: R` | `rdfs:subPropertyOf <ns:R>` |
+| `inverse_of: R` | `owl:inverseOf <ns:R>` |
+| `property_chain: "R_a,R_b"` | `owl:propertyChainAxiom ( <ns:R_a> <ns:R_b> )` — **순서 보존** |
+
+- chain 은 콤마-리터럴(단일 트리플)로 순서 보존(R∘S≠S∘R). 멱등성은 **carrier 제거** 설계로 보장
+  (blank-node list 는 `triple not in g` 무력 → `--keep-carriers`+chain 은 double-emit 주의).
+- 대상 role(inverse/subproperty/chain)은 선언돼 있어야 한다(D-1 authoring-time 게이트).
+
+### 8.3 추론 캡처 = graph-diff (§7.3 해소)
+
+`reason.py` 는 type=객체모델 diff(견고), **property=graph-diff**. Pellet 단일 reasoner.
+chain/transitive/inverse 가 `inferred.jsonl` 의 `inferred_properties` 에 기록된다(§7.3 참조).
+
+### 8.4 정합 게이트 — `rbox validate`
+
+Abox object-property 술어가 모두 `roles/` 에 선언(accepted+)됐는지 + role MECE(label 중복/alias 충돌).
+violation ≥ 1 → exit 1.
+
+### 8.5 materialize 순서
+
+`compile(TBox) → rbox-compile(RBox) → abox-compile(ABox) → reason`. 각 단계는 소스 디렉토리가 있을 때만
+실행(TBox/RBox/ABox-only KB 지원). RBox 공리가 reason 의 `owl/*.ttl` 병합 그래프에 들어가야 chain 이 fire 한다.

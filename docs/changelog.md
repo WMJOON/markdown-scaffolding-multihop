@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-06-12 — msm-ontology v0.14.0 RBox (Role/Property 1급 레이어)
+
+> **RBox(Role Box)를 1급 레이어로 추가. property chain 멀티홉 추론까지 동작.**
+> 설계 검토에서 "RBox=SKOS" 안은 기각 — OWL 단일 층으로 통일하고, 티어는 *공리 무게*로 가른다
+> (선언=LLM 제안 / 공리=HITL). SPEC: `planning/msm-ontology_v0.14.0-RBox-firstclass-SPEC.md`.
+
+### Added
+
+- `scripts/rbox.py` — RBox 1급 CLI
+  - `rbox add-relation` (role 선언, evidence 강제, status=draft, 추론 0)
+  - `rbox list` / `rbox compile` (roles YAML → `owl/{domain}.rbox.ttl`) / `rbox validate` (Abox 술어↔roles↔MECE 게이트)
+  - role 정본: `ontology/Rbox/roles/{domain}.yaml` (LinkML, ruamel 라운드트립). 네임스페이스는 도메인 TBox `ex` prefix 재사용.
+- `axiom property` 서브명령 — RBox 공리 HITL 저작 (characteristic / inverse / subPropertyOf / chain / domain·range). preview→`--apply` 주석 보존.
+- `tests/test_rbox*.py` 5종 (P1 선언 · P2 공리 · P3 추론 · P4 validate · 실제 ABox 통합)
+
+### Changed
+
+- `scripts/owl_postprocess.py` — owlgen 드롭/미지원 RBox 공리 주입 확장: `subproperty_of`→`rdfs:subPropertyOf`, `inverse_of`→`owl:inverseOf`, `property_chain`(콤마 문자열)→`owl:propertyChainAxiom`(순서 보존 RDF list).
+- `scripts/reason.py` — **property 추론을 graph-diff로 전환**. owlready2 `prop[ind]` 객체모델 대신 `world.as_rdflib_graph()` 전/후 차집합 + `(s∈Ind ∧ p∈ObjProp ∧ o∈Ind)` 필터. chain/transitive/inverse가 `inferred.jsonl`에 기록 (이전엔 비어 있던 한계 해소). type 재분류 경로는 불변.
+- `scripts/materialize.py` — `rbox-compile` 단계 삽입(`compile → rbox-compile → abox-compile → reason`). TBox/RBox/ABox compile을 소스 존재 시에만 실행(채널별 부분 KB 지원).
+- `SKILL.md` / `references/core.md` (§8 RBox 절 신설, §7.3 property 추론 한계 "해소됨" 갱신) / `requirements.txt`(owlready2·ruamel 명시).
+
 ## v0.12.1 (2026-05-27)
 
 > **msm-ontology v0.14.0 (SHACL `shapes-validate`) 릴리스 포함.**

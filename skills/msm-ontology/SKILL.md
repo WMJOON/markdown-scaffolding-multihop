@@ -10,7 +10,7 @@ description: |
 
 # msm-ontology
 
-책임: add(등록) · mece(검증) · project(MD 갱신) · compile(YAML→OWL) · postprocess(OWL 보강) · abox-compile(ABox→individual) · axiom(OWL 공리 HITL 저작) · reason(TBox+ABox 병합 추론) · materialize · explain
+책임: add(등록) · mece(검증) · project(MD 갱신) · compile(YAML→OWL) · postprocess(OWL 보강) · abox-compile(ABox→individual) · **rbox(Role/Property 1급 — 선언/list/compile/validate)** · axiom(TBox classification-rule + **RBox property** 공리 HITL 저작) · reason(TBox+RBox+ABox 병합 추론, property=graph-diff) · materialize · explain
 
 자세한 파일 레이아웃 · ID 규칙 · JSONL 스키마는 [references/core.md](references/core.md) 참조.
 
@@ -38,13 +38,20 @@ msm-ontology gen-ddl          --target REPO --domain NAME [--apply]
 msm-ontology eca-run      --target REPO --table TABLE --row JSON
 msm-ontology eca-schedule --target REPO [--domain NAME] [--dry-run]
 
-# OWL reasoning (v0.13.0)
+# RBox — Role/Property layer (v0.14.0, 1급)
+msm-ontology rbox add-relation --target REPO --domain D --label L [--alt SYN ...] [--description T] --evidence URI [--status draft|accepted] [--apply]  # role 선언 (LLM 제안, 추론 0)
+msm-ontology rbox list      --target REPO --domain D [--status S]   # 선언 role + status 조회
+msm-ontology rbox compile   --target REPO [--domain D] [--apply]    # roles YAML → {domain}.rbox.ttl (+postprocess)
+msm-ontology rbox validate  --target REPO --domain D                # Abox 술어 ↔ roles ↔ MECE 정합 게이트 (AC-R7)
+msm-ontology axiom property --target REPO --domain D --role R [--characteristic X] [--inverse R2] [--subproperty-of R2] [--chain R_a R_b ...] [--domain-class C] [--range C] [--show-inferences] [--apply]  # RBox 공리 HITL 저작
+
+# OWL reasoning (v0.13.0 / v0.14.0 RBox)
 msm-ontology compile      --target REPO [--domain NAME] [--out-dir DIR] [--no-postprocess] [--apply]  # TBox YAML → .ttl (+postprocess)
-msm-ontology postprocess  --ttl PATH | --target REPO [--apply]     # owlgen 미지원 OWL(FunctionalProperty/다국어 label) 주입
+msm-ontology postprocess  --ttl PATH | --target REPO [--apply]     # owlgen 미지원 OWL(FunctionalProperty/subPropertyOf/propertyChain/inverseOf/다국어 label) 주입
 msm-ontology abox-compile --target REPO [--domain NAME] [--apply]  # ABox YAML → individual .abox.ttl
-msm-ontology axiom classification-rule --target REPO --domain D --class C --is-a B --some SLOT:RANGE [--show-inferences] [--apply]  # OWL 공리 HITL 저작
-msm-ontology reason       --target REPO [--out-dir DIR] [--inferred-dir DIR] [--apply]  # owl/*.ttl 병합 추론 → inferred.jsonl
-msm-ontology materialize  --target REPO [--domain NAME] [--apply]  # compile + abox-compile + reason
+msm-ontology axiom classification-rule --target REPO --domain D --class C --is-a B --some SLOT:RANGE [--show-inferences] [--apply]  # OWL TBox 공리 HITL 저작
+msm-ontology reason       --target REPO [--out-dir DIR] [--inferred-dir DIR] [--apply]  # owl/*.ttl 병합 추론 → inferred.jsonl (type=객체모델, property=graph-diff)
+msm-ontology materialize  --target REPO [--domain NAME] [--apply]  # compile + rbox-compile + abox-compile + reason
 msm-ontology explain      --target REPO --instance ID               # 추론 근거 출력
 
 # Harness
@@ -54,7 +61,8 @@ harness/run.sh --skill msm-ontology --tier L0 --mode validate-only --target REPO
 ## Dependencies
 
 - Python 3.10+, Bash
-- OWL reasoning 시 추가: `pip install linkml owlready2` + Java (Pellet/HermiT)
+- OWL reasoning / RBox 시 추가: `pip install linkml owlready2 rdflib ruamel.yaml` + Java (Pellet/HermiT)
+  - RBox property 추론(chain/transitive/inverse → inferred.jsonl)은 owlready2 Pellet + graph-diff 로 동작
 
 ## Non-Goals
 

@@ -1,3 +1,7 @@
 # msm-ontology skill dependencies (v0.14.0+)
 pyshacl>=0.31
 rdflib>=7.0
+# RBox (v0.14.0) — role/property 공리 저작 + 추론 캡처
+owlready2>=0.48        # reason: Pellet + graph-diff property 추론
+ruamel.yaml>=0.18      # axiom/rbox: 주석 보존 라운드트립
+# linkml 은 무거워 별도 설치 권장: pip install linkml  (compile/owlgen 시)

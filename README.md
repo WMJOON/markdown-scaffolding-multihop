@@ -115,7 +115,7 @@ flowchart LR
 |------|------|
 | `msm-repository-setup` | 5-Layer KB 디렉토리 골격 부트스트랩. `index.yaml` 자동 생성 (MSO 스키마 준수) |
 | `msm-evidence` | URL/로컬 MD 수집·청킹 → `evidence/seeds.jsonl`. Graphify ETL 어댑터 포함 |
-| `msm-ontology` | entity·relation 생성 + MECE + parent-alignment(D-1~D-7) 검증 → `ontology/explain/` 승격 |
+| `msm-ontology` | entity·relation 생성 + MECE + parent-alignment(D-1~D-7) 검증 → `ontology/explain/` 승격. **TBox·RBox·ABox 3층 OWL 추론** (RBox property chain 멀티홉 포함) |
 | `msm-maintain` | orphan·drift 탐지, parent-alignment scan, 노트 rewrite, 통계 분석 |
 | `msm-harness` | memory 2-tier 운영, L0~L3 런타임 라우팅, 5-Axis 계측 |
 | `msm-orchestration` | 자연어 인텐트 → workflow yaml 라우팅, CC 계약, HITL 2층 설계 |
@@ -210,9 +210,12 @@ v1.1.1  Concept HITL · Instance 차등 자동화 정책 문서화          ✓ 
 v0.12.0  Instance Layer (SQLite+DuckDB) · ECA Kinetic · MSO 정렬  ✓ 완료
         msm-instance · msm-obsidian-projection 신규
         index.yaml 자동 생성 · workflow YAML MSO 스키마 준수
-v0.12.1  msm-ontology v0.14.0 — SHACL `shapes-validate` 도입       ← 현재
+v0.12.1  msm-ontology v0.14.0 — SHACL `shapes-validate` 도입       ✓ 완료
         contract-validate stub 폐기 · pyshacl + rdflib venv
         Tbox 구조 검증 (inference=none) · my-knowledge-base 파일럿 패턴 이식
+v0.14.0  msm-ontology RBox — Role/Property 1급 레이어               ← 현재
+        rbox add-relation/list/compile/validate · axiom property (chain/inverse/subPropertyOf)
+        graph-diff 추론 캡처 → property chain 멀티홉이 inferred.jsonl 에 (이전 한계 해소)
 v1.x    msm-graph-reasoning · msm-semantic-search 추가
 ```
 

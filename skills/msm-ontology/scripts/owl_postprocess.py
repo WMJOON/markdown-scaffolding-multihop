@@ -51,6 +51,28 @@ VALID_CHARACTERISTICS = {
 _LABEL_RE = re.compile(r"^label_([A-Za-z]{2,3}(?:-[A-Za-z0-9]+)*)$")
 _CHARACTERISTIC_KEY = "owl_characteristic"
 
+# RBox carrier 키 (owlgen 미지원/드롭분 — v0.14.0 RBox, SPEC AC-R1)
+_SUBPROPERTY_KEY = "subproperty_of"   # → rdfs:subPropertyOf <ns:value>
+_INVERSE_KEY = "inverse_of"           # → owl:inverseOf <ns:value>
+_CHAIN_KEY = "property_chain"         # 콤마 문자열 → owl:propertyChainAxiom ( <ns:a> <ns:b> )
+
+
+def _ns_of(iri: str) -> str:
+    """IRI 의 네임스페이스(마지막 / 또는 # 까지)를 반환."""
+    s = str(iri)
+    if "#" in s:
+        return s.rsplit("#", 1)[0] + "#"
+    return s.rsplit("/", 1)[0] + "/"
+
+
+def _same_ns_iri(subject, local: str):
+    """subject 와 동일 네임스페이스의 IRI (RBox 동일 도메인 가정, SPEC §3 Q3)."""
+    from rdflib import URIRef
+    local = local.strip()
+    if local.startswith("http://") or local.startswith("https://"):
+        return URIRef(local)
+    return URIRef(_ns_of(subject) + local)
+
 
 def _log(msg: str, level: str = "info") -> None:
     prefix = {"info": "[*]", "ok": "[+]", "warn": "[!]", "err": "[x]"}[level]
@@ -72,12 +94,14 @@ def transform_graph(g):
       - carrier_triples: 원본 carrier annotation 트리플 리스트 (제거 후보)
       - warnings:        알 수 없는 characteristic 등 경고 메시지
     """
-    from rdflib import Literal
+    from rdflib import Literal, BNode
+    from rdflib.collection import Collection
     from rdflib.namespace import RDF, RDFS, OWL
 
     to_add: list = []
     carriers: list = []
     warnings: list = []
+    chains: list = []  # (subject, [target IRI ...]) — blank-node list 는 별도 처리
 
     for s, p, o in g:
         local = _local_name(str(p))
@@ -94,6 +118,26 @@ def transform_graph(g):
                 )
             continue
 
+        if local == _SUBPROPERTY_KEY:
+            to_add.append((s, RDFS.subPropertyOf, _same_ns_iri(s, str(o))))
+            carriers.append((s, p, o))
+            continue
+
+        if local == _INVERSE_KEY:
+            to_add.append((s, OWL.inverseOf, _same_ns_iri(s, str(o))))
+            carriers.append((s, p, o))
+            continue
+
+        if local == _CHAIN_KEY:
+            # 콤마 문자열 → 순서 있는 IRI 리스트 (R∘S≠S∘R 이라 순서 보존이 핵심)
+            parts = [x for x in str(o).split(",") if x.strip()]
+            if len(parts) < 2:
+                warnings.append(f"property_chain on <{s}> 는 2개 이상 필요 (got '{o}')")
+            else:
+                chains.append((s, [_same_ns_iri(s, x) for x in parts]))
+            carriers.append((s, p, o))
+            continue
+
         m = _LABEL_RE.match(local)
         if m:
             lang = m.group(1)
@@ -105,6 +149,16 @@ def transform_graph(g):
         if triple not in g:
             g.add(triple)
             added_triples.append(triple)
+
+    # property chain: blank-node RDF list 는 `triple not in g` 로 멱등 불가
+    # (BNode 가 매번 새로 생성됨). 멱등성은 carrier 제거 설계로 보장된다 —
+    # carrier 가 사라지면 재실행 시 이 분기를 안 탄다. (--keep-carriers 시 주의)
+    for subj, targets in chains:
+        list_node = BNode()
+        Collection(g, list_node, list(targets))
+        chain_triple = (subj, OWL.propertyChainAxiom, list_node)
+        g.add(chain_triple)
+        added_triples.append(chain_triple)
 
     return added_triples, carriers, warnings
 

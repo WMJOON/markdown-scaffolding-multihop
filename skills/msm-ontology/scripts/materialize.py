@@ -42,29 +42,55 @@ def main() -> None:
     import compile as _compile
     import abox_compile as _abox
     import reason as _reason
+    import rbox as _rbox
 
-    _log("=== step 1/3: compile (TBox) ===")
-    # compile.main()을 직접 호출하기 위해 sys.argv를 교체
     _orig_argv = sys.argv[:]
-    compile_argv = ["compile", "--target", args.target]
-    if args.domain:
-        compile_argv += ["--domain", args.domain]
-    if args.out_dir:
-        compile_argv += ["--out-dir", args.out_dir]
-    if args.no_postprocess:
-        compile_argv.append("--no-postprocess")
-    if args.apply:
-        compile_argv.append("--apply")
-    sys.argv = compile_argv
+    # step 1: compile (TBox) — definition 디렉토리가 있을 때만 (abox/rbox 와 동일한 조건부 패턴).
+    # RBox-only / ABox-only KB 도 materialize 가능하도록 비대칭 hard-abort 제거.
+    def_dir = Path(args.target).resolve() / "ontology" / "definition"
+    if def_dir.exists() and any(def_dir.glob("*.yaml")):
+        _log("=== step 1/3: compile (TBox) ===")
+        compile_argv = ["compile", "--target", args.target]
+        if args.domain:
+            compile_argv += ["--domain", args.domain]
+        if args.out_dir:
+            compile_argv += ["--out-dir", args.out_dir]
+        if args.no_postprocess:
+            compile_argv.append("--no-postprocess")
+        if args.apply:
+            compile_argv.append("--apply")
+        sys.argv = compile_argv
+        try:
+            _compile.main()
+        except SystemExit as e:
+            if e.code not in (0, None):
+                _log("compile 실패 — 중단", "err")
+                sys.exit(int(e.code))
+        finally:
+            sys.argv = _orig_argv
+    else:
+        _log("=== step 1/3: compile (TBox) 건너뜀 (ontology/definition/*.yaml 없음) ===")
 
-    try:
-        _compile.main()
-    except SystemExit as e:
-        if e.code != 0:
-            _log("compile 실패 — 중단", "err")
-            sys.exit(int(e.code))
-    finally:
-        sys.argv = _orig_argv
+    # step 1b: rbox-compile (RBox roles 가 있을 때만) — owl/{d}.rbox.ttl 생성
+    # 이게 있어야 reason 의 owl/*.ttl 병합 그래프에 RBox 공리(subPropertyOf/chain/...)가 들어간다.
+    rbox_dir = Path(args.target).resolve() / "ontology" / "Rbox" / "roles"
+    if rbox_dir.exists() and any(rbox_dir.glob("*.yaml")):
+        _log("=== step 1b: rbox-compile (RBox roles) ===")
+        rbox_argv = ["compile", "--target", args.target]
+        if args.domain:
+            rbox_argv += ["--domain", args.domain]
+        if args.out_dir:
+            rbox_argv += ["--out-dir", args.out_dir]
+        if args.no_postprocess:
+            rbox_argv.append("--no-postprocess")
+        if args.apply:
+            rbox_argv.append("--apply")
+        rc = _rbox.main(rbox_argv)
+        if rc not in (0, None):
+            _log("rbox-compile 실패 — 중단", "err")
+            sys.exit(int(rc))
+    else:
+        _log("=== step 1b: rbox-compile 건너뜀 (ontology/Rbox/roles/*.yaml 없음) ===")
 
     # step 2/3: abox-compile (ABox 디렉토리가 있을 때만)
     abox_dir = Path(args.target).resolve() / "ontology" / "Abox"

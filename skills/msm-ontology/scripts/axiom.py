@@ -215,9 +215,191 @@ def cmd_classification_rule(args) -> int:
     return 0
 
 
+# ───────────────────────────────────── RBox property axiom (v0.14.0, AC-R2)
+
+# --characteristic 단축형 → owl_characteristic 값
+_CHAR_MAP = {
+    "Functional": "FunctionalProperty",
+    "InverseFunctional": "InverseFunctionalProperty",
+    "Symmetric": "SymmetricProperty",
+    "Asymmetric": "AsymmetricProperty",
+    "Transitive": "TransitiveProperty",
+    "Reflexive": "ReflexiveProperty",
+    "Irreflexive": "IrreflexiveProperty",
+}
+
+
+def _roles_path(target: Path, domain: str) -> Path:
+    return target / "ontology" / "Rbox" / "roles" / f"{domain}.yaml"
+
+
+def _load_roles_doc(roles_path: Path):
+    from ruamel.yaml import YAML
+    y = YAML()
+    y.preserve_quotes = True
+    y.indent(mapping=2, sequence=4, offset=2)
+    with roles_path.open(encoding="utf-8") as f:
+        return y, y.load(f)
+
+
+def _declared_roles(doc) -> set:
+    return set((doc.get("slots") or {}).keys())
+
+
+def _build_property_updates(args, declared: set) -> tuple[dict, dict, list]:
+    """returns (annotation_updates, native_updates, errors)."""
+    ann: dict = {}
+    native: dict = {}
+    errors: list = []
+
+    if args.characteristic:
+        val = _CHAR_MAP.get(args.characteristic)
+        if not val:
+            errors.append(f"알 수 없는 --characteristic '{args.characteristic}' "
+                          f"(허용: {', '.join(_CHAR_MAP)})")
+        else:
+            ann["owl_characteristic"] = val
+    if args.inverse:
+        if args.inverse not in declared:
+            errors.append(f"--inverse 대상 role '{args.inverse}' 미선언 "
+                          f"(먼저 rbox add-relation 필요 — D-1 게이트)")
+        ann["inverse_of"] = args.inverse
+    if args.subproperty_of:
+        if args.subproperty_of not in declared:
+            errors.append(f"--subproperty-of 대상 role '{args.subproperty_of}' 미선언 (D-1 게이트)")
+        ann["subproperty_of"] = args.subproperty_of
+    if args.chain:
+        if len(args.chain) < 2:
+            errors.append("--chain 은 2개 이상 role 이 필요 (R∘S⊑T)")
+        for r in args.chain:
+            if r not in declared:
+                errors.append(f"--chain 요소 role '{r}' 미선언 (D-1 게이트)")
+        ann["property_chain"] = ",".join(args.chain)
+    if args.domain_class:
+        native["domain"] = args.domain_class
+    if args.range:
+        native["range"] = args.range
+    return ann, native, errors
+
+
+def _inject_property(roles_path: Path, role: str, ann_updates: dict,
+                     native_updates: dict, out_path: Path) -> bool:
+    """roles YAML 의 slots[role] 에 annotation/native 공리를 ruamel 라운드트립 병합."""
+    try:
+        from ruamel.yaml import YAML  # noqa: F401
+    except ImportError:
+        return False
+    y, doc = _load_roles_doc(roles_path)
+    slots = doc.get("slots") or {}
+    slot = slots.get(role)
+    if slot is None:
+        _log(f"role '{role}' 미선언 — axiom 부착 불가 (D-1: rbox add-relation 먼저)", "err")
+        return False
+    from ruamel.yaml.comments import CommentedMap
+    if ann_updates:
+        ann = slot.get("annotations")
+        if ann is None:
+            ann = CommentedMap()
+            slot["annotations"] = ann
+        for k, v in ann_updates.items():
+            ann[k] = v
+    for k, v in native_updates.items():
+        slot[k] = v
+    with out_path.open("w", encoding="utf-8") as f:
+        y.dump(doc, f)
+    return True
+
+
+def _rbox_compile_preview(candidate_roles: Path, role: str) -> None:
+    """후보 roles 를 owlgen + owl_postprocess 로 컴파일해 해당 role 의 RBox OWL 트리플 표시."""
+    try:
+        from linkml.generators.owlgen import OwlSchemaGenerator
+        from rdflib import Graph
+    except ImportError as e:  # noqa: BLE001
+        _log(f"compile 미리보기 불가 ({e})", "warn")
+        return
+    import warnings as _w
+    _w.filterwarnings("ignore")
+    tmp_ttl = candidate_roles.with_suffix(".rbox.ttl")
+    try:
+        ttl = OwlSchemaGenerator(str(candidate_roles), use_native_uris=False).serialize()
+    except Exception as e:  # noqa: BLE001
+        _log(f"compile 실패: {e}", "err")
+        return
+    tmp_ttl.write_text(ttl, encoding="utf-8")
+    # owl_postprocess 로 subPropertyOf/propertyChainAxiom/inverseOf/characteristic 주입
+    try:
+        sys.path.insert(0, str(SCRIPT_DIR))
+        import owl_postprocess as pp  # type: ignore
+        pp.postprocess_ttl(tmp_ttl, apply=True, keep_carriers=False)
+    except Exception as e:  # noqa: BLE001
+        _log(f"owl_postprocess 생략 ({e})", "warn")
+    g = Graph()
+    g.parse(str(tmp_ttl), format="turtle")
+    print("  --- 컴파일된 RBox OWL (postprocess 후) ---")
+    shown = 0
+    for line in g.serialize(format="turtle").splitlines():
+        s = line.strip()
+        if any(k in s for k in ("subPropertyOf", "propertyChainAxiom", "inverseOf",
+                                "Property", "onProperty", role)):
+            print(f"      {s}")
+            shown += 1
+    if shown == 0:
+        _log("RBox 트리플을 찾지 못함 — 공리가 비었는지 확인", "warn")
+
+
+def cmd_property(args) -> int:
+    target = Path(args.target).resolve()
+    roles_path = _roles_path(target, args.domain)
+    if not roles_path.exists():
+        _log(f"roles 파일 없음: {roles_path} (rbox add-relation 먼저)", "err")
+        return 1
+
+    _, doc = _load_roles_doc(roles_path)
+    declared = _declared_roles(doc)
+    if args.role not in declared:
+        _log(f"role '{args.role}' 미선언 — axiom 부착 불가 (D-1: rbox add-relation 먼저)", "err")
+        return 1
+
+    ann_updates, native_updates, errors = _build_property_updates(args, declared)
+    if errors:
+        for e in errors:
+            _log(e, "err")
+        return 2
+    if not ann_updates and not native_updates:
+        _log("부착할 공리가 없습니다 (--characteristic/--inverse/--subproperty-of/--chain/--domain/--range)", "err")
+        return 2
+
+    print(f"[제안] slots.{args.role} 공리 → {roles_path.relative_to(target)}")
+    print(f"  annotations: {dict(ann_updates)}" + (f" | native: {dict(native_updates)}" if native_updates else ""))
+
+    tmp = Path(tempfile.mkdtemp(prefix="msm_rbox_axiom_"))
+    candidate = tmp / f"{args.domain}.yaml"
+    if not _inject_property(roles_path, args.role, ann_updates, native_updates, candidate):
+        shutil.rmtree(tmp, ignore_errors=True)
+        return 3
+    _rbox_compile_preview(candidate, args.role)
+
+    if args.show_inferences:
+        _log("(참고) property-value 추론은 P3 graph-diff 전까지 round-trip 안 됨 — "
+             "여기서는 type-consequence 만 의미 있음 (SPEC §3.1 / core.md §7.3)", "warn")
+
+    if args.apply:
+        if _inject_property(roles_path, args.role, ann_updates, native_updates, roles_path):
+            _log(f"applied: slots.{args.role} 공리 → {roles_path} (주석 보존)", "ok")
+        else:
+            shutil.rmtree(tmp, ignore_errors=True)
+            return 3
+    else:
+        _log("미리보기만 수행 (commit 하려면 --apply). OWL 은 사람 승인 후에만 병합됩니다.")
+
+    shutil.rmtree(tmp, ignore_errors=True)
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
-        prog="axiom", description="OWL TBox 공리(HITL) 저작 — 결과 가시화 후 승인 시 병합"
+        prog="axiom", description="OWL 공리(HITL) 저작 — 결과 가시화 후 승인 시 병합"
     )
     sub = parser.add_subparsers(dest="kind", required=True)
 
@@ -234,6 +416,27 @@ def main() -> int:
     cr.add_argument("--apply", action="store_true",
                     help="HITL 승인 — LinkML 정본에 주석 보존 병합 (기본: 미리보기)")
     cr.set_defaults(func=cmd_classification_rule)
+
+    pr = sub.add_parser("property",
+                        help="RBox 공리 (characteristic/inverse/subproperty/chain/domain/range)")
+    pr.add_argument("--target", required=True, help="KB 루트 경로")
+    pr.add_argument("--domain", required=True, help="대상 도메인 (Rbox/roles/{domain}.yaml)")
+    pr.add_argument("--role", required=True, help="공리를 부착할 role (먼저 rbox add-relation 필요)")
+    pr.add_argument("--characteristic", default=None, choices=list(_CHAR_MAP),
+                    help="property 특성 (Transitive/Symmetric/Functional/...)")
+    pr.add_argument("--inverse", default=None, metavar="ROLE", help="owl:inverseOf 대상 role")
+    pr.add_argument("--subproperty-of", dest="subproperty_of", default=None,
+                    metavar="ROLE", help="rdfs:subPropertyOf 대상 role")
+    pr.add_argument("--chain", nargs="+", default=None, metavar="ROLE",
+                    help="propertyChainAxiom (순서 중요: R S → R∘S⊑이role)")
+    pr.add_argument("--domain-class", dest="domain_class", default=None,
+                    metavar="CLASS", help="rdfs:domain")
+    pr.add_argument("--range", default=None, metavar="CLASS", help="rdfs:range")
+    pr.add_argument("--show-inferences", action="store_true",
+                    help="(P2 한정: type-consequence 만 — property round-trip 은 P3)")
+    pr.add_argument("--apply", action="store_true",
+                    help="HITL 승인 — roles YAML 에 주석 보존 병합 (기본: 미리보기)")
+    pr.set_defaults(func=cmd_property)
 
     args = parser.parse_args()
     return args.func(args)

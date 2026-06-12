@@ -57,6 +57,9 @@ case "$sub" in
   axiom)
     exec "$PY" "$SCRIPT_DIR/axiom.py" "$@"
     ;;
+  rbox)
+    exec "$PY" "$SCRIPT_DIR/rbox.py" "$@"
+    ;;
   reason)
     exec "$PY" "$SCRIPT_DIR/reason.py" "$@"
     ;;

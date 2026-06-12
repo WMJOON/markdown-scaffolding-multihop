@@ -62,18 +62,16 @@ def _run_reasoner(owlready2, onto):
         raise
 
 
-def _merge_ttls_to_nt(ttl_files: list[Path]) -> Path | None:
-    """모든 TTL 을 하나의 rdflib Graph 로 병합 → 단일 NTriples temp 로 직렬화.
+def _merge_ttls_to_graph(ttl_files: list[Path]):
+    """모든 TTL(TBox+RBox+ABox)을 하나의 rdflib Graph 로 병합해 반환 (asserted baseline).
 
-    (owlready2 는 Turtle 직접 파싱 불가 → NTriples 로 변환. 또한 TBox+ABox 를 함께
-     추론하려면 단일 그래프여야 한다.)
+    이 그래프가 graph-diff 추론 캡처의 pre(asserted) 기준이다 (P3, SPEC §3.1).
     """
     try:
         import rdflib
     except ImportError:
         _log("rdflib 필요: pip install rdflib", "err")
         return None
-
     g = rdflib.Graph()
     for ttl in ttl_files:
         try:
@@ -81,7 +79,11 @@ def _merge_ttls_to_nt(ttl_files: list[Path]) -> Path | None:
         except Exception as e:  # noqa: BLE001
             _log(f"TTL 파싱 실패 {ttl.name}: {e}", "err")
             return None
+    return g
 
+
+def _graph_to_nt(g) -> Path:
+    """rdflib Graph → 단일 NTriples temp (owlready2 는 Turtle 직접 파싱 불가)."""
     fd, nt_name = tempfile.mkstemp(suffix=".nt", prefix="msm_merged_")
     os.close(fd)
     nt_path = Path(nt_name)
@@ -97,50 +99,63 @@ def _type_names(owlready2, ind) -> set:
     }
 
 
-def _prop_map(owlready2, ind) -> dict:
-    """individual 의 object/data property assertion 맵 {prop_name: set(value names/strs)}.
+def _snapshot_types(owlready2, onto) -> dict:
+    """reason 전 asserted 타입 스냅샷 {iri: set(type names)} (type 재분류는 owlready2 객체모델이 견고)."""
+    return {ind.iri: _type_names(owlready2, ind) for ind in onto.individuals()}
 
-    annotation property 는 prop[ind] 를 지원하지 않으므로(owlready2 가 AttributeError)
-    object/data property 만 처리한다.
+
+def _local(iri) -> str:
+    s = str(iri)
+    s = s.rsplit("#", 1)[-1]
+    return s.rsplit("/", 1)[-1]
+
+
+def _obj_property_facts(g, ind_set: set, objprop_set: set) -> dict:
+    """그래프에서 (s∈Ind ∧ p∈ObjProp ∧ o∈Ind) object-property fact 만 추출 → {s_iri: {p_local: set(o_local)}}.
+
+    (P3 graph-diff 필터, SPEC §3.1 / PRD §14 Q1: 노이즈 제거 — rdf:type/owl·rdfs·skos·linkml
+     /restriction bnode 는 o∈Ind 조건이 떨군다.)
     """
     out: dict = {}
-    for prop in ind.get_properties():
-        try:
-            if not issubclass(prop, (owlready2.ObjectProperty, owlready2.DataProperty)):
-                continue
-            values = list(prop[ind])
-        except (AttributeError, TypeError):
-            continue
-        vals = {v.name if hasattr(v, "name") else str(v) for v in values}
-        if vals:
-            out[prop.name] = vals
+    for s, p, o in g:
+        if s in ind_set and p in objprop_set and o in ind_set:
+            out.setdefault(str(s), {}).setdefault(_local(p), set()).add(_local(o))
     return out
 
 
-def _snapshot(owlready2, onto) -> dict:
-    """reason 전/후 비교용 스냅샷: {iri: {types:set, props:{name:set}}}."""
-    return {
-        ind.iri: {"types": _type_names(owlready2, ind), "props": _prop_map(owlready2, ind)}
-        for ind in onto.individuals()
-    }
+def _abox_individuals_and_objprops(g):
+    """asserted 그래프에서 안정적인 Individual / ObjectProperty IRI 집합 (필터 기준)."""
+    import rdflib
+    OWL = rdflib.Namespace("http://www.w3.org/2002/07/owl#")
+    inds = set(g.subjects(rdflib.RDF.type, OWL.NamedIndividual))
+    objprops = set(g.subjects(rdflib.RDF.type, OWL.ObjectProperty))
+    return inds, objprops
 
 
-def _extract_inferred(owlready2, onto, pre: dict, source_label: str) -> list[dict]:
-    """reason 후 상태를 pre 스냅샷과 diff 해 inferred-only(gained) type/property 추출.
+def _extract_inferred(owlready2, onto, pre_types: dict, raw_graph, source_label: str) -> list[dict]:
+    """type 은 owlready2 객체모델 diff(견고), property 는 **graph-diff**(P3) 로 추출.
 
-    type 재분류(classification_rule/subClassOf) 또는 property 추론(inverseOf/transitive)
-    중 하나라도 gained 가 있으면 레코드 emit. 소비자(explain 등)가 무엇이 추론됐는지 구분 가능.
+    - type 재분류: reason 후 _type_names − pre_types  (AC-R5 불변, 기존 경로 유지)
+    - property 추론(chain/transitive/inverse): post(as_rdflib_graph) − raw(asserted),
+      (Ind,ObjProp,Ind) 필터.  §7.3 의 prop[ind] 비대칭 round-trip 한계를 quadstore 직독으로 해소.
     """
+    import rdflib  # noqa: F401
+    ind_set, objprop_set = _abox_individuals_and_objprops(raw_graph)
+    pre_obj = _obj_property_facts(raw_graph, ind_set, objprop_set)
+    post_graph = onto.world.as_rdflib_graph()
+    post_obj = _obj_property_facts(post_graph, ind_set, objprop_set)
+
     records: list[dict] = []
     for ind in onto.individuals():
         iri = ind.iri
-        pre_entry = pre.get(iri, {"types": set(), "props": {}})
-        asserted = pre_entry["types"]
+        asserted = pre_types.get(iri, set())
         gained_types = _type_names(owlready2, ind) - asserted
 
         gained_props: dict = {}
-        for p, vals in _prop_map(owlready2, ind).items():
-            delta = vals - pre_entry["props"].get(p, set())
+        post_p = post_obj.get(iri, {})
+        pre_p = pre_obj.get(iri, {})
+        for p, vals in post_p.items():
+            delta = vals - pre_p.get(p, set())
             if delta:
                 gained_props[p] = sorted(delta)
 
@@ -150,9 +165,9 @@ def _extract_inferred(owlready2, onto, pre: dict, source_label: str) -> list[dic
             "id": ind.name,
             "iri": iri,
             "asserted_types": sorted(asserted),
-            "inferred_types": sorted(gained_types),     # 재분류 delta (subClassOf/GCI)
-            "all_types": sorted(asserted | gained_types),  # asserted ∪ inferred
-            "inferred_properties": gained_props,         # property 추론 delta (inverseOf/transitive)
+            "inferred_types": sorted(gained_types),         # 재분류 delta (subClassOf/GCI)
+            "all_types": sorted(asserted | gained_types),    # asserted ∪ inferred
+            "inferred_properties": gained_props,             # graph-diff delta (chain/transitive/inverse)
             "inferred": True,
             "source_ontology": source_label,
             "tool_version": TOOL_VERSION,
@@ -216,9 +231,10 @@ def main() -> None:
     mode = "apply" if args.apply else "dry-run"
     _log(f"reason [{mode}] — {len(ttl_files)}개 TTL 병합 추론 @ {owl_dir}")
 
-    nt_path = _merge_ttls_to_nt(ttl_files)
-    if nt_path is None:
+    raw_graph = _merge_ttls_to_graph(ttl_files)   # asserted baseline (graph-diff pre)
+    if raw_graph is None:
         sys.exit(1)
+    nt_path = _graph_to_nt(raw_graph)
     try:
         onto = owlready2.get_ontology(f"file://{nt_path.resolve()}").load()
     except Exception as e:  # noqa: BLE001
@@ -230,9 +246,9 @@ def main() -> None:
         except OSError:
             pass
 
-    # reason 전 asserted 타입 + property 스냅샷
-    pre = _snapshot(owlready2, onto)
-    n_individuals = len(pre)
+    # reason 전 asserted 타입 스냅샷 (property 는 graph-diff 로 raw_graph vs post 비교)
+    pre_types = _snapshot_types(owlready2, onto)
+    n_individuals = len(pre_types)
 
     try:
         reasoner = _run_reasoner(owlready2, onto)
@@ -241,7 +257,7 @@ def main() -> None:
         sys.exit(1)
 
     source_label = ",".join(f.name for f in ttl_files)
-    records = _extract_inferred(owlready2, onto, pre, source_label)
+    records = _extract_inferred(owlready2, onto, pre_types, raw_graph, source_label)
     _write_inferred(inferred_dir, records, args.apply)
     _log(f"총 {len(records)}개 inferred fact / {n_individuals}개 individual")
 
