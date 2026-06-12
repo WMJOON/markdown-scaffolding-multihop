@@ -10,7 +10,7 @@ description: |
 
 # msm-ontology
 
-책임: add(등록) · mece(검증) · project(MD 갱신) · compile(YAML→OWL) · reason(추론) · materialize · explain
+책임: add(등록) · mece(검증) · project(MD 갱신) · compile(YAML→OWL) · postprocess(OWL 보강) · abox-compile(ABox→individual) · axiom(OWL 공리 HITL 저작) · reason(TBox+ABox 병합 추론) · materialize · explain
 
 자세한 파일 레이아웃 · ID 규칙 · JSONL 스키마는 [references/core.md](references/core.md) 참조.
 
@@ -39,10 +39,13 @@ msm-ontology eca-run      --target REPO --table TABLE --row JSON
 msm-ontology eca-schedule --target REPO [--domain NAME] [--dry-run]
 
 # OWL reasoning (v0.13.0)
-msm-ontology compile     --target REPO [--domain NAME] [--apply]   # YAML → .ttl
-msm-ontology reason      --target REPO [--apply]                   # 추론 → inferred.jsonl
-msm-ontology materialize --target REPO [--domain NAME] [--apply]   # compile + reason
-msm-ontology explain     --target REPO --instance ID               # 추론 근거 출력
+msm-ontology compile      --target REPO [--domain NAME] [--out-dir DIR] [--no-postprocess] [--apply]  # TBox YAML → .ttl (+postprocess)
+msm-ontology postprocess  --ttl PATH | --target REPO [--apply]     # owlgen 미지원 OWL(FunctionalProperty/다국어 label) 주입
+msm-ontology abox-compile --target REPO [--domain NAME] [--apply]  # ABox YAML → individual .abox.ttl
+msm-ontology axiom classification-rule --target REPO --domain D --class C --is-a B --some SLOT:RANGE [--show-inferences] [--apply]  # OWL 공리 HITL 저작
+msm-ontology reason       --target REPO [--out-dir DIR] [--inferred-dir DIR] [--apply]  # owl/*.ttl 병합 추론 → inferred.jsonl
+msm-ontology materialize  --target REPO [--domain NAME] [--apply]  # compile + abox-compile + reason
+msm-ontology explain      --target REPO --instance ID               # 추론 근거 출력
 
 # Harness
 harness/run.sh --skill msm-ontology --tier L0 --mode validate-only --target REPO

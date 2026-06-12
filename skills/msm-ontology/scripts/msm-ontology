@@ -48,6 +48,15 @@ case "$sub" in
   compile)
     exec "$PY" "$SCRIPT_DIR/compile.py" "$@"
     ;;
+  postprocess)
+    exec "$PY" "$SCRIPT_DIR/owl_postprocess.py" "$@"
+    ;;
+  abox-compile)
+    exec "$PY" "$SCRIPT_DIR/abox_compile.py" "$@"
+    ;;
+  axiom)
+    exec "$PY" "$SCRIPT_DIR/axiom.py" "$@"
+    ;;
   reason)
     exec "$PY" "$SCRIPT_DIR/reason.py" "$@"
     ;;
@@ -73,23 +82,56 @@ Commands (v0.12.0):
   gen-ddl            Generate SQL DDL from definition
 
 Commands (v0.13.0 — OWL reasoning):
-  compile            LinkML YAML → OWL/Turtle  (requires: pip install linkml)
-  reason             OWL reasoning → inferred JSONL  (requires: pip install owlready2 + Java)
-  materialize        compile + reason in sequence
+  compile            LinkML YAML → OWL/Turtle (+ owl_postprocess)  (requires: pip install linkml)
+  postprocess        owlgen 미지원 OWL 주입 (FunctionalProperty/다국어 label)  (requires: rdflib)
+  abox-compile       ABox 인스턴스(YAML) → OWL individual TTL  (requires: rdflib)
+  axiom              OWL TBox 공리(HITL) 저작 — 결과 가시화 후 승인 시 병합  (requires: ruamel.yaml)
+  reason             OWL reasoning → inferred JSONL (TBox+ABox 병합)  (requires: owlready2 + Java)
+  materialize        compile + abox-compile + reason in sequence
   explain            Show inference result for a specific instance
 
 compile options:
   --target PATH      KB root
   --domain NAME      Specific domain only (default: all)
+  --out-dir DIR      TTL 출력 디렉토리 (default: <target>/ontology/owl)
+  --no-postprocess   owl_postprocess 비활성 (base owlgen 출력 그대로 = v0.13.0)
   --apply            Write .ttl files (default: dry-run)
+
+postprocess options:
+  --ttl PATH         직접 모드: 단일 TTL 보강
+  --target PATH      repo 모드: KB root (out-dir 내 *.ttl 전체)
+  --domain NAME      repo 모드: 특정 도메인 TTL만
+  --out-dir DIR      repo 모드: TTL 디렉토리 (default: <target>/ontology/owl)
+  --keep-carriers    carrier annotation 트리플 보존 (default: 제거)
+  --apply            Write files (default: dry-run)
+
+abox-compile options:
+  --target PATH      KB root
+  --domain NAME      특정 도메인만 (default: all, ontology/Abox/*.yaml)
+  --out-dir DIR      TTL 출력 디렉토리 (default: <target>/ontology/owl)
+  --apply            Write {domain}.abox.ttl (default: dry-run)
+
+axiom classification-rule options:
+  --target PATH        KB root
+  --domain NAME        definition/{domain}.yaml
+  --class NAME         분류 대상 클래스
+  --is-a NAME          GCI 전제 base 클래스
+  --some SLOT:RANGE    존재 제약 (slot some Range), 복수 지정 가능
+  --show-inferences    현 ABox 추론 consequence 표시 (Pellet, 느림)
+  --apply              HITL 승인 — LinkML 정본에 주석 보존 병합 (default: 미리보기)
 
 reason options:
   --target PATH      KB root
+  --out-dir DIR      TTL 입력 디렉토리 (default: <target>/ontology/owl, TBox+ABox 병합)
+  --inferred-dir DIR inferred.jsonl 출력 (default: <target>/ontology/Abox/_inferred)
   --apply            Write inferred.jsonl (default: dry-run)
 
 materialize options:
   --target PATH      KB root
   --domain NAME      Specific domain only (default: all)
+  --out-dir DIR      TTL 디렉토리 (compile 출력 = reason 입력)
+  --inferred-dir DIR inferred.jsonl 출력 디렉토리
+  --no-postprocess   compile 단계 owl_postprocess 비활성
   --apply            Write files (default: dry-run)
 
 explain options:

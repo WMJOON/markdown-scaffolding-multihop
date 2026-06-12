@@ -1,0 +1,33 @@
+id: https://example.org/msm/test
+name: msm_test
+description: owl_postprocess 검증용 최소 LinkML 픽스처 (addendum PRD §2/§6 AC-A2,A3)
+prefixes:
+  linkml: https://w3id.org/linkml/
+  ex: https://example.org/msm/test/
+default_prefix: ex
+default_range: string
+imports:
+  - linkml:types
+classes:
+  WorkflowState:
+    description: 워크플로 상태 기반 클래스
+  Draft:
+    is_a: WorkflowState
+    description: 초안 상태
+    annotations:
+      label_ko: 초안       # → 후처리: rdfs:label "초안"@ko
+  StateTransition:
+    description: 상태 전이
+    annotations:
+      label_ko: 상태전이
+slots:
+  fromState:
+    domain: StateTransition
+    range: WorkflowState
+    annotations:
+      owl_characteristic: FunctionalProperty   # → 후처리: a owl:FunctionalProperty
+  relatedTo:
+    domain: WorkflowState
+    range: WorkflowState
+    annotations:
+      owl_characteristic: SymmetricProperty
