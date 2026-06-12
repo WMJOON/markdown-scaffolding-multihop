@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.13.0 (2026-06-12)
+
+> **msm-ontology v0.14.0 RBox (Role/Property 1급 레이어) 릴리스 포함.**
+> repo minor 범프 — msm-ontology에 RBox 1급 레이어 추가. 상세는 아래 `msm-ontology v0.14.0 RBox` 엔트리.
+
+### Highlight
+
+- RBox 1급 레이어: `rbox add-relation/list/compile/validate` + `axiom property`(chain/inverse/subPropertyOf/characteristic)
+- property 추론을 graph-diff로 전환 → **property chain 멀티홉이 `inferred.jsonl`에 기록** (이전 빈 한계 해소)
+- TBox·RBox·ABox 3층 OWL 추론 (`materialize`: compile → rbox-compile → abox-compile → reason)
+
+---
+
 ## 2026-06-12 — msm-ontology v0.14.0 RBox (Role/Property 1급 레이어)
 
 > **RBox(Role Box)를 1급 레이어로 추가. property chain 멀티홉 추론까지 동작.**

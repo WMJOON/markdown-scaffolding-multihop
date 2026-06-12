@@ -1,4 +1,4 @@
-# MSM — Human-Agent KnowledgeBase Management System (v0.12.1)
+# MSM — Human-Agent KnowledgeBase Management System (v0.13.0)
 
 MSM은 단순 Markdown scaffolding 도구가 아니다. 인간과 에이전트가 함께 운용하는 **KnowledgeBase 자체**를 관리하는 시스템이다. `ontology/`, `evidence/` 등 KB의 모든 구성 요소가 책임 범위다.
 
@@ -213,7 +213,7 @@ v0.12.0  Instance Layer (SQLite+DuckDB) · ECA Kinetic · MSO 정렬  ✓ 완료
 v0.12.1  msm-ontology v0.14.0 — SHACL `shapes-validate` 도입       ✓ 완료
         contract-validate stub 폐기 · pyshacl + rdflib venv
         Tbox 구조 검증 (inference=none) · my-knowledge-base 파일럿 패턴 이식
-v0.14.0  msm-ontology RBox — Role/Property 1급 레이어               ← 현재
+v0.13.0  msm-ontology RBox — Role/Property 1급 레이어 (스킬 v0.14.0)  ← 현재
         rbox add-relation/list/compile/validate · axiom property (chain/inverse/subPropertyOf)
         graph-diff 추론 캡처 → property chain 멀티홉이 inferred.jsonl 에 (이전 한계 해소)
 v1.x    msm-graph-reasoning · msm-semantic-search 추가
