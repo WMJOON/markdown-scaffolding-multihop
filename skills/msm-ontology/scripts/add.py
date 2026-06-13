@@ -26,7 +26,7 @@ import id_utils  # noqa: E402
 import mece as _mece  # noqa: E402  (for label_duplicate check)
 import project_md as _proj  # noqa: E402
 
-TOOL_VERSION = "msm-ontology/1.1.0"
+TOOL_VERSION = "msm-ontology/0.13.0"
 TODAY = datetime.date.today().isoformat()
 
 

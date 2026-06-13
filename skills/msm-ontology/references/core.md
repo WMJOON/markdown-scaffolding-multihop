@@ -121,10 +121,10 @@ TBox 공리와 ABox individual이 같은 그래프에 있어야 reclassification
 
 검증 예 (main PRD §5): `gemma4_e4b` asserted=`[TransformerMLMModel]` → inferred=`[MultimodalModel]`.
 
-> [!success] property-value 추론 — 해소됨 (v0.14.0 RBox P3, 2026-06-12)
+> [!success] property-value 추론 — 해소됨 (v0.13.0 RBox P3, 2026-06-12)
 > ~~owlready2/Pellet은 property value(`prop[ind]`)를 post-reason에 안 돌려준다~~ → **객체모델 접근(`prop[ind]`)의
 > 비대칭일 뿐, Pellet 은 추론 결과를 quadstore(`world.as_rdflib_graph()`)에는 실제로 쓴다**(probe 검증).
-> v0.14.0 부터 `reason.py` 는 **graph-diff** 로 전환: pre = raw asserted 병합 그래프, post = reason 후
+> v0.13.0 부터 `reason.py` 는 **graph-diff** 로 전환: pre = raw asserted 병합 그래프, post = reason 후
 > `as_rdflib_graph()`, gained = (post−raw) 중 `(s∈Ind ∧ p∈ObjProp ∧ o∈Ind)`. 이로써 **chain / transitive /
 > inverse 가 `inferred_properties` 에 기록**된다(멀티홉 실측). type 재분류는 `_type_names` 객체모델 diff 유지(견고).
 
@@ -151,7 +151,7 @@ KB 스택을 두 층으로 나눈다: **RDF/ABox**(개별 사실: `instance_of`,
 
 의존성: `pip install linkml owlready2 rdflib ruamel.yaml` + Java(Pellet/HermiT).
 
-## 8. RBox — Role/Property Layer (v0.14.0, 1급)
+## 8. RBox — Role/Property Layer (v0.13.0, 1급)
 
 > SPEC: `planning/msm-ontology_v0.14.0/msm-ontology_v0.14.0-RBox-firstclass-SPEC.md`.
 > "RBox=SKOS" 안은 기각 — OWL 이 이미 들어가면 술어 통제어휘는 `owl:ObjectProperty`+`rdfs:label`+

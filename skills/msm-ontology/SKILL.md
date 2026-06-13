@@ -28,7 +28,7 @@ msm-ontology mece     --target REPO [--cluster NAME]
 msm-ontology list     --target REPO [--cluster NAME] [--kind entity|relation|instance]
 msm-ontology project  --target REPO --cluster NAME [--apply]
 
-# 정의 / 검증 (v0.14.0 — SHACL 기반)
+# 정의 / 검증 (v0.13.0 — SHACL 기반)
 msm-ontology definition       --target REPO --domain NAME [--list]
 msm-ontology shapes-validate  --target REPO {--domain NAME | --all | --classes PATH --shapes PATH}
                               [--inference {none,rdfs,owlrl,both}]   # 기본 none
@@ -38,14 +38,14 @@ msm-ontology gen-ddl          --target REPO --domain NAME [--apply]
 msm-ontology eca-run      --target REPO --table TABLE --row JSON
 msm-ontology eca-schedule --target REPO [--domain NAME] [--dry-run]
 
-# RBox — Role/Property layer (v0.14.0, 1급)
+# RBox — Role/Property layer (v0.13.0, 1급)
 msm-ontology rbox add-relation --target REPO --domain D --label L [--alt SYN ...] [--description T] --evidence URI [--status draft|accepted] [--apply]  # role 선언 (LLM 제안, 추론 0)
 msm-ontology rbox list      --target REPO --domain D [--status S]   # 선언 role + status 조회
 msm-ontology rbox compile   --target REPO [--domain D] [--apply]    # roles YAML → {domain}.rbox.ttl (+postprocess)
 msm-ontology rbox validate  --target REPO --domain D                # Abox 술어 ↔ roles ↔ MECE 정합 게이트 (AC-R7)
 msm-ontology axiom property --target REPO --domain D --role R [--characteristic X] [--inverse R2] [--subproperty-of R2] [--chain R_a R_b ...] [--domain-class C] [--range C] [--show-inferences] [--apply]  # RBox 공리 HITL 저작
 
-# OWL reasoning (v0.13.0 / v0.14.0 RBox)
+# OWL reasoning (v0.13.0 RBox)
 msm-ontology compile      --target REPO [--domain NAME] [--out-dir DIR] [--no-postprocess] [--apply]  # TBox YAML → .ttl (+postprocess)
 msm-ontology postprocess  --ttl PATH | --target REPO [--apply]     # owlgen 미지원 OWL(FunctionalProperty/subPropertyOf/propertyChain/inverseOf/다국어 label) 주입
 msm-ontology abox-compile --target REPO [--domain NAME] [--apply]  # ABox YAML → individual .abox.ttl

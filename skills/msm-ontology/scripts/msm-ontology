@@ -79,7 +79,7 @@ Commands (v0.12.0):
   list               List registered objects
   project            Regenerate MD projections from JSONL
   definition         Load / query definition YAML
-  shapes-validate    SHACL 기반 Tbox 검증 (v0.14.0 — pyshacl)
+  shapes-validate    SHACL 기반 Tbox 검증 (v0.13.0 — pyshacl)
   eca-run            Execute ECA rules on a table row
   eca-schedule       Schedule ECA rules for a domain
   gen-ddl            Generate SQL DDL from definition

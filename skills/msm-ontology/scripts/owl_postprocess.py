@@ -51,7 +51,7 @@ VALID_CHARACTERISTICS = {
 _LABEL_RE = re.compile(r"^label_([A-Za-z]{2,3}(?:-[A-Za-z0-9]+)*)$")
 _CHARACTERISTIC_KEY = "owl_characteristic"
 
-# RBox carrier 키 (owlgen 미지원/드롭분 — v0.14.0 RBox, SPEC AC-R1)
+# RBox carrier 키 (owlgen 미지원/드롭분 — v0.13.0 RBox, SPEC AC-R1)
 _SUBPROPERTY_KEY = "subproperty_of"   # → rdfs:subPropertyOf <ns:value>
 _INVERSE_KEY = "inverse_of"           # → owl:inverseOf <ns:value>
 _CHAIN_KEY = "property_chain"         # 콤마 문자열 → owl:propertyChainAxiom ( <ns:a> <ns:b> )

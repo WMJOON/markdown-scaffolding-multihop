@@ -17,7 +17,7 @@ import json
 import sys
 from pathlib import Path
 
-GENERATED_FILE_MARKER = '<!-- msm:generated:file skill="msm-ontology" version="1.0.0" -->'
+GENERATED_FILE_MARKER = '<!-- msm:generated:file skill="msm-ontology" version="0.13.0" -->'
 GENERATED_START = '<!-- msm:generated:start source="{source}" -->'
 GENERATED_END = "<!-- msm:generated:end -->"
 

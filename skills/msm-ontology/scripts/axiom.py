@@ -215,7 +215,7 @@ def cmd_classification_rule(args) -> int:
     return 0
 
 
-# ───────────────────────────────────── RBox property axiom (v0.14.0, AC-R2)
+# ───────────────────────────────────── RBox property axiom (v0.13.0, AC-R2)
 
 # --characteristic 단축형 → owl_characteristic 값
 _CHAR_MAP = {
