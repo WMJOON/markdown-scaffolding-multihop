@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """msm-ontology rbox — RBox(role / object-property) first-class layer.
 
-SPEC: planning/msm-ontology_v0.14.0/msm-ontology_v0.14.0-RBox-firstclass-SPEC.md
+SPEC: planning/msm-ontology_v0.13.0/msm-ontology_v0.13.0-RBox-firstclass-SPEC.md
 
 서브명령:
   add-relation : role 선언 (LLM/evidence 제안, status=draft). **추론 0 → 안전**.

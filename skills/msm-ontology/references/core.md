@@ -153,7 +153,7 @@ KB 스택을 두 층으로 나눈다: **RDF/ABox**(개별 사실: `instance_of`,
 
 ## 8. RBox — Role/Property Layer (v0.13.0, 1급)
 
-> SPEC: `planning/msm-ontology_v0.14.0/msm-ontology_v0.14.0-RBox-firstclass-SPEC.md`.
+> SPEC: `planning/msm-ontology_v0.13.0/msm-ontology_v0.13.0-RBox-firstclass-SPEC.md`.
 > "RBox=SKOS" 안은 기각 — OWL 이 이미 들어가면 술어 통제어휘는 `owl:ObjectProperty`+`rdfs:label`+
 > à-la-carte `skos:altLabel`/`skos:definition`(owlgen 이 `aliases`/`description` 에서 자동 방출)로 충분.
 
