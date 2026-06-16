@@ -5,6 +5,10 @@ msm-ontology shapes-validate — SHACL 기반 ontology Tbox 검증
 Tbox 위치: {target}/ontology/system/semantic/{domain}/{name}.classes.ttl
 Shapes:    {target}/ontology/system/semantic/{domain}/{name}.shapes.ttl
 
+v0.13.1 PROV-O layer: 같은 디렉토리의 `*.prov.ttl`(1차 출처 데이터)·
+`*.prov.shapes.ttl`(출처 강제 게이트)을 자동 병합한다. → 근거 미상 owl:Class 차단.
+prov 파일은 `msm-ontology prov` 로 생성. 없는 도메인은 기존과 동일하게 동작.
+
 Usage:
   msm-ontology shapes-validate --target REPO --domain technical/semantic-web
   msm-ontology shapes-validate --target REPO --all
@@ -54,8 +58,14 @@ def validate(
     classes_path: Path,
     shapes_path: Path,
     inference: str = "none",
+    merge_provenance: bool = True,
 ) -> tuple[bool, str]:
-    """pyshacl 호출. (conforms, report_text) 반환."""
+    """pyshacl 호출. (conforms, report_text) 반환.
+
+    v0.13.1: merge_provenance=True 면 classes/shapes 와 같은 디렉토리의
+    PROV-O 레이어(`*.prov.ttl` 데이터 · `*.prov.shapes.ttl` 게이트)를
+    자동 병합한다. 해당 파일이 없는 도메인은 영향 없음 (backward-compatible).
+    """
     try:
         from pyshacl import validate as pyshacl_validate
     except ImportError:
@@ -72,6 +82,14 @@ def validate(
 
     data_graph = Graph().parse(str(classes_path), format="turtle")
     shapes_graph = Graph().parse(str(shapes_path), format="turtle")
+
+    if merge_provenance:
+        for p in sorted(classes_path.parent.glob("*.prov.ttl")):
+            data_graph.parse(str(p), format="turtle")
+            print(f"  +prov:   {p.name}")
+        for s in sorted(shapes_path.parent.glob("*.prov.shapes.ttl")):
+            shapes_graph.parse(str(s), format="turtle")
+            print(f"  +gate:   {s.name}")
 
     conforms, _results_graph, results_text = pyshacl_validate(
         data_graph=data_graph,

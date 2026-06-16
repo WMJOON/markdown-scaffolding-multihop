@@ -4,13 +4,15 @@ description: |
   MSM KB의 entity / relation / instance를 JSONL에 등록하고, MECE를 강제하며,
   Markdown projection을 유지하는 Fat Skill. v0.13.0부터 LinkML OWL reasoning layer 추가:
   YAML → OWL/Turtle 컴파일, owlready2 class inference, inferred facts JSONL 역주입.
+  v0.13.1: PROV-O 출처 레이어 — owl:Class를 source_refs와 조인해 prov:hadPrimarySource를
+  투영하고, SHACL로 근거 미상 노드를 차단(shapes-validate 자동 병합).
   트리거: "entity 등록", "relation 등록", "instance 등록", "MECE 검증", "온톨로지 확장",
-  "msm-ontology add", "OWL 추론", "class inference", "compile", "materialize"
+  "msm-ontology add", "OWL 추론", "class inference", "compile", "materialize", "prov", "출처 강제"
 ---
 
 # msm-ontology
 
-책임: add(등록) · mece(검증) · project(MD 갱신) · compile(YAML→OWL) · postprocess(OWL 보강) · abox-compile(ABox→individual) · **rbox(Role/Property 1급 — 선언/list/compile/validate)** · axiom(TBox classification-rule + **RBox property** 공리 HITL 저작) · reason(TBox+RBox+ABox 병합 추론, property=graph-diff) · materialize · explain
+책임: add(등록) · mece(검증) · project(MD 갱신) · compile(YAML→OWL) · postprocess(OWL 보강) · abox-compile(ABox→individual) · **rbox(Role/Property 1급 — 선언/list/compile/validate)** · axiom(TBox classification-rule + **RBox property** 공리 HITL 저작) · reason(TBox+RBox+ABox 병합 추론, property=graph-diff) · materialize · explain · **prov(PROV-O 출처 레이어 — v0.13.1)**
 
 자세한 파일 레이아웃 · ID 규칙 · JSONL 스키마는 [references/core.md](references/core.md) 참조.
 
@@ -32,7 +34,15 @@ msm-ontology project  --target REPO --cluster NAME [--apply]
 msm-ontology definition       --target REPO --domain NAME [--list]
 msm-ontology shapes-validate  --target REPO {--domain NAME | --all | --classes PATH --shapes PATH}
                               [--inference {none,rdfs,owlrl,both}]   # 기본 none
+                              # v0.13.1: 같은 디렉토리 *.prov.ttl·*.prov.shapes.ttl 자동 병합
 msm-ontology gen-ddl          --target REPO --domain NAME [--apply]
+
+# PROV-O 출처 강제 (v0.13.1)
+msm-ontology prov             --target REPO {--domain NAME | --all} [--apply]
+  # classes.ttl(dct:identifier) ⋈ entities.jsonl(source_refs)
+  #   → {name}.prov.ttl (1차 출처 prov:Entity + prov:hadPrimarySource)
+  #   + {name}.prov.shapes.ttl (네임스페이스 owl:Class 출처 minCount 1 게이트)
+  # 조인 키(dct:identifier) 없는 도메인은 skip + 경고 (compile 단계 출처 주입 필요)
 
 # ECA
 msm-ontology eca-run      --target REPO --table TABLE --row JSON
