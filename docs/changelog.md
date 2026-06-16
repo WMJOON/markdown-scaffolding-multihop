@@ -1,5 +1,29 @@
 # Changelog
 
+## v0.13.1 (2026-06-16)
+
+> **msm-ontology PROV-O 출처 강제 레이어 추가.** 근거 미상 owl:Class를 SHACL로 차단.
+
+### Added
+
+- `scripts/prov.py` — `msm-ontology prov {--domain N | --all} [--apply]`
+  - `classes.ttl`의 `dct:identifier`를 explain/system `entities.jsonl`의 `source_refs`와 전역 조인
+    → `{name}.prov.ttl` (1차 출처 `prov:Entity` + `prov:hadPrimarySource`)
+  - `{name}.prov.shapes.ttl` — 네임스페이스 owl:Class에 출처 `sh:minCount 1` 강제 (SPARQLTarget)
+  - 파일 중심 발견: 도메인당 복수 `*.classes.ttl`·basename≠dir 대응. 조인 키 없는 도메인은 skip + 경고.
+
+### Changed
+
+- `scripts/shapes_validate.py` — 같은 디렉토리 `*.prov.ttl`(데이터)·`*.prov.shapes.ttl`(게이트)
+  자동 병합 (`merge_provenance`, 기본 on). prov 파일 없는 도메인은 무영향 — **backward-compatible**.
+
+### Verified
+
+- KB `agent-semantics` 파일럿: prov 게이트 단독 `Conforms: True` / 출처 누락 노드 정확 지목.
+  기존 도메인 shape 실패는 prov 병합과 무관(pre-existing) 확인.
+
+---
+
 ## v0.13.0 (2026-06-12)
 
 > **msm-ontology v0.14.0 RBox (Role/Property 1급 레이어) 릴리스 포함.**
