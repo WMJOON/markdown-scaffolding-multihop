@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""msm-instance migrate — SQLite schema 마이그레이션 (v1.2.0 skeleton)"""
+"""msm-instance migrate — SQLite schema 마이그레이션 (v0.12.0 skeleton)"""
 import argparse, pathlib, sqlite3, sys
 
 def main():

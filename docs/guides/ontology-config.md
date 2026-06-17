@@ -2,7 +2,7 @@
 
 ## canonical_root_hub.yaml — SSOT
 
-v1.0.0의 단일 진실 소스. `msm init`이 자동 생성하며 `locked: true`로 설정됩니다. 직접 편집하지 않고 `msm-ontology`를 통해 갱신합니다.
+v0.10.0의 단일 진실 소스. `msm init`이 자동 생성하며 `locked: true`로 설정됩니다. 직접 편집하지 않고 `msm-ontology`를 통해 갱신합니다.
 
 ```yaml
 version: "1.0"
@@ -84,7 +84,7 @@ steps:
 
 | 파일 | 역할 |
 |------|------|
-| `canonical_root_hub.yaml` | v1.0.0 SSOT — 도메인·explain/concept · explain/instance 경로 선언 |
+| `canonical_root_hub.yaml` | v0.10.0 SSOT — 도메인·explain/concept · explain/instance 경로 선언 |
 | `ontology/explain/concept/*/entities.jsonl` | 클래스 정의 (스크립트 입출력) |
 | `ontology/explain/concept/*/relations.jsonl` | 관계 정의 |
 | `ontology/explain/instance/*/instances.jsonl` | 인스턴스 |

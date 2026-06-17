@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""msm-instance query — DuckDB parquet snapshot 분석 (v1.2.0 skeleton)"""
+"""msm-instance query — DuckDB parquet snapshot 분석 (v0.12.0 skeleton)"""
 import argparse, json, pathlib, sys
 
 def main():

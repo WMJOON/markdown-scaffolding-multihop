@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""msm-instance init — SQLite runtime.db 초기화 (v1.2.0 skeleton)"""
+"""msm-instance init — SQLite runtime.db 초기화 (v0.12.0 skeleton)"""
 import argparse, pathlib, sqlite3, sys
 
 DDL = """

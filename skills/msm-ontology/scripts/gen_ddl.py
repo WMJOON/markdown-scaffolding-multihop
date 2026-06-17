@@ -17,10 +17,10 @@ def main() -> None:
     parser.add_argument("--apply", action="store_true", help="생성된 DDL을 DuckDB에 실제 적용")
     args = parser.parse_args()
 
-    # TODO(v1.2.0): definition.yaml의 entity/property 로드
-    # TODO(v1.2.0): CREATE TABLE SQL 생성 구현
-    # TODO(v1.2.0): --apply 시 DuckDB에 DDL 실행
-    raise NotImplementedError("gen_ddl stub — v1.2.0 구현 예정")
+    # TODO(v0.12.0): definition.yaml의 entity/property 로드
+    # TODO(v0.12.0): CREATE TABLE SQL 생성 구현
+    # TODO(v0.12.0): --apply 시 DuckDB에 DDL 실행
+    raise NotImplementedError("gen_ddl stub — v0.12.0 구현 예정")
 
 
 if __name__ == "__main__":

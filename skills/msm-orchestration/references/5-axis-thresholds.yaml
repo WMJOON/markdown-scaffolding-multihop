@@ -1,4 +1,4 @@
-# 5-axis gate thresholds for msm-orchestration v1.0.0.
+# 5-axis gate thresholds for msm-orchestration v0.10.0.
 # SPEC §6.1. Resolution: workflow_id override → category override → defaults.
 
 version: "1.0"

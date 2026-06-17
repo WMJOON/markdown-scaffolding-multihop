@@ -18,9 +18,9 @@ def main() -> None:
     parser.add_argument("--get", metavar="ENTITY", help="특정 entity 타입 상세 조회")
     args = parser.parse_args()
 
-    # TODO(v1.2.0): ontology/definition/{domain}.yaml 로드
-    # TODO(v1.2.0): entity/relation 타입 조회 구현
-    raise NotImplementedError("definition stub — v1.2.0 구현 예정")
+    # TODO(v0.12.0): ontology/definition/{domain}.yaml 로드
+    # TODO(v0.12.0): entity/relation 타입 조회 구현
+    raise NotImplementedError("definition stub — v0.12.0 구현 예정")
 
 
 if __name__ == "__main__":

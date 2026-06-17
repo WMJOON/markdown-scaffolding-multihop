@@ -1,4 +1,4 @@
-# Router trigger map for msm-orchestration v1.0.0.
+# Router trigger map for msm-orchestration v0.10.0.
 # SPEC §4.1. priority: higher value wins on multi-match; default 0.
 
 version: "1.0"

@@ -185,7 +185,7 @@ def apply(plan: dict, args: argparse.Namespace) -> int:
 
     # Optional skill links (delegated to repository/install.sh)
     if args.with_skill_links:
-        # parents: scripts→msm-repository-setup→skills→msm_v1.0.0→repository-test→<repo-root>
+        # parents: scripts→msm-repository-setup→skills→msm_v0.10.0→repository-test→<repo-root>
         installer = Path(__file__).resolve().parents[5] / "repository" / "install.sh"
         if installer.exists():
             write_trajectory(target, run_id, {"event_type": "skill_links_invoke", "installer": str(installer)})

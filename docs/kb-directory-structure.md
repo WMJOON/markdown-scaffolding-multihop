@@ -1,12 +1,12 @@
-# KnowledgeBase 디렉토리 구조 (v1.1.1)
+# KnowledgeBase 디렉토리 구조 (v0.11.1)
 
 > **MSM = Human-Agent KnowledgeBase Management System**
 > 인간과 에이전트가 함께 운용하는 KnowledgeBase를 관리하는 시스템.
-> 본 문서는 v1.1.0 디렉토리 룰(D-1~D-7) + v1.1.1 거버넌스 오버레이를 기준으로 한다.
+> 본 문서는 v0.11.0 디렉토리 룰(D-1~D-7) + v0.11.1 거버넌스 오버레이를 기준으로 한다.
 
 ---
 
-## 거버넌스 오버레이 (v1.1.1)
+## 거버넌스 오버레이 (v0.11.1)
 
 > [!important] Concept/Instance 관리 정책
 > Concept은 HITL 필수, Instance는 연결 깊이에 따라 차등 자동화.
@@ -40,7 +40,7 @@ concept__descriptive-statistics              ← 하위 Concept (HITL 필수)
 - **하위 Instance** = 패턴화된 대량 사례 → 자동화 효율 우선 → 동적 처리
 
 > [!note] Enforcement
-> 정책의 자동 강제(가드, 검증)는 v1.2.0에서 `msm-ontology` HITL 가드 및 `msm-maintain` instance 티어 검증으로 구현 예정. v1.1.1은 문서화 레이어.
+> 정책의 자동 강제(가드, 검증)는 v0.12.0에서 `msm-ontology` HITL 가드 및 `msm-maintain` instance 티어 검증으로 구현 예정. v0.11.1은 문서화 레이어.
 
 ---
 
@@ -71,7 +71,7 @@ concept__descriptive-statistics              ← 하위 Concept (HITL 필수)
       instance/                     ← 구체 사례 (Instance)
         instance__class.md
         {cluster}/
-          {slug}__entity.md         ← Instance (ABox 룰, TBD v1.2.0)
+          {slug}__entity.md         ← Instance (ABox 룰, TBD v0.12.0)
   evidence/                         ← 원본·seed (sources, citations)
     seeds.jsonl
     md/
@@ -96,7 +96,7 @@ concept__descriptive-statistics              ← 하위 Concept (HITL 필수)
 
 ---
 
-## v1.1.0 결정사항 (D-1 ~ D-7)
+## v0.11.0 결정사항 (D-1 ~ D-7)
 
 | D# | 결정 | 비고 |
 |----|------|------|
@@ -114,7 +114,7 @@ concept__descriptive-statistics              ← 하위 Concept (HITL 필수)
 
 | 영역 | 책임 | 표현 방식 | 상태 |
 |------|------|----------|------|
-| **ontology/system/** | 형식 logic — 기계 추론용 | RDF/OWL/JSON-LD | ⏳ v1.2.0 (advanced, optional) |
+| **ontology/system/** | 형식 logic — 기계 추론용 | RDF/OWL/JSON-LD | ⏳ v0.12.0 (advanced, optional) |
 | **ontology/explain/** | 자연어 narrative — 인간 이해용 | Markdown (frontmatter + body) | ✅ 운영 중 (기본) |
 | **evidence/** | 1차/2차 출처 자료 | URL, source-note, citation | ✅ 운영 중 (기본) |
 
@@ -163,7 +163,7 @@ source_doc_id: evidence__openai_gpt4
 
 ABox 영역의 모든 노드는 인스턴스. `type_of` 관계로 TBox class와 연결.
 
-> ⚠️ ABox SPEC은 v1.2.0에서 확정 (OI-E).
+> ⚠️ ABox SPEC은 v0.12.0에서 확정 (OI-E).
 
 ---
 
@@ -217,7 +217,7 @@ parent_alignment scan
 
 ---
 
-## canonical_root_hub.yaml 스키마 (v1.1.0)
+## canonical_root_hub.yaml 스키마 (v0.11.0)
 
 ```yaml
 version: "1.1"
@@ -231,7 +231,7 @@ domains:
   marketing:
     concept: ontology/explain/concept/marketing/
     instance: ontology/explain/instance/marketing/
-system:                              # v1.2.0 예정
+system:                              # v0.12.0 예정
   semantic: ontology/system/semantic/
   kinetic:  ontology/system/kinetic/
   dynamic:  ontology/system/dynamic/
@@ -241,9 +241,9 @@ system:                              # v1.2.0 예정
 
 ---
 
-## v1.0.0 → v1.1.0 마이그레이션 매핑
+## v0.10.0 → v0.11.0 마이그레이션 매핑
 
-| v1.0.0 | v1.1.0 |
+| v0.10.0 | v0.11.0 |
 |--------|--------|
 | `ontology/Tbox/{cluster}/` | `ontology/explain/concept/{cluster}/` |
 | `ontology/Abox/{cluster}/` | `ontology/explain/instance/{cluster}/` |
@@ -258,5 +258,5 @@ system:                              # v1.2.0 예정
 - [빠른 시작](guides/quickstart.md)
 - [온톨로지 설정](guides/ontology-config.md)
 - [KB 구축 흐름](guides/kb-build-flows.md)
-- [PRD v1.1.0](../../planning/msm_v1.1.0/msm_v1.1.0-PRD.md)
-- [Parent Alignment SPEC](../../planning/msm_v1.1.0/msm-parent-alignment-SPEC.md)
+- [PRD v0.11.0](../../planning/msm_v0.11.0/msm_v0.11.0-PRD.md)
+- [Parent Alignment SPEC](../../planning/msm_v0.11.0/msm-parent-alignment-SPEC.md)

@@ -1,6 +1,6 @@
 # KB 구축 흐름 가이드
 
-v1.0.0은 3가지 evidence 수집 경로와 Top-Down / Bottom-Up 구축 전략을 지원합니다.
+v0.10.0은 3가지 evidence 수집 경로와 Top-Down / Bottom-Up 구축 전략을 지원합니다.
 
 ---
 

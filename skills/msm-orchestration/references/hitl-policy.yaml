@@ -1,4 +1,4 @@
-# HITL policy for msm-orchestration v1.0.0.
+# HITL policy for msm-orchestration v0.10.0.
 # SPEC §7.
 
 version: "1.0"

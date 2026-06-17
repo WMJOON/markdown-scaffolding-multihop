@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""msm-instance export-snapshot — SQLite → Parquet (v1.2.0 skeleton)"""
+"""msm-instance export-snapshot — SQLite → Parquet (v0.12.0 skeleton)"""
 import argparse, datetime, pathlib, sqlite3, sys
 
 def main():

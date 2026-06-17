@@ -17,10 +17,10 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="실제 실행 없이 대상 규칙만 출력")
     args = parser.parse_args()
 
-    # TODO(v1.2.0): trigger.type=scheduled 규칙 중 현재 시각에 해당하는 것 조회
-    # TODO(v1.2.0): dry-run 모드 구현
-    # TODO(v1.2.0): 해당 규칙 실행 구현
-    raise NotImplementedError("eca_schedule stub — v1.2.0 구현 예정")
+    # TODO(v0.12.0): trigger.type=scheduled 규칙 중 현재 시각에 해당하는 것 조회
+    # TODO(v0.12.0): dry-run 모드 구현
+    # TODO(v0.12.0): 해당 규칙 실행 구현
+    raise NotImplementedError("eca_schedule stub — v0.12.0 구현 예정")
 
 
 if __name__ == "__main__":

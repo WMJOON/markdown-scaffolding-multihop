@@ -1,13 +1,13 @@
 {
   "$schema": "./pack_config.schema.json",
   "pack_id": "msm",
-  "version": "v1.0.0",
+  "version": "v0.10.0",
   "prefix": "msm-",
   "description": "Markdown Scaffolding Multihop — ontology-specialized KB system",
   "repo_url": "https://github.com/WMJOON/markdown-scaffolding-multihop",
   "overload_threshold": 10,
   "migration": {
-    "target_version": "v1.0.0",
+    "target_version": "v0.10.0",
     "mode": "compatibility",
     "deprecation_window_days": 90
   },

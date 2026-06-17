@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""msm-obsidian-projection list — generated 파일 목록 (v1.2.0 skeleton)"""
+"""msm-obsidian-projection list — generated 파일 목록 (v0.12.0 skeleton)"""
 import argparse, pathlib, sys
 
 def main():

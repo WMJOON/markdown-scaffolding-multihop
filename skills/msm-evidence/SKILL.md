@@ -2,15 +2,15 @@
 name: msm-evidence
 version: "0.12.2"
 description: |
-  MSM v1.0.0 Fat Skill — 외부 URL/로컬 MD를 수집·청킹·dedup하여
+  MSM v0.10.0 Fat Skill — 외부 URL/로컬 MD를 수집·청킹·dedup하여
   evidence/seeds.jsonl 및 evidence/md/ 노트를 생성한다.
   entity/relation 생성은 하지 않는다. seed는 msm-ontology의 입력.
   v0.12.2: --capture 로 URL 원문 스냅샷(PDF/PNG/HTML) 박제 + seed.snapshot 기록 (opt-in).
-spec: planning/msm_v1.0.0/msm-evidence-SPEC.md
-prd: planning/msm_v1.0.0/msm_v1.0.0-PRD.md
+spec: planning/msm_v0.10.0/msm-evidence-SPEC.md
+prd: planning/msm_v0.10.0/msm_v0.10.0-PRD.md
 ---
 
-# msm-evidence (v1.0.0)
+# msm-evidence (v0.10.0)
 
 ## What
 
@@ -61,6 +61,6 @@ Graphify ETL은 `file_type==concept` 노드만 통과시키는 Semantic Lifting 
 ## Non-Goals
 
 - entity/relation/instance 생성 → `msm-ontology`
-- LLM 기반 claim 추출 → v1.1
-- JS-rendered 페이지 → v1.2
-- PDF 처리 → v1.1
+- LLM 기반 claim 추출 → v0.11
+- JS-rendered 페이지 → v0.12
+- PDF 처리 → v0.11

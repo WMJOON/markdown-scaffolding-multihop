@@ -2,7 +2,7 @@
 """SPEC §8.1 + canonical-hub-SPEC §4: canonical_root_hub.yaml schema check.
 
 Text-based check avoids a hard pyyaml dep. Verifies presence of required keys,
-locked default, and the v1.0.0 sync invariants.
+locked default, and the v0.10.0 sync invariants.
 """
 
 from __future__ import annotations
@@ -59,7 +59,7 @@ def main() -> int:
             return 1
     # locked must be true
     if not re.search(r"locked:\s*true", text):
-        print("FAIL: locked must be true at v1.0.0", file=sys.stderr)
+        print("FAIL: locked must be true at v0.10.0", file=sys.stderr)
         return 1
     # validate domains[].name are snake_case if present
     for m in DOMAIN_BLOCK_RE.finditer(text):

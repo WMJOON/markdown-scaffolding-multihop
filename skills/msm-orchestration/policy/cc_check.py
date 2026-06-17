@@ -63,13 +63,13 @@ def check_canonical_hub_locked(target: Path) -> list[dict]:
         return [{"contract": "canonical_root_hub_present"}]
     text = hub.read_text(encoding="utf-8")
     if "locked: true" not in text:
-        return [{"contract": "canonical_root_hub_locked", "detail": "locked must be true at v1.0.0"}]
+        return [{"contract": "canonical_root_hub_locked", "detail": "locked must be true at v0.10.0"}]
     return []
 
 
 def check_pack_config(pack: dict) -> list[dict]:
     violations: list[dict] = []
-    if pack.get("version") != "v1.0.0":
+    if pack.get("version") != "v0.10.0":
         violations.append({"contract": "pack_config_version", "detail": pack.get("version")})
     core = (pack.get("skills") or {}).get("core") or []
     if len(set(core)) != 8:

@@ -163,13 +163,13 @@ def main(argv: list[str]) -> int:
             if migration_mode == "v1-strict":
                 mw.emit(target, run_id, {"event_type": "deprecated_route", "from": legacy_alias_hit,
                                          "to": route.get("workflow_id") or route.get("skill"),
-                                         "reason": "v0.2.0→v1.0.0 migration",
+                                         "reason": "v0.2.0→v0.10.0 migration",
                                          "rejected": True, "mode": migration_mode})
                 sys.stderr.write(f"v1-strict: legacy route {legacy_alias_hit} rejected\n")
                 return 102
             mw.emit(target, run_id, {"event_type": "deprecated_route", "from": legacy_alias_hit,
                                      "to": route.get("workflow_id") or route.get("skill"),
-                                     "reason": "v0.2.0→v1.0.0 migration", "mode": migration_mode})
+                                     "reason": "v0.2.0→v0.10.0 migration", "mode": migration_mode})
         if route.get("mode") == "workflow":
             workflow_id = route.get("workflow_id")
             # Lookup category via workflow index

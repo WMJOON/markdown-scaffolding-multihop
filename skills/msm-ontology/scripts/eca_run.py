@@ -17,9 +17,9 @@ def main() -> None:
     parser.add_argument("--row", required=True, metavar="JSON", help="삽입된 행 데이터 (JSON 문자열)")
     args = parser.parse_args()
 
-    # TODO(v1.2.0): ontology/kinetic/rules/*.yaml 로드
-    # TODO(v1.2.0): on_insert ECA 규칙 평가·실행 구현
-    raise NotImplementedError("eca_run stub — v1.2.0 구현 예정")
+    # TODO(v0.12.0): ontology/kinetic/rules/*.yaml 로드
+    # TODO(v0.12.0): on_insert ECA 규칙 평가·실행 구현
+    raise NotImplementedError("eca_run stub — v0.12.0 구현 예정")
 
 
 if __name__ == "__main__":

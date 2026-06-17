@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""msm-instance insert — SQLite row 삽입 (v1.2.0 skeleton)"""
+"""msm-instance insert — SQLite row 삽입 (v0.12.0 skeleton)"""
 import argparse, json, pathlib, sqlite3
 
 def main():

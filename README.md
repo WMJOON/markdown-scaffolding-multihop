@@ -203,10 +203,10 @@ skills/msm-orchestration/msm-orchestrate run \
 ```text
 v0.1.x  Evidence-first KB 구조 정립                              ✓ 완료
 v0.2.x  rewrite/governance/semantic framing 레이어               ✓ 완료
-v1.0.0  5-Layer 아키텍처 · 6개 스킬 · Graphify ETL              ✓ 완료
-v1.0.1  Antigravity 플랫폼 지원                                  ✓ 완료
-v1.1.0  Parent Alignment · 4계층 KB 구조 (D-1~D-7)              ✓ 완료
-v1.1.1  Concept HITL · Instance 차등 자동화 정책 문서화          ✓ 완료
+v0.10.0  5-Layer 아키텍처 · 6개 스킬 · Graphify ETL              ✓ 완료
+v0.10.1  Antigravity 플랫폼 지원                                  ✓ 완료
+v0.11.0  Parent Alignment · 4계층 KB 구조 (D-1~D-7)              ✓ 완료
+v0.11.1  Concept HITL · Instance 차등 자동화 정책 문서화          ✓ 완료
 v0.12.0  Instance Layer (SQLite+DuckDB) · ECA Kinetic · MSO 정렬  ✓ 완료
         msm-instance · msm-obsidian-projection 신규
         index.yaml 자동 생성 · workflow YAML MSO 스키마 준수
@@ -219,7 +219,7 @@ v0.13.0  msm-ontology RBox — Role/Property 1급 레이어              ✓ 완
 v0.13.1  msm-ontology PROV-O 출처 강제 레이어                          ← 현재
         prov: classes.ttl(dct:identifier) ⋈ entities.jsonl(source_refs) → *.prov.ttl + *.prov.shapes.ttl
         shapes-validate 가 *.prov.* 자동 병합 → 근거 미상 owl:Class 차단 (backward-compatible)
-v1.x    msm-graph-reasoning · msm-semantic-search 추가
+v0.1x    msm-graph-reasoning · msm-semantic-search 추가
 ```
 
 ---

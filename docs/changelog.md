@@ -111,10 +111,10 @@
 
 ---
 
-## v1.1.1 (2026-05-20)
+## v0.11.1 (2026-05-20)
 
 > **거버넌스 정책 문서화: Concept HITL + Instance 차등 자동화.**
-> v1.1.0 OI-E (ABox SPEC)의 사전 단계로 거버넌스 레이어 명시.
+> v0.11.0 OI-E (ABox SPEC)의 사전 단계로 거버넌스 레이어 명시.
 
 ### Added — 거버넌스 정책
 
@@ -140,14 +140,14 @@
 - `docs/kb-directory-structure.md` — 거버넌스 오버레이 섹션 추가
 - README MSM identity에 거버넌스 정책 한 줄 명시
 
-### Deferred to v1.2.0
+### Deferred to v0.12.0
 
 - Enforcement (msm-ontology HITL 가드, msm-maintain instance 티어 검증)
 - ABox SPEC 본격 정의 (OI-E)
 
 ---
 
-## v1.1.0 (2026-05-20)
+## v0.11.0 (2026-05-20)
 
 > **Parent Node Alignment 내재화 + 4계층 KnowledgeBase 구조 도입.**
 > MSM identity 재정의: Human-Agent KnowledgeBase Management System.
@@ -173,7 +173,7 @@
 
 - `ontology/explain/concept/` — TBox(구 `ontology/Tbox/`) 마이그레이션
 - `ontology/explain/instance/` — ABox(구 `ontology/Abox/`) 마이그레이션
-- `ontology/system/{semantic,kinetic,dynamic}/` — v1.2.0 작업 영역 placeholder
+- `ontology/system/{semantic,kinetic,dynamic}/` — v0.12.0 작업 영역 placeholder
 - 7개 신규 부모 anchor `__class.md` 생성
 
 ### Added — 스킬 명령
@@ -198,7 +198,7 @@
 - 최종 위반: 0건 (실질) + L5+ deep_nesting 경고 (D-3 허용)
 - 정합도: 100% (허용 경고 제외)
 
-### Open Issues (v1.2.0 작업 대상)
+### Open Issues (v0.12.0 작업 대상)
 
 - OI-A: `explain` ↔ `system` 매핑 관계 정의
 - OI-B: `kinetic` vs `dynamic` 경계 — workflow 위치
@@ -208,13 +208,13 @@
 
 ### Documentation
 
-- `docs/kb-directory-structure.md` v1.1.0으로 전면 재작성
+- `docs/kb-directory-structure.md` v0.11.0으로 전면 재작성
 - README MSM identity 및 4계층 구조 반영
-- `planning/msm_v1.1.0/` — PRD, parent-alignment SPEC, ontology/maintain DELTA
+- `planning/msm_v0.11.0/` — PRD, parent-alignment SPEC, ontology/maintain DELTA
 
 ---
 
-## v1.0.1 (2026-05-20)
+## v0.10.1 (2026-05-20)
 
 > Antigravity 플랫폼 지원 추가. Claude Code · Codex · Antigravity 세 플랫폼에서 일관된 스킬 설치 및 실행 가능.
 
@@ -234,25 +234,25 @@
 ### Documentation
 
 - README 플랫폼 지원 섹션 확대
-- install.sh 코멘트 및 버전 번호 v1.0.1로 동기화
+- install.sh 코멘트 및 버전 번호 v0.10.1로 동기화
 
 ---
 
-## v1.0.0 (2026-05-18)
+## v0.10.0 (2026-05-18)
 
-> 5-Layer 아키텍처로 전면 재편. `.skill-modules/` 정책 폐지, v1.0.0 스킬 6개 승격, Graphify ETL 어댑터 추가.
+> 5-Layer 아키텍처로 전면 재편. `.skill-modules/` 정책 폐지, v0.10.0 스킬 6개 승격, Graphify ETL 어댑터 추가.
 
 ### Breaking — 스킬 구조 재편
 
 - `.skill-modules/` 디렉토리 정책 폐지 → 모든 스킬을 `skills/`로 통합
 - v0.x 스킬 7개 (`msm-data-analysis`, `msm-kb-graph`, `msm-kb-rewrite`, `msm-mece-validator`, `msm-obsidian-cli`, `msm-ralph-etl`, `msm-rdf-owl-bridge`) 제거
-- v1.0.0 스킬 6개 승격 (`msm-evidence`, `msm-harness`, `msm-maintain`, `msm-ontology`, `msm-orchestration`, `msm-repository-setup`)
+- v0.10.0 스킬 6개 승격 (`msm-evidence`, `msm-harness`, `msm-maintain`, `msm-ontology`, `msm-orchestration`, `msm-repository-setup`)
 
 ### Added — 5-Layer 아키텍처
 
 - `msm-repository-setup`: `msm init` — 5-Layer KB 디렉토리 골격 부트스트랩 (L0 score 1.0 검증 완료)
 - `msm-harness`: memory 2-tier · L0~L3 런타임 · 5-Axis 계측 (비결정성·궤적·오라클·비용·HITL)
-- `msm-orchestration` v1.0.0: 자연어 인텐트 라우팅 · CC 계약 · HITL 2층 정책 · workflow yaml 바인딩
+- `msm-orchestration` v0.10.0: 자연어 인텐트 라우팅 · CC 계약 · HITL 2층 정책 · workflow yaml 바인딩
 - `msm-evidence`: URL/MD 수집 · 청킹 · dedup · seed 등록
 - `msm-ontology`: entity·relation 생성 · MECE 검증 · Tbox/Abox 승격
 - `msm-maintain`: scan · rewrite · data-analysis

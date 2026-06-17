@@ -5,15 +5,15 @@ description: |
   MSM v0.12.1 Fat Skill — 신규 KB 프로젝트를 5-Layer 구조로 부트스트랩한다.
   canonical_root_hub.yaml, workflow 템플릿, memory/harness/docs 골격, .claude/.codex skill scaffold를 생성한다.
   v0.12.1: init 완료 시 index.yaml 자동 생성·갱신 (mso-scaffold-design v2 스키마).
-spec: planning/msm_v1.0.0/msm-repository-setup-SPEC.md
-prd: planning/msm_v1.2.0/msm_v1.2.0-PRD.md
+spec: planning/msm_v0.10.0/msm-repository-setup-SPEC.md
+prd: planning/msm_v0.12.0/msm_v0.12.0-PRD.md
 ---
 
 # msm-repository-setup (v0.12.1)
 
 ## What
 
-신규 markdown KB를 MSM v1.0.0의 5-Layer 토폴로지로 부트스트랩하는 Fat Skill.
+신규 markdown KB를 MSM v0.10.0의 5-Layer 토폴로지로 부트스트랩하는 Fat Skill.
 실제 entity/relation/instance/evidence 내용은 만들지 않는다 — 골격, 템플릿, 계약만 채운다.
 
 **v0.12.1 추가:** `init --apply` 완료 시 `index.yaml`을 자동 생성·갱신한다.
@@ -47,7 +47,7 @@ python sf_node.py validate index.yaml
 
 - "msm init", "이 KB 부트스트랩", "5-Layer 스캐폴드 생성"
 - "canonical_root_hub.yaml 만들어줘"
-- "MSM v1.0.0 repository 구조"
+- "MSM v0.10.0 repository 구조"
 - "index.yaml 자동 생성"
 
 ## Dependencies

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""msm-obsidian-projection run — DuckDB snapshot → Obsidian MD+Base (v1.2.0 skeleton)"""
+"""msm-obsidian-projection run — DuckDB snapshot → Obsidian MD+Base (v0.12.0 skeleton)"""
 import argparse, json, pathlib, sys
 from datetime import datetime
 

@@ -26,12 +26,12 @@ def _today() -> str:
 
 
 def _msm_modules(domain: str | None) -> list[dict]:
-    """MSM v1.2.0 표준 모듈 정의."""
+    """MSM v0.12.0 표준 모듈 정의."""
     return [
         {
             "id": "msm-instance",
             "path": "instance/",
-            "description": "MSM v1.2.0 — SQLite runtime DB (OLTP: ECA, 상태, 이벤트)",
+            "description": "MSM v0.12.0 — SQLite runtime DB (OLTP: ECA, 상태, 이벤트)",
             "subdirs": [
                 {"path": "schema/",    "role": "instruction",
                  "description": "DDL 정의 파일 (intel.sql 등)"},
@@ -50,7 +50,7 @@ def _msm_modules(domain: str | None) -> list[dict]:
             "id": "msm-ontology-layer",
             "path": "ontology/",
             "description": (
-                "MSM v1.2.0 — Ontology layer "
+                "MSM v0.12.0 — Ontology layer "
                 "(definition + contract + ECA kinetic)"
             ),
             "subdirs": [
@@ -78,7 +78,7 @@ def _scaffold_index(target: Path, name: str, domain: str | None) -> dict:
         "project": {
             "name":        name,
             "id":          name.lower().replace(" ", "-"),
-            "description": f"{name} KB — MSM v1.2.0 instance layer 포함.",
+            "description": f"{name} KB — MSM v0.12.0 instance layer 포함.",
             "owner":       "OWNER",
             "updated":     _today(),
             "version":     "1.0.0",

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""msm-instance eca-run — ECA 규칙 실행 엔진 (v1.2.0 skeleton)"""
+"""msm-instance eca-run — ECA 규칙 실행 엔진 (v0.12.0 skeleton)"""
 import argparse, json, pathlib, sys
 
 def main():
@@ -12,7 +12,7 @@ def main():
     target = pathlib.Path(args.target)
     row_data = json.loads(args.row)
 
-    print(f"[msm-instance eca-run] ECA rule engine (v1.2.0 skeleton)")
+    print(f"[msm-instance eca-run] ECA rule engine (v0.12.0 skeleton)")
     print(f"  target={target}")
     print(f"  table={args.table}")
     print(f"  row={row_data}")

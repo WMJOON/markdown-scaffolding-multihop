@@ -48,7 +48,7 @@ scripts/msm-instance eca-run \
   --row '{"signal_id":"s001","value":0.85}'
 
 # schema 마이그레이션
-scripts/msm-instance migrate --target ./my-kb --to v1.1 --apply
+scripts/msm-instance migrate --target ./my-kb --to v0.11 --apply
 ```
 
 ## 4. HITL 정책

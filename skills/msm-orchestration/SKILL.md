@@ -2,7 +2,7 @@
 name: msm-orchestration
 version: "0.12.0"
 description: |
-  MSM v1.0.0 정책·라우팅 레이어. 사용자 의도를 워크플로우로 라우팅하고,
+  MSM v0.10.0 정책·라우팅 레이어. 사용자 의도를 워크플로우로 라우팅하고,
   CC 계약·HITL 정책·5-axis gate를 강제한다. msm-harness의 측정값을 소비해
   gate_decision을 emit. PreToolUse hook으로 위험 동작을 차단.
 triggers:
@@ -14,10 +14,10 @@ triggers:
   - "GraphRAG"
   - "5-axis gate"
   - "HITL 정책"
-spec: planning/msm_v1.0.0/msm-orchestration-v1.0.0-SPEC.md
+spec: planning/msm_v0.10.0/msm-orchestration-v0.10.0-SPEC.md
 ---
 
-# msm-orchestration (v1.0.0)
+# msm-orchestration (v0.10.0)
 
 ## What
 
