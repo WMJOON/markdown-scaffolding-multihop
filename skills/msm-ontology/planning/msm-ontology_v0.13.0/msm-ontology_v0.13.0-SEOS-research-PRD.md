@@ -2,7 +2,7 @@
 title: SEOS — Self-Evolving Ontology System (Research PRD)
 type: Research-PRD
 skill: msm-ontology
-version: v0.14.0
+version: v0.13.0
 seos_research_version: v0.1
 prev_version: v0.13.0
 date: 2026-06-02
@@ -19,8 +19,8 @@ tags: [msm-ontology, seos, rbox, ontology-evolution, governance, ontology-pr, pr
 
 > [!abstract] 이 문서를 읽는 법 (scope)
 > - **SEOS** = 연구 우산(research umbrella, `seos v0.1`). discovery·governance·harness 등 **여러 스킬을 가로지르는** 장기 비전.
-> - **msm-ontology v0.14.0** = SEOS의 **첫 구현 증분**. 구체 대상은 **RBox 레이어 + Ontology-PR 형식화 + Role-Discovery proposal + 추론 캡처**.
-> - 따라서 본 문서는 **Part A(비전)** 와 **Part B(v0.14.0에 실제로 짓는 것)** 로 나뉜다. 월요일에 코드를 시작한다면 곧장 **Part B(§11)** 로 가면 된다.
+> - **msm-ontology v0.13.0** = SEOS의 **첫 구현 증분**. 구체 대상은 **RBox 레이어 + Ontology-PR 형식화 + Role-Discovery proposal + 추론 캡처**.
+> - 따라서 본 문서는 **Part A(비전)** 와 **Part B(v0.13.0에 실제로 짓는 것)** 로 나뉜다. 월요일에 코드를 시작한다면 곧장 **Part B(§11)** 로 가면 된다.
 
 ---
 
@@ -73,7 +73,7 @@ SEOS는 greenfield가 아니다. 각 구성요소의 **현재 증거 수준**을
 | Ontology Drift 지표 | `msm-maintain/oracle/maintain_drift_readiness` | 🟡 **구조 drift scaffold 존재**(orphan·projection·evidence coverage). SEOS **의미 drift(개념/역할 진화율)는 별개 → 확장 필요** |
 | 변경 이력·결정 | `msm-work-memory`(user-decision, agent-decision) | ✅ 존재 (PR 기록 저장소로 활용) |
 | 측정 인프라 | `msm-harness` 5-axis · oracle score | ✅ 존재 (survival/intervention 지표의 토대) |
-| RBox(역할 공리) | 부분적·흩어짐(§11) | 🔴 **v0.14.0 핵심 갭** |
+| RBox(역할 공리) | 부분적·흩어짐(§11) | 🔴 **v0.13.0 핵심 갭** |
 
 ## 5. Research Questions
 
@@ -113,7 +113,7 @@ MSO의 **HITL/HITLFE/HOTL/HOOTL** taxonomy에 매핑한다. (현재는 명명된
 
 ### Semantic Layer (느리게 변함, 인간 거버넌스 비중↑)
 - **TBox** — Concept Hierarchy, Taxonomy, Constraints → `definition` YAML + `axiom classification-rule`.
-- **RBox** — Relation Hierarchy, Property Chains, Causal Relations → **§11 (v0.14.0 신규)**.
+- **RBox** — Relation Hierarchy, Property Chains, Causal Relations → **§11 (v0.13.0 신규)**.
 
 ### Dynamic Layer (빠르게 변함, 자동화↑)
 - **ABox** — Events, Observations, Evidence, Memories, Logs → `msm-evidence`(수집) + `abox_compile` + `reason`.
@@ -164,9 +164,9 @@ GitHub PR에서 영감. **Agent가 PR을 만들고, 게이트가 dispose한다.*
 
 ---
 
-# Part B — v0.14.0 구현 증분: RBox (the Monday spine)
+# Part B — v0.13.0 구현 증분: RBox (the Monday spine)
 
-> Part A는 비전이다. **v0.14.0에 실제로 짓는 것은 RBox 레이어**다 — SEOS의 Role Discovery/진화가 올라설 토대이자, 사용자가 RBox 질문에서 도착한 지점이며, **하드 그라운딩(probe 검증)** 이 있는 유일한 부분이다.
+> Part A는 비전이다. **v0.13.0에 실제로 짓는 것은 RBox 레이어**다 — SEOS의 Role Discovery/진화가 올라설 토대이자, 사용자가 RBox 질문에서 도착한 지점이며, **하드 그라운딩(probe 검증)** 이 있는 유일한 부분이다.
 
 ## 11. RBox — Role/Property Axiom Layer
 
@@ -174,7 +174,7 @@ GitHub PR에서 영감. **Agent가 PR을 만들고, 게이트가 dispose한다.*
 > 본 §11은 RBox 공리를 `definition.yaml` annotation으로 두는 **최소 변경**을 가정했으나,
 > 구현 세션에서 **RBox를 구조적 1급(`ontology/Rbox/roles/{domain}.yaml` 전용 아티팩트)** 으로 확정했다.
 > 파이프라인(owl_postprocess 확장 · `axiom property` · graph-diff 캡처)과 AC-R1~R5는 그대로 유효하며,
-> 소스 위치·CLI·티어링·신규 AC(R6/R7)는 [[msm-ontology_v0.14.0-RBox-firstclass-SPEC]] 가 정본이다.
+> 소스 위치·CLI·티어링·신규 AC(R6/R7)는 [[msm-ontology_v0.13.0-RBox-firstclass-SPEC]] 가 정본이다.
 > 또한 "RBox=SKOS" 안은 기각(단일 OWL 층) — 근거는 SPEC §0 D-1.
 
 ### 11.1 현 상태 — owlgen 지원 경계 (probe 검증, 2026-06-02)
@@ -188,7 +188,7 @@ GitHub PR에서 영감. **Agent가 PR을 만들고, 게이트가 dispose한다.*
 
 핵심: `owl_postprocess`는 사실상 이미 RBox의 일부(Functional)를 주입한다 → **owlgen이 드롭하는 나머지 RBox 공리의 자연스러운 집**이다.
 
-### 11.2 v0.14.0 작업 항목
+### 11.2 v0.13.0 작업 항목
 
 1. **`owl_postprocess` 확장 — owlgen 드롭 RBox 공리 주입**
    - `subproperty_of` carrier/annotation → `rdfs:subPropertyOf`.
@@ -202,7 +202,7 @@ GitHub PR에서 영감. **Agent가 PR을 만들고, 게이트가 dispose한다.*
    - 해법: reasoner-agnostic **graph-diff** — asserted 그래프(rdflib) vs reason 후 `world.as_rdflib_graph()` 차집합 → 추론된 property fact 캡처.
    - 이로써 **property chain = 멀티홉 추론**(프로젝트 이름 *multihop*의 핵심)을 `inferred.jsonl`에서 실측 검증.
 
-### 11.3 v0.14.0 인수 조건 (AC)
+### 11.3 v0.13.0 인수 조건 (AC)
 
 | # | 조건 |
 |---|------|
@@ -214,13 +214,13 @@ GitHub PR에서 영감. **Agent가 PR을 만들고, 게이트가 dispose한다.*
 
 ## 12. Scope & Phasing
 
-- **v0.14.0 (즉시 구현 = Part B §11)**: RBox 저작(owl_postprocess 확장 + `axiom property`) + graph-diff 추론 캡처. **Role Discovery는 아직 사람이 `axiom property`로 작성** — 자동 propose는 다음 단계.
-- **v0.15.0+ (SEOS 본체)**: Role/Concept Discovery Agent(자동 propose) → Ontology-PR 형식화 → Governance Agent(trust/impact) → L0–L3 게이트 강제.
+- **v0.13.0 (즉시 구현 = Part B §11)**: RBox 저작(owl_postprocess 확장 + `axiom property`) + graph-diff 추론 캡처. **Role Discovery는 아직 사람이 `axiom property`로 작성** — 자동 propose는 다음 단계.
+- **v0.14.0+ (SEOS 본체)**: Role/Concept Discovery Agent(자동 propose) → Ontology-PR 형식화 → Governance Agent(trust/impact) → L0–L3 게이트 강제.
 - **연구 지평**: HOOTL(L3) emergent ontology, survival/drift 지표, Living World Model.
 
-## 13. Non-Goals (v0.14.0)
+## 13. Non-Goals (v0.13.0)
 
-- 자동 Concept/Role Discovery(에이전트 propose) — Part A 비전, v0.15.0+.
+- 자동 Concept/Role Discovery(에이전트 propose) — Part A 비전, v0.14.0+.
 - L0–L3 게이트의 완전 강제 구현 — 본 PRD는 매핑까지.
 - HOOTL 자율 진화 — 격리 규칙(§7.1)만 규정, 구현은 후속.
 - owlgen 자체 패치 — 후처리 주입으로 우회(v0.13.0 패턴 유지).

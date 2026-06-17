@@ -2,8 +2,8 @@
 title: RBox First-Class Layer — Implementation SPEC
 type: SPEC
 skill: msm-ontology
-version: v0.14.0
-parent_prd: msm-ontology_v0.14.0-SEOS-research-PRD (Part B §11)
+version: v0.13.0
+parent_prd: msm-ontology_v0.13.0-SEOS-research-PRD (Part B §11)
 prev_version: v0.13.0
 date: 2026-06-12
 status: draft
@@ -12,7 +12,7 @@ tags: [msm-ontology, rbox, role-box, owl, property-chain, graph-diff, hitl, mult
 ---
 
 > [!info] 이 문서의 위치
-> 본 SPEC은 [[msm-ontology_v0.14.0-SEOS-research-PRD]] **Part B §11(RBox)** 의 **구현 명세**다.
+> 본 SPEC은 [[msm-ontology_v0.13.0-SEOS-research-PRD]] **Part B §11(RBox)** 의 **구현 명세**다.
 > PRD는 RBox를 AC-R1~R5까지 규정했으나 **0% 구현 상태**로 남아 있었다(검증: 2026-06-12,
 > `axiom.py`=classification-rule만 / `owl_postprocess.py`=owl_characteristic만 / `reason.py`=graph-diff 부재).
 > 본 SPEC은 그 구현을 재개하되, **2026-06-12 설계 세션에서 확정된 구조 결정**(아래 §0)을 §11에 amend한다.
@@ -45,9 +45,9 @@ tags: [msm-ontology, rbox, role-box, owl, property-chain, graph-diff, hitl, mult
 - **불변 사항**: 두 안 모두 **AC-R1~R5를 동일하게 만족**한다. owl_postprocess 확장 / `axiom property` /
   graph-diff 캡처 **파이프라인은 공통**. 달라지는 건 *소스가 어디 사는가*뿐.
 
-### D-3 — 버전 = v0.14.0 (신규 v0.15.0 아님)
-- RBox는 v0.14.0 PRD Part B의 미착수분이다. v0.15.0은 PRD §12에서 **SEOS 자동 Discovery Agent
-  (auto-propose)** 로 이미 예약됨. 따라서 본 작업은 v0.14.0 RBox **구현 완료**이지 새 버전이 아니다.
+### D-3 — 버전 = v0.13.0 (신규 v0.14.0 아님)
+- RBox는 v0.13.0 PRD Part B의 미착수분이다. v0.14.0은 PRD §12에서 **SEOS 자동 Discovery Agent
+  (auto-propose)** 로 이미 예약됨. 따라서 본 작업은 v0.13.0 RBox **구현 완료**이지 새 버전이 아니다.
 
 ---
 
@@ -186,7 +186,7 @@ inferred_properties[ind] = gained 중 해당 individual 대상 fact
 | **P3** | `reason.py` graph-diff 교체 + chain 멀티홉 AC fixture + 테스트 | AC-R3, AC-R4 (multihop 실측) | ✅ **done (2026-06-12)** |
 | **P4** | `rbox validate` 게이트 + MECE 확장 + `SKILL.md`/`core.md` §7.6 문서 + 회귀 | AC-R5, AC-R7 | ✅ **done (2026-06-12)** |
 
-> [!success] P4 완료 + v0.14.0 RBox 전체 완료 (2026-06-12)
+> [!success] P4 완료 + v0.13.0 RBox 전체 완료 (2026-06-12)
 > - **`rbox validate`(AC-R7)**: G1 Abox 술어↔roles 선언 게이트, G2 status(draft 경고), G3 role MECE(label 중복/alias 충돌). violation≥1 → exit 1.
 > - **문서**: `SKILL.md`(rbox/axiom property CLI + 책임/의존성), `core.md`(§7.3 경고 **해소됨**으로 갱신 + §8 RBox 절 신설), `requirements.txt`(owlready2/ruamel 명시).
 > - **최종 회귀**: 6종 전부 PASS — test_owl_postprocess / test_abox_reasoning / test_rbox(P1) / test_rbox_axiom(P2) / test_rbox_reason(P3) / test_rbox_validate(P4).
@@ -244,11 +244,11 @@ inferred_properties[ind] = gained 중 해당 individual 대상 fact
 ---
 
 ## 6. Non-Goals
-- 자동 Role Discovery(에이전트 propose) — PRD §13, v0.15.0+.
+- 자동 Role Discovery(에이전트 propose) — PRD §13, v0.14.0+.
 - OWL→SKOS projection 생성기 — D-1 회수 경로, 필요 시점에.
 - role md projection 완성 — P1은 슬롯만, md는 후속.
 
 ## 7. References
-- 부모: [[msm-ontology_v0.14.0-SEOS-research-PRD]] Part B §11, AC-R1~R5, §14 Open Questions.
+- 부모: [[msm-ontology_v0.13.0-SEOS-research-PRD]] Part B §11, AC-R1~R5, §14 Open Questions.
 - 설계 원칙(수정 대상): `repository-test/skills/msm-ontology/references/core.md` §7.3(graph-diff 미결), §7.5(RDF=LLM/OWL=HITL).
 - 구현 기준: `axiom.py`(classification-rule 패턴), `owl_postprocess.py`(characteristic 패턴), `reason.py`(merge+inferred-delta).
