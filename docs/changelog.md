@@ -26,8 +26,8 @@
 
 ## v0.13.0 (2026-06-12)
 
-> **msm-ontology v0.14.0 RBox (Role/Property 1급 레이어) 릴리스 포함.**
-> repo minor 범프 — msm-ontology에 RBox 1급 레이어 추가. 상세는 아래 `msm-ontology v0.14.0 RBox` 엔트리.
+> **msm-ontology v0.13.0 RBox (Role/Property 1급 레이어) 릴리스 포함.**
+> repo minor 범프 — msm-ontology에 RBox 1급 레이어 추가. 상세는 아래 `msm-ontology v0.13.0 RBox` 엔트리.
 
 ### Highlight
 
@@ -37,11 +37,11 @@
 
 ---
 
-## 2026-06-12 — msm-ontology v0.14.0 RBox (Role/Property 1급 레이어)
+## 2026-06-12 — msm-ontology v0.13.0 RBox (Role/Property 1급 레이어)
 
 > **RBox(Role Box)를 1급 레이어로 추가. property chain 멀티홉 추론까지 동작.**
 > 설계 검토에서 "RBox=SKOS" 안은 기각 — OWL 단일 층으로 통일하고, 티어는 *공리 무게*로 가른다
-> (선언=LLM 제안 / 공리=HITL). SPEC: `planning/msm-ontology_v0.14.0-RBox-firstclass-SPEC.md`.
+> (선언=LLM 제안 / 공리=HITL). SPEC: `planning/msm-ontology_v0.13.0/msm-ontology_v0.13.0-RBox-firstclass-SPEC.md`.
 
 ### Added
 
@@ -61,8 +61,8 @@
 
 ## v0.12.1 (2026-05-27)
 
-> **msm-ontology v0.14.0 (SHACL `shapes-validate`) 릴리스 포함.**
-> repo 레벨 패치 — 스킬 단위 변경 1건. 상세는 아래 `msm-ontology v0.14.0` 엔트리.
+> **msm-ontology v0.12.1 (SHACL `shapes-validate`) 릴리스 포함.**
+> repo 레벨 패치 — 스킬 단위 변경 1건. 상세는 아래 `msm-ontology v0.12.1` 엔트리.
 
 ### Highlight
 
@@ -73,7 +73,7 @@
 
 ---
 
-## 2026-05-27 — msm-ontology v0.14.0
+## 2026-05-27 — msm-ontology v0.12.1
 
 > **SHACL 기반 `shapes-validate` 도입. `contract-validate` stub 폐기.**
 > 소비처 my-knowledge-base에서 Phase 2a 파일럿으로 검증된 호출 패턴을 이식.
@@ -90,7 +90,7 @@
 ### Changed
 
 - CLI: `contract-validate` → `shapes-validate` (rename)
-- `SKILL.md`: "정의 / 검증 (v0.14.0)" 섹션 갱신
+- `SKILL.md`: "정의 / 검증 (v0.12.1)" 섹션 갱신
 - KB 위치 가정: `{target}/ontology/Tbox/` → `{target}/ontology/system/semantic/` (소비처 변경 반영)
 
 ### Removed

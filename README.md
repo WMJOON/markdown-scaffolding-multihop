@@ -210,10 +210,10 @@ v1.1.1  Concept HITL · Instance 차등 자동화 정책 문서화          ✓ 
 v0.12.0  Instance Layer (SQLite+DuckDB) · ECA Kinetic · MSO 정렬  ✓ 완료
         msm-instance · msm-obsidian-projection 신규
         index.yaml 자동 생성 · workflow YAML MSO 스키마 준수
-v0.12.1  msm-ontology v0.14.0 — SHACL `shapes-validate` 도입       ✓ 완료
+v0.12.1  msm-ontology — SHACL `shapes-validate` 도입               ✓ 완료
         contract-validate stub 폐기 · pyshacl + rdflib venv
         Tbox 구조 검증 (inference=none) · my-knowledge-base 파일럿 패턴 이식
-v0.13.0  msm-ontology RBox — Role/Property 1급 레이어 (스킬 v0.14.0)  ✓ 완료
+v0.13.0  msm-ontology RBox — Role/Property 1급 레이어              ✓ 완료
         rbox add-relation/list/compile/validate · axiom property (chain/inverse/subPropertyOf)
         graph-diff 추론 캡처 → property chain 멀티홉이 inferred.jsonl 에 (이전 한계 해소)
 v0.13.1  msm-ontology PROV-O 출처 강제 레이어                          ← 현재
