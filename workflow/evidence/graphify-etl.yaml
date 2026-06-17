@@ -1,51 +1,66 @@
-version: "1.0"
-id: evidence.graphify.etl
-name: Graphify ETL — Semantic Lifting
-category: evidence
-kind: single
-tool: msm-evidence
-mode: dry-run
-status: draft
+# MSM workflow — MSO mso-workflow-design 스키마 준수(MSO 가 구조 기준).
+# 구 ETL 봉투(version/category/kind/inputs/outputs/runtime/governance)를 둘로 분리:
+#   · module + named phase(step.label/instruction/directories) = MSO 구조(무엇을·어떤 순서로)
+#   · x_msm = MSM 실행 계약(category/kind/mode/tool/inputs/outputs/runtime/governance)
+# wf_node(구조) + wf_to_ttl(SHACL/DAG) 통과. msm-harness 는 x_msm 만 소비, MSO 는 구조만 본다.
+module:
+  name: Graphify ETL — Semantic Lifting
+  id: evidence.graphify.etl
+  version: "1.0"
+  description: Graphify graph.json → MSM entity/relation 후보 (concept 노드만 통과, code 노드 제거; ontology 승격 전 evidence/graphify/ 에 보관)
+  owner: user
+  created: 2026-06-17
 
-# Graphify graph.json → MSM entity/relation candidates
-# Option A: file_type==concept 노드만 통과, code 노드 제거
-# 출력은 ontology 승격 전 evidence/graphify/ 에 보관
+graphify:
+  id: graphify
+  label: Graphify ETL
+  status: pending
+  steps:
+    - type: step
+      id: ge-s-01
+      label: graph.json → MSM 후보 추출
+      instruction: >-
+        graphify-out/graph.json 의 concept 노드(file_type==concept)만 추려
+        entity/relation 후보 jsonl 로 투영한다. LLM 재호출 없이 Graphify Step2
+        concept 노드를 재활용하며, god-node(연결도 std-dev σ=2.0 배 초과)는 컷한다.
+        실행: skills/msm-evidence/scripts/graphify_to_msm.py {graph_json}
+        --output-dir {output_dir} --sigma {sigma}
+      status: pending
+      directories:
+        - {role: input,  path: evidence/graphify}
+        - {role: output, path: evidence/graphify}
+      deliverables:
+        - evidence/graphify/entity_candidates.jsonl
+        - evidence/graphify/relation_candidates.jsonl
 
-inputs:
-  graph_json: null          # graphify-out/graph.json 경로 (필수)
-  output_dir: evidence/graphify
-  sigma: 2.0                # god node 임계치 (std-dev 배수)
-
-outputs:
-  entity_candidates: evidence/graphify/entity_candidates.jsonl
-  relation_candidates: evidence/graphify/relation_candidates.jsonl
-
-steps:
-  - id: graphify_to_msm
-    script: skills/msm-evidence/scripts/graphify_to_msm.py
-    args:
-      - "{inputs.graph_json}"
-      - "--output-dir"
-      - "{inputs.output_dir}"
-      - "--sigma"
-      - "{inputs.sigma}"
-
-runtime:
-  tier: L1
-  timeout_seconds: 120
-  max_concurrency: 1
-
-governance:
-  hitl_required: false
-  max_retry: 1
-  oracle: evidence_seed_readiness
-  oracle_threshold: 0.0     # 구조 검증만 (내용 품질은 msm-ontology 단계에서)
-  cost_budget:
-    tokens: 0               # LLM 호출 없음
-    seconds: 120
-    power_wh: null
-
-notes: |
-  - graphify_to_msm.py는 LLM 재호출 없이 동작 (Graphify Step2 concept 노드 재활용)
-  - 출력 후 msm-ontology로 entity_candidates 승격 필요
-  - hub_candidate 태그 노드는 *__hub.md 후보로 별도 검토 권장
+# ─── MSM 실행 확장(x_msm) — msm-harness 가 소비. MSO 구조 검증은 이 블록을 무시한다. ───
+x_msm:
+  category: evidence
+  kind: single
+  mode: dry-run
+  status: draft
+  tool: msm-evidence
+  inputs:
+    graph_json: null            # graphify-out/graph.json 경로 (필수, 런타임 주입)
+    output_dir: evidence/graphify
+    sigma: 2.0                  # god node 임계치 (std-dev 배수)
+  outputs:
+    entity_candidates: evidence/graphify/entity_candidates.jsonl
+    relation_candidates: evidence/graphify/relation_candidates.jsonl
+  runtime:
+    tier: L1
+    timeout_seconds: 120
+    max_concurrency: 1
+  governance:
+    hitl_required: false
+    max_retry: 1
+    oracle: evidence_seed_readiness
+    oracle_threshold: 0.0       # 구조 검증만 (내용 품질은 msm-ontology 단계에서)
+    cost_budget:
+      tokens: 0                 # LLM 호출 없음
+      seconds: 120
+      power_wh: null
+  notes: |
+    - graphify_to_msm.py는 LLM 재호출 없이 동작 (Graphify Step2 concept 노드 재활용)
+    - 출력 후 msm-ontology로 entity_candidates 승격 필요
+    - hub_candidate 태그 노드는 *__hub.md 후보로 별도 검토 권장

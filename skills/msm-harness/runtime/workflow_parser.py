@@ -2,6 +2,14 @@
 
 We avoid a pyyaml dep; the workflow yaml schema is well-defined and we only
 read a handful of fields (kind, tool, pipeline, governance.*).
+
+Two formats are supported, newest first:
+  · MSO module + x_msm — structure lives under `module:`/named phases (consumed
+    by MSO mso-workflow-design); MSM's execution contract lives under `x_msm:`
+    (category/kind/mode/tool/pipeline/governance). We read identity from
+    `module:` and execution from `x_msm:`.
+  · legacy flat ETL — every field at top level. Used by un-converted workflows.
+Reads fall back top-level so both formats parse with the same call.
 """
 
 from __future__ import annotations
@@ -15,29 +23,64 @@ def _strip_quote(s: str) -> str:
     s = s.strip()
     if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
         return s[1:-1]
-    return s
+    # unquoted scalar: drop inline comment (YAML requires whitespace before `#`;
+    # a `#` glued to text like `C#` or inside quotes is preserved)
+    return re.sub(r"\s+#.*$", "", s).strip()
+
+
+def _block(text: str, name: str) -> str:
+    """Return the dedented body of a top-level `name:` block, or "" if absent.
+
+    The header sits at column 0; the body is the following lines indented past
+    column 0, up to the next column-0 line. Dedenting by the block's minimal
+    indent lets the flat-key regexes below match block children unchanged.
+    """
+    m = re.search(rf"^{re.escape(name)}:[^\n]*\n", text, re.MULTILINE)
+    if not m:
+        return ""
+    body: list[str] = []
+    for line in text[m.end():].splitlines():
+        if line.strip() == "":
+            body.append(line)
+            continue
+        if not line[:1].isspace():
+            break  # column-0 non-blank (next key or comment) → block ended
+        body.append(line)
+    indents = [len(l) - len(l.lstrip()) for l in body if l.strip()]
+    base = min(indents) if indents else 0
+    return "\n".join(l[base:] if len(l) >= base else l for l in body)
 
 
 def parse(path: Path) -> dict[str, Any]:
     text = path.read_text(encoding="utf-8")
     out: dict[str, Any] = {"path": str(path), "raw": text}
 
-    def first(field: str) -> str | None:
-        m = re.search(rf"^{re.escape(field)}:\s*([^\n]+)\s*$", text, re.MULTILINE)
-        return _strip_quote(m.group(1)) if m else None
+    xmsm = _block(text, "x_msm")     # MSM execution contract (MSO+x_msm format)
+    module = _block(text, "module")  # MSO structural identity
 
-    out["version"] = first("version")
-    out["id"] = first("id")
-    out["category"] = first("category")
-    out["kind"] = first("kind")
-    out["mode"] = first("mode")
-    out["status"] = first("status")
-    out["tool"] = first("tool")
+    def field(name: str, *blocks: str) -> str | None:
+        """first `^name:` scalar across the given blocks, else top-level text."""
+        for b in (*blocks, text):
+            if not b:
+                continue
+            m = re.search(rf"^{re.escape(name)}:\s*([^\n]+)\s*$", b, re.MULTILINE)
+            if m:
+                return _strip_quote(m.group(1))
+        return None
 
-    # governance block: scan a few specific keys
+    out["version"] = field("version", module)
+    out["id"] = field("id", module)
+    out["category"] = field("category", xmsm)
+    out["kind"] = field("kind", xmsm)
+    out["mode"] = field("mode", xmsm)
+    out["status"] = field("status", xmsm, module)
+    out["tool"] = field("tool", xmsm)
+
+    # governance block: scan a few specific keys (x_msm.governance, else top-level)
+    gov_src = xmsm or text
     gov: dict[str, Any] = {}
     for key in ("hitl_required", "max_retry", "oracle", "oracle_threshold"):
-        m = re.search(rf"^\s+{re.escape(key)}:\s*([^\n]+)\s*$", text, re.MULTILINE)
+        m = re.search(rf"^\s+{re.escape(key)}:\s*([^\n]+)\s*$", gov_src, re.MULTILINE)
         if m:
             v = _strip_quote(m.group(1))
             if key in ("hitl_required",):
@@ -59,7 +102,7 @@ def parse(path: Path) -> dict[str, Any]:
     # cost_budget (best-effort)
     budget: dict[str, Any] = {}
     for key in ("tokens", "seconds", "power_wh"):
-        m = re.search(rf"^\s+{re.escape(key)}:\s*([^\n]+)\s*$", text, re.MULTILINE)
+        m = re.search(rf"^\s+{re.escape(key)}:\s*([^\n]+)\s*$", gov_src, re.MULTILINE)
         if m:
             v = _strip_quote(m.group(1))
             if v.lower() == "null":
@@ -72,9 +115,10 @@ def parse(path: Path) -> dict[str, Any]:
     if budget:
         out["cost_budget"] = budget
 
-    # pipeline steps
+    # pipeline steps (x_msm.pipeline in MSO+x_msm format, else top-level)
+    pipe_src = xmsm or text
     steps: list[dict[str, Any]] = []
-    m_pipe = re.search(r"^pipeline:\s*\n((?:(?:[ \t]+[^\n]*|^[ \t]*-[^\n]*)\n)+)", text, re.MULTILINE)
+    m_pipe = re.search(r"^pipeline:\s*\n((?:(?:[ \t]+[^\n]*|^[ \t]*-[^\n]*)\n)+)", pipe_src, re.MULTILINE)
     if m_pipe:
         block = m_pipe.group(1)
         cur: dict[str, Any] = {}
