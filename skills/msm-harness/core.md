@@ -64,7 +64,7 @@ orchestration이 caller에게 던지는 100번대(HITL pending=100, gate fail=10
 | `OLLAMA_HOST` 도달 가능 또는 ollama MCP 응답 | `full` |
 | 위 실패 | `fallback` |
 
-`manifest.yaml.cost_mode`에 기록. workflow yaml의 override는 무시된다.
+`manifest.yaml.cost_mode`에 기록. workflow TTL/YAML의 override는 무시된다.
 
 ## 7. Memory 2-tier
 

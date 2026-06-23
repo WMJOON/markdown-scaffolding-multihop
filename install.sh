@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# MSM v0.10.1 — install symlinks into ~/.{claude,codex,antigravity}/skills/
+# MSM v0.13.2 — install symlinks into ~/.{claude,codex,antigravity}/skills/
 # Usage:
 #   ./install.sh                Claude Code only (default)
 #   ./install.sh --codex        Codex only
@@ -14,7 +14,9 @@ MSM_SKILLS=(
   msm-orchestration
   msm-evidence
   msm-harness
+  msm-instance
   msm-maintain
+  msm-obsidian-projection
   msm-ontology
   msm-repository-setup
 )
@@ -31,7 +33,7 @@ for arg in "$@"; do
 done
 [[ ${#TARGETS[@]} -eq 0 ]] && TARGETS=(claude)
 
-echo "MSM v0.10.1 Install"
+echo "MSM v0.13.2 Install"
 echo "  Skills  : ${MSM_SKILLS[*]}"
 echo "  Targets : ${TARGETS[*]}"
 echo ""

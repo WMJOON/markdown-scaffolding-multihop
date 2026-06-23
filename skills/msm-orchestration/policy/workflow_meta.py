@@ -1,7 +1,8 @@
-"""Tiny workflow yaml reader used by orchestration policy modules.
+"""Tiny workflow metadata reader used by orchestration policy modules.
 
 Shares the same single-file approach as `msm-harness/runtime/workflow_parser.py`
-but lives in orchestration so the two skills don't import each other. Reads both
+but lives in orchestration so the two skills don't import each other. Reads TTL
+SSOT files first, and keeps YAML fallback for both
 the MSO module + x_msm format (identity under `module:`, execution under
 `x_msm:`) and the legacy flat format, falling back top-level.
 """
@@ -9,8 +10,13 @@ the MSO module + x_msm format (identity under `module:`, execution under
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 from typing import Any
+
+ROUTER_DIR = Path(__file__).resolve().parents[1] / "router"
+sys.path.insert(0, str(ROUTER_DIR))
+from workflow_ttl import parse_workflow_ttl
 
 
 def _strip_quote(s: str) -> str:
@@ -44,6 +50,9 @@ def _block(text: str, name: str) -> str:
 
 
 def read_meta(path: Path) -> dict[str, Any]:
+    if path.suffix == ".ttl":
+        return parse_workflow_ttl(path)
+
     text = path.read_text(encoding="utf-8")
     xmsm = _block(text, "x_msm")
     module = _block(text, "module")

@@ -1,7 +1,8 @@
-"""Minimal text parser for the subset of workflow yaml we consume.
+"""Minimal parser for the subset of workflow metadata we consume.
 
-We avoid a pyyaml dep; the workflow yaml schema is well-defined and we only
-read a handful of fields (kind, tool, pipeline, governance.*).
+TTL is the SSOT. YAML remains a migration/edit layer, and the YAML fallback
+keeps the old text parser because we only read a handful of fields
+(kind, tool, pipeline, governance.*).
 
 Two formats are supported, newest first:
   · MSO module + x_msm — structure lives under `module:`/named phases (consumed
@@ -17,6 +18,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 from typing import Any
+
+from workflow_ttl import parse_workflow_ttl
 
 
 def _strip_quote(s: str) -> str:
@@ -52,6 +55,9 @@ def _block(text: str, name: str) -> str:
 
 
 def parse(path: Path) -> dict[str, Any]:
+    if path.suffix == ".ttl":
+        return parse_workflow_ttl(path)
+
     text = path.read_text(encoding="utf-8")
     out: dict[str, Any] = {"path": str(path), "raw": text}
 

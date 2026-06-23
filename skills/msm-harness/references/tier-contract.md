@@ -6,9 +6,9 @@ SPEC: `msm-harness-SPEC` §6.
 
 | Tier | 이름 | 입력 | 부수효과 | 시간 budget |
 |------|------|------|----------|------------|
-| L0 | static | workflow yaml 또는 target path | read-only | ≤ 5s |
+| L0 | static | workflow TTL 또는 target path | read-only | ≤ 5s |
 | L1 | fixture | fixture yaml + deterministic inputs | scratch dir만 | ≤ 30s |
-| L2 | integration | 실 repo + workflow yaml | repo 파일 변경 가능 (mode=apply) | ≤ workflow.timeout_seconds |
+| L2 | integration | 실 repo + workflow TTL | repo 파일 변경 가능 (mode=apply) | ≤ workflow.timeout_seconds |
 | L3 | eval | run 결과 + fixture answer key | trajectory 분석, 리포트 | ≤ 5min |
 
 각 tier는 **자기 충족적**이다. L0 통과는 L1을 보장하지 않는다.

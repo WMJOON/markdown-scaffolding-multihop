@@ -18,11 +18,23 @@ SKILL_HOME = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SKILL_HOME / "router"))
 
 import _yaml_lite as yaml  # noqa: E402
+from workflow_ttl import parse_index_ttl, parse_workflow_ttl  # noqa: E402
 
 
 def check_workflow_id_uniqueness(target: Path) -> list[dict]:
     seen: Counter[str] = Counter()
     locations: dict[str, list[str]] = {}
+    for p in (target / "workflow").rglob("*.ttl"):
+        if p.name == "index.ttl":
+            continue
+        try:
+            wid = parse_workflow_ttl(p).get("id")
+        except Exception:
+            wid = None
+        if not wid:
+            continue
+        seen[wid] += 1
+        locations.setdefault(wid, []).append(str(p.relative_to(target)))
     for p in (target / "workflow").rglob("*.yaml"):
         if p.name == "index.yaml":
             continue
@@ -41,9 +53,22 @@ def check_workflow_id_uniqueness(target: Path) -> list[dict]:
 
 
 def check_registry_alignment(target: Path) -> list[dict]:
+    idx_ttl = target / "workflow" / "index.ttl"
+    if idx_ttl.exists():
+        violations: list[dict] = []
+        for wf in parse_index_ttl(idx_ttl):
+            pth = wf.get("path")
+            if not pth:
+                violations.append({"contract": "workflow_index_path", "detail": f"missing path: {wf}"})
+                continue
+            full = target / pth
+            if not full.exists():
+                violations.append({"contract": "workflow_index_path", "detail": f"missing file: {pth}"})
+        return violations
+
     idx = target / "workflow" / "index.yaml"
     if not idx.exists():
-        return [{"contract": "workflow_index_present", "detail": "workflow/index.yaml missing"}]
+        return [{"contract": "workflow_index_present", "detail": "workflow/index.ttl missing"}]
     data = yaml.load(idx)
     violations: list[dict] = []
     for wf in data.get("workflows", []) or []:

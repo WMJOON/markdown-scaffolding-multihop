@@ -24,7 +24,10 @@ pretool_block_patterns:
     proposed_action: "use msm-ontology workflow with HITL ack"
   - path_glob: "workflow/**/*.yaml"
     reason: workflow_topology_change
-    proposed_action: "edit via orchestration dispatch, not directly"
+    proposed_action: "migrate/edit through workflow TTL pipeline, not directly"
+  - path_glob: "workflow/**/*.ttl"
+    reason: workflow_topology_change
+    proposed_action: "edit via orchestration dispatch or reviewed TTL migration"
 
 # Layer-2 trigger reasons (orchestration이 자동으로 발행)
 observability_triggers:

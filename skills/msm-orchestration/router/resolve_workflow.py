@@ -1,4 +1,4 @@
-"""Resolve workflow_id → on-disk path via <repo>/workflow/index.yaml.
+"""Resolve workflow_id → on-disk path via <repo>/workflow/index.ttl.
 
 SPEC §4.2 step 4.
 """
@@ -14,9 +14,16 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
 import _yaml_lite as yaml  # noqa: E402
+from workflow_ttl import parse_index_ttl  # noqa: E402
 
 
 def resolve(target: Path, workflow_id: str) -> dict | None:
+    ttl_path = target / "workflow" / "index.ttl"
+    if ttl_path.exists():
+        for wf in parse_index_ttl(ttl_path):
+            if wf.get("id") == workflow_id:
+                return wf
+
     idx_path = target / "workflow" / "index.yaml"
     if not idx_path.exists():
         return None

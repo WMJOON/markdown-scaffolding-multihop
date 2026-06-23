@@ -70,7 +70,7 @@ def _exec_harness(target: Path, run_id: str, route: dict, mode: str | None) -> i
     elif route.get("workflow_path"):
         args = ["--workflow", route["workflow_path"]] + args
     else:
-        # Resolve workflow_id via target/workflow/index.yaml (router/intent flow).
+        # Resolve workflow_id via target/workflow/index.ttl, falling back to index.yaml.
         wf = resolve_workflow.resolve(target, route["workflow_id"])
         if wf is None:
             return 1
@@ -91,7 +91,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser(prog="msm-orchestration")
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--intent", help="natural-language intent to route")
-    g.add_argument("--workflow", help="explicit workflow yaml path (relative to target or absolute)")
+    g.add_argument("--workflow", help="explicit workflow ttl/yaml path (relative to target or absolute)")
     g.add_argument("--skill", help="explicit skill name (bypasses router)")
     p.add_argument("--target", default=".")
     p.add_argument("--mode", default=None, help="override workflow.mode (dry-run/apply/validate-only)")
@@ -140,7 +140,7 @@ def main(argv: list[str]) -> int:
         workflow_id = meta.get("id")
         category = meta.get("category")
         # Explicit --workflow path bypasses the registry lookup so ad-hoc workflow
-        # yamls that aren't in workflow/index.yaml can still be dispatched.
+        # workflows that aren't in workflow/index.ttl can still be dispatched.
         route = {"mode": "workflow", "workflow_id": workflow_id, "tier": args.tier or "L0",
                  "default_mode": meta.get("mode", "dry-run"),
                  "workflow_path": str(wf_path)}

@@ -74,7 +74,7 @@ case "$sub" in
     ;;
   ""|-h|--help)
     cat <<EOF
-msm-ontology — Ontology Manager for MSM v0.13.1
+msm-ontology — Ontology Manager for MSM v0.13.2
 
 Commands (v0.12.0):
   add                Register entity / relation / instance

@@ -12,7 +12,7 @@ spec: planning/msm_v0.10.0/msm-harness-SPEC.md
 
 ## What
 
-`harness/run.sh` 본체. workflow yaml 또는 skill 진입점을 받아 4-Tier 모델로 실행하고,
+`harness/run.sh` 본체. workflow TTL(또는 legacy YAML) 또는 skill 진입점을 받아 4-Tier 모델로 실행하고,
 모든 측정값을 `harness/trajectory/run-<id>.jsonl`에 append-only로 기록한다.
 정책 판정은 하지 않는다.
 
