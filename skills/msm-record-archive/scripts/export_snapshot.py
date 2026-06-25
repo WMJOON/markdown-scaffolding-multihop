@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""msm-instance export-snapshot — SQLite → Parquet (v0.12.0 skeleton)"""
+"""msm-record-archive export-snapshot — SQLite → Parquet (v0.12.0 skeleton)"""
 import argparse, datetime, pathlib, sqlite3, sys
 
 def main():
-    ap = argparse.ArgumentParser(description="msm-instance export-snapshot")
+    ap = argparse.ArgumentParser(description="msm-record-archive export-snapshot")
     ap.add_argument("--target", required=True)
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
 
     target = pathlib.Path(args.target)
-    db_path = target / "instance" / "runtime.db"
-    snapshots_dir = target / "instance" / "snapshots"
+    db_path = target / "record-archive" / "runtime" / "runtime.db"
+    snapshots_dir = target / "record-archive" / "snapshots"
 
     try:
         import duckdb
@@ -25,7 +25,7 @@ def main():
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     snapshot_file = snapshots_dir / f"{timestamp}.parquet"
 
-    print(f"[msm-instance export-snapshot] target={target}")
+    print(f"[msm-record-archive export-snapshot] target={target}")
     print(f"  source: {db_path}")
     print(f"  output: {snapshot_file}")
 
@@ -58,7 +58,7 @@ def main():
         conn_duckdb.execute(f"COPY (SELECT * FROM sqlite_scan('{db_path}')) TO '{snapshot_file}' (FORMAT PARQUET)")
         conn_sqlite.close()
         conn_duckdb.close()
-        print(f"[msm-instance export-snapshot] OK → {snapshot_file}")
+        print(f"[msm-record-archive export-snapshot] OK → {snapshot_file}")
     except Exception as e:
         print(f"[ERROR] 스냅샷 생성 실패: {e}", file=sys.stderr)
         sys.exit(1)

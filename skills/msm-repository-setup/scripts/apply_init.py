@@ -102,11 +102,11 @@ def maybe_register_domain(target: Path, domain: str | None, hitl_ack: bool) -> b
     entry = (
         f"  - name: {domain}\n"
         f"    label: \"{label}\"\n"
-        f"    root_hub: \"ontology/Tbox/{domain}/md/{domain}__hub.md\"\n"
+        f"    root_hub: \"ontology/explain/concept/{domain}/{domain}__class.md\"\n"
         f"    description: \"{label} ontology cluster\"\n"
         f"    status: draft\n"
         f"    owner: null\n"
-        f"    created_at: \"{today}\"\n"
+        f"    archived_at: \"{today}\"\n"
         f"    updated_at: \"{today}\"\n"
     )
     # Replace `domains: []` with a list, or append to existing list.
@@ -185,8 +185,7 @@ def apply(plan: dict, args: argparse.Namespace) -> int:
 
     # Optional skill links (delegated to repository/install.sh)
     if args.with_skill_links:
-        # parents: scripts→msm-repository-setup→skills→msm_v0.10.0→repository-test→<repo-root>
-        installer = Path(__file__).resolve().parents[5] / "repository" / "install.sh"
+        installer = Path(__file__).resolve().parents[2] / "install.sh"
         if installer.exists():
             write_trajectory(target, run_id, {"event_type": "skill_links_invoke", "installer": str(installer)})
             # Defer real execution: legacy installer touches user $HOME so we

@@ -19,7 +19,7 @@ WEIGHTS = {
     "no_unresolved_conflicts": 0.10,
 }
 
-REQUIRED_TOP_DIRS = ("ontology", "evidence", "agent-context", "memory", "harness", "docs")
+REQUIRED_TOP_DIRS = ("ontology", "evidence", "record-archive", "agent-context", "harness", "docs")
 REQUIRED_HUB_KEYS = ("version:", "locked:", "domains:", "scan:", "sync:")
 REQUIRED_SYNC = ("structural_ssot: jsonl", "projection_target: md", "auto_apply_md_to_jsonl: false")
 WORKFLOW_REQUIRED = (
@@ -58,8 +58,8 @@ def score(target: Path) -> dict:
     breakdown["workflow_templates_valid"] = wfs_ok
 
     breakdown["memory_harness_skeleton_valid"] = (
-        (target / "memory" / "task-context" / "work-log").is_dir()
-        and (target / "memory" / "ontology-index" / "index.md").exists()
+        (target / "agent-context" / "work-memory" / "worklog").is_dir()
+        and (target / "agent-context" / "work-memory" / "index.md").exists()
         and (target / "harness" / "run.sh").exists()
         and (target / "harness" / "trajectory").is_dir()
     )

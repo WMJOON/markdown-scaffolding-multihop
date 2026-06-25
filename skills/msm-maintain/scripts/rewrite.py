@@ -2,7 +2,7 @@
 """msm-maintain rewrite — apply auto_fixes from a scan plan.
 
 Only applies create_md_placeholder actions.
-Writes rewrite log to memory/task-context/troubleshooting/<run_id>__rewrite.md.
+Writes rewrite log to agent-context/work-memory/insight-record/<run_id>__rewrite.md.
 """
 
 from __future__ import annotations
@@ -96,7 +96,7 @@ def main(argv: list[str]) -> int:
     # Write rewrite log
     if args.apply:
         ts = _dt.datetime.now(tz=_dt.timezone.utc).isoformat()
-        log_dir = target / "memory" / "task-context" / "troubleshooting"
+        log_dir = target / "agent-context" / "work-memory" / "insight-record"
         log_dir.mkdir(parents=True, exist_ok=True)
         log_path = log_dir / f"{run_id}__rewrite.md"
         lines = [

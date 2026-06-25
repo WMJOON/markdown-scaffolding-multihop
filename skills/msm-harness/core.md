@@ -68,9 +68,9 @@ orchestration이 caller에게 던지는 100번대(HITL pending=100, gate fail=10
 
 ## 7. Memory 2-tier
 
-- `memory/task-context/work-log/<run_id>.md`: run 종료 시 매번 생성
-- `memory/task-context/{decision-history,troubleshooting,release-note}/`: orchestration 또는 스킬이 채움
-- `memory/ontology-index/index.md`: `ontology_index_dirty` 이벤트 발생 시 다음 idle 시점에 재계산
+- `agent-context/work-memory/worklog/<run_id>.md`: run 종료 시 매번 생성
+- `agent-context/work-memory/{auditlog,track-record,insight-record}/`: orchestration 또는 스킬이 채움
+- `agent-context/work-memory/index.md`: work-memory 인덱스
 
 ## 8. Run Context Slot 라이프사이클
 

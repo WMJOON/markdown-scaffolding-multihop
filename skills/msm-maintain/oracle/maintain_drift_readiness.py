@@ -42,10 +42,10 @@ def _load_jsonl(path: Path) -> list[dict]:
 
 
 def _discover_clusters(target: Path) -> list[str]:
-    tbox = target / "ontology" / "Tbox"
-    if not tbox.exists():
+    concept_root = target / "ontology" / "explain" / "concept"
+    if not concept_root.exists():
         return []
-    return sorted(d.name for d in tbox.iterdir() if d.is_dir())
+    return sorted(d.name for d in concept_root.iterdir() if d.is_dir())
 
 
 def evaluate(target: Path) -> dict:
@@ -54,7 +54,7 @@ def evaluate(target: Path) -> dict:
     # --- 1. drift count ---
     drift_count = 0
     for cluster in clusters:
-        for e in _load_jsonl(target / "ontology" / "Tbox" / cluster / "entities.jsonl"):
+        for e in _load_jsonl(target / "ontology" / "explain" / "concept" / cluster / "entities.jsonl"):
             mp = e.get("md_path", "")
             if mp and not (target / mp).exists():
                 drift_count += 1
@@ -62,14 +62,14 @@ def evaluate(target: Path) -> dict:
     # --- 2. orphan count ---
     all_md_refs: set[str] = set()
     for cluster in clusters:
-        for e in _load_jsonl(target / "ontology" / "Tbox" / cluster / "entities.jsonl"):
+        for e in _load_jsonl(target / "ontology" / "explain" / "concept" / cluster / "entities.jsonl"):
             mp = e.get("md_path", "")
             if mp:
                 all_md_refs.add(mp)
 
     orphan_count = 0
     for cluster in clusters:
-        md_dir = target / "ontology" / "Tbox" / cluster / "md"
+        md_dir = target / "ontology" / "explain" / "concept" / cluster
         if md_dir.exists():
             for f in md_dir.glob("*.md"):
                 if str(f.relative_to(target)) not in all_md_refs:
@@ -78,7 +78,7 @@ def evaluate(target: Path) -> dict:
     # --- 3. evidence coverage avg ---
     coverages: list[float] = []
     for cluster in clusters:
-        entities = _load_jsonl(target / "ontology" / "Tbox" / cluster / "entities.jsonl")
+        entities = _load_jsonl(target / "ontology" / "explain" / "concept" / cluster / "entities.jsonl")
         ec = len(entities)
         if ec > 0:
             with_refs = sum(1 for e in entities if e.get("source_refs"))
@@ -88,8 +88,8 @@ def evaluate(target: Path) -> dict:
     # --- 4. relation density avg ---
     densities: list[float] = []
     for cluster in clusters:
-        entities = _load_jsonl(target / "ontology" / "Tbox" / cluster / "entities.jsonl")
-        relations = _load_jsonl(target / "ontology" / "Tbox" / cluster / "relations.jsonl")
+        entities = _load_jsonl(target / "ontology" / "explain" / "concept" / cluster / "entities.jsonl")
+        relations = _load_jsonl(target / "ontology" / "explain" / "concept" / cluster / "relations.jsonl")
         ec = len(entities)
         densities.append(len(relations) / max(ec, 1))
     density_avg = sum(densities) / len(densities) if densities else 0.0

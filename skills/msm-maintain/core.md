@@ -5,9 +5,9 @@
 | 단계      | 책임                                          | 산출                                                                        |
 | ------- | ------------------------------------------- | ------------------------------------------------------------------------- |
 | SCAN    | KB 탐색 → drift/orphan/eval 탐지 → plan JSON 출력 | stdout plan JSON, `harness/trajectory/run-<id>.jsonl`                     |
-| REWRITE | plan.auto_fixes 적용 (create_md_placeholder)  | md placeholder 파일, `memory/task-context/troubleshooting/<id>__rewrite.md` |
+| REWRITE | plan.auto_fixes 적용 (create_md_placeholder)  | md placeholder 파일, `agent-context/work-memory/insight-record/<id>__rewrite.md` |
 | ANALYZE | cluster별 eval 통계 계산 → report 저장             | stdout report, `harness/reports/maintain-analysis-<id>.md`                |
-| REPORT  | trajectory 읽기 → troubleshooting 요약          | `memory/task-context/troubleshooting/<id>__report.md`                     |
+| REPORT  | trajectory 읽기 → troubleshooting 요약          | `agent-context/work-memory/insight-record/<id>__report.md`                |
 
 ## 2. CLI
 
@@ -41,7 +41,7 @@ scripts/msm-maintain report --target ./my-kb --since 2026-05-01
 | 유형 | 조건 |
 |------|------|
 | `jsonl_without_md` | entities.jsonl entry는 있는데 md_path 파일이 없음 |
-| `md_without_jsonl` | `ontology/Tbox/{c}/md/*.md`은 있는데 entities.jsonl에 entry 없음 |
+| `md_without_jsonl` | `ontology/explain/concept/{c}/*.md`은 있는데 entities.jsonl에 entry 없음 |
 | `stale_generated_block` | md의 `<!-- msm:generated:start/end -->` 블록 해시가 entity 해시와 불일치 (HITL 전용) |
 | `evidence_dangling` | source_refs의 `evidence:seed:…` id가 seeds.jsonl에 없음 |
 | `cluster_mismatch` | jsonl `cluster` 필드와 디렉토리 경로 cluster가 다름 |
@@ -50,7 +50,7 @@ scripts/msm-maintain report --target ./my-kb --since 2026-05-01
 
 | 유형 | 조건 |
 |------|------|
-| `md_orphan` | `ontology/Tbox/{c}/md/*.md`인데 어떤 jsonl도 `md_path`로 참조 안 함 |
+| `md_orphan` | `ontology/explain/concept/{c}/*.md`인데 어떤 jsonl도 `md_path`로 참조 안 함 |
 | `seed_orphan` | `evidence/md/*.md`인데 seeds.jsonl에 없음 |
 | `no_incoming_relation` | accepted+ entity인데 in/out relation 수 = 0 |
 
@@ -86,8 +86,8 @@ cluster별 통계:
 | stdout | scan plan JSON / analyze report / report text |
 | `harness/trajectory/run-<id>.jsonl` | scan 이벤트 로그 |
 | `harness/reports/maintain-analysis-<id>.md` | analyze report 저장 |
-| `memory/task-context/troubleshooting/<id>__rewrite.md` | rewrite 적용 로그 |
-| `memory/task-context/troubleshooting/<id>__report.md` | troubleshooting report |
+| `agent-context/work-memory/insight-record/<id>__rewrite.md` | rewrite 적용 로그 |
+| `agent-context/work-memory/insight-record/<id>__report.md` | troubleshooting report |
 
 ## 7. Oracle — maintain_drift_readiness
 

@@ -5,7 +5,7 @@ AC-MN-6: Static structure check — verifies required directories exist.
 Does NOT run scan (L0 = static check).
 
 Checks:
-- ontology/Tbox/ exists (may be empty)
+- ontology/explain/concept/ exists (may be empty)
 - evidence/ exists (may be empty, seeds.jsonl optional)
 - harness/ exists
 
@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 REQUIRED_DIRS = [
-    "ontology/Tbox",
+    "ontology/explain/concept",
     "evidence",
     "harness",
 ]

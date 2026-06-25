@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.13.4 (2026-06-25)
+
+> **Record Archive와 Explain projection을 canonical 스킬로 승격.**
+
+### Added
+
+- `msm-record-archive` — `record-archive/` runtime DB, events, derived records, snapshots 관리.
+- `msm-explain` — `record-archive/snapshots/` → `ontology/explain/` Markdown/Base projection.
+- `templates/` — `msm init`이 사용하는 공개 repo 루트 템플릿 복구.
+
+### Changed
+
+- `msm-instance`는 `msm-record-archive` wrapper로 전환.
+- `msm-obsidian-projection`은 `msm-explain` wrapper로 전환.
+- `msm-repository-setup` manifest/index/readiness/harness를 `ontology/system/**/*.ttl`, `ontology/explain/`, `record-archive/`, `agent-context/work-memory/` 기준으로 정렬.
+- `msm-maintain`과 `msm-orchestration`의 work-memory 출력 경로를 `agent-context/work-memory/`로 정렬.
+
+---
+
 ## v0.13.1 (2026-06-16)
 
 > **msm-ontology PROV-O 출처 강제 레이어 추가.** 근거 미상 owl:Class를 SHACL로 차단.

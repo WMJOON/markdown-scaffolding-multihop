@@ -48,10 +48,10 @@ def _load_jsonl(path: Path) -> list[dict]:
 
 
 def _discover_clusters(target: Path) -> list[str]:
-    tbox = target / "ontology" / "Tbox"
-    if not tbox.exists():
+    concept_root = target / "ontology" / "explain" / "concept"
+    if not concept_root.exists():
         return []
-    return sorted(d.name for d in tbox.iterdir() if d.is_dir())
+    return sorted(d.name for d in concept_root.iterdir() if d.is_dir())
 
 
 def _generated_block_hash(md_text: str) -> str | None:
@@ -82,9 +82,9 @@ def scan_drift(target: Path, clusters: list[str], seed_ids: set[str]) -> tuple[l
     auto_fixes: list[dict] = []
 
     for cluster in clusters:
-        entities_path = target / "ontology" / "Tbox" / cluster / "entities.jsonl"
-        relations_path = target / "ontology" / "Tbox" / cluster / "relations.jsonl"
-        md_dir = target / "ontology" / "Tbox" / cluster / "md"
+        entities_path = target / "ontology" / "explain" / "concept" / cluster / "entities.jsonl"
+        relations_path = target / "ontology" / "explain" / "concept" / cluster / "relations.jsonl"
+        md_dir = target / "ontology" / "explain" / "concept" / cluster
 
         entities = _load_jsonl(entities_path)
         relations = _load_jsonl(relations_path)
@@ -188,15 +188,15 @@ def scan_orphan(target: Path, clusters: list[str]) -> list[dict]:
     # Collect all md_path refs from all jsonl
     all_md_refs: set[str] = set()
     for cluster in clusters:
-        entities_path = target / "ontology" / "Tbox" / cluster / "entities.jsonl"
+        entities_path = target / "ontology" / "explain" / "concept" / cluster / "entities.jsonl"
         for e in _load_jsonl(entities_path):
             mp = e.get("md_path", "")
             if mp:
                 all_md_refs.add(mp)
 
-    # md_orphan: md files in Tbox/.../md/ not referenced by any jsonl
+    # md_orphan: concept md files not referenced by any jsonl
     for cluster in clusters:
-        md_dir = target / "ontology" / "Tbox" / cluster / "md"
+        md_dir = target / "ontology" / "explain" / "concept" / cluster
         if not md_dir.exists():
             continue
         for md_file in sorted(md_dir.glob("*.md")):
@@ -224,8 +224,8 @@ def scan_orphan(target: Path, clusters: list[str]) -> list[dict]:
 
     # no_incoming_relation: accepted+ entity with no in/out relations
     for cluster in clusters:
-        entities_path = target / "ontology" / "Tbox" / cluster / "entities.jsonl"
-        relations_path = target / "ontology" / "Tbox" / cluster / "relations.jsonl"
+        entities_path = target / "ontology" / "explain" / "concept" / cluster / "entities.jsonl"
+        relations_path = target / "ontology" / "explain" / "concept" / cluster / "relations.jsonl"
         entities = _load_jsonl(entities_path)
         relations = _load_jsonl(relations_path)
 
@@ -257,9 +257,9 @@ def scan_eval(target: Path, clusters: list[str]) -> list[dict]:
     """Return per-cluster eval stats."""
     results: list[dict] = []
     for cluster in sorted(clusters):
-        entities_path = target / "ontology" / "Tbox" / cluster / "entities.jsonl"
-        relations_path = target / "ontology" / "Tbox" / cluster / "relations.jsonl"
-        instances_path = target / "ontology" / "Abox" / cluster / "instances.jsonl"
+        entities_path = target / "ontology" / "explain" / "concept" / cluster / "entities.jsonl"
+        relations_path = target / "ontology" / "explain" / "concept" / cluster / "relations.jsonl"
+        instances_path = target / "ontology" / "explain" / "instance" / cluster / "instances.jsonl"
 
         entities = _load_jsonl(entities_path)
         relations = _load_jsonl(relations_path)

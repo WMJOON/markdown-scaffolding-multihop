@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# msm-explain CLI entry point (v0.13.4 skeleton)
+set -euo pipefail
+
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COMMAND="${1:-}"
+shift || true
+
+case "$COMMAND" in
+  run)  python3 "$SKILL_DIR/run.py" "$@" ;;
+  list) python3 "$SKILL_DIR/list.py" "$@" ;;
+  *)
+    echo "Usage: msm-explain <command> [options]"
+    echo "Commands: run | list"
+    exit 1
+    ;;
+esac

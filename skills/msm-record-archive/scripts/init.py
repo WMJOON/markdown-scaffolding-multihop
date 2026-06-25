@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""msm-instance init — SQLite runtime.db 초기화 (v0.12.0 skeleton)"""
+"""msm-record-archive init — SQLite runtime.db 초기화 (v0.12.0 skeleton)"""
 import argparse, pathlib, sqlite3, sys
 
 DDL = """
@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS market_signal (
     signal_id TEXT PRIMARY KEY,
     value REAL NOT NULL,
     source TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
+    archived_at TEXT DEFAULT (datetime('now'))
 );
 CREATE TABLE IF NOT EXISTS eca_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,17 +20,22 @@ CREATE TABLE IF NOT EXISTS eca_log (
 """
 
 def main():
-    ap = argparse.ArgumentParser(description="msm-instance init")
+    ap = argparse.ArgumentParser(description="msm-record-archive init")
     ap.add_argument("--target", required=True)
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
 
     target = pathlib.Path(args.target)
-    instance_dir = target / "instance"
-    db_path = instance_dir / "runtime.db"
-    snapshots_dir = instance_dir / "snapshots"
+    archive_dir = target / "record-archive"
+    runtime_dir = archive_dir / "runtime"
+    db_path = runtime_dir / "runtime.db"
+    snapshots_dir = archive_dir / "snapshots"
+    registry_dir = archive_dir / "registry"
+    events_dir = archive_dir / "events"
+    derived_dir = archive_dir / "derived"
+    schema_dir = archive_dir / "schema"
 
-    print(f"[msm-instance init] target={target}")
+    print(f"[msm-record-archive init] target={target}")
     print(f"  runtime.db  → {db_path}")
     print(f"  snapshots/  → {snapshots_dir}")
 
@@ -38,15 +43,16 @@ def main():
         print("[dry-run] --apply 없이 실행 — 파일을 생성하지 않습니다.")
         return
 
-    instance_dir.mkdir(parents=True, exist_ok=True)
-    snapshots_dir.mkdir(parents=True, exist_ok=True)
+    for path in (registry_dir, runtime_dir, events_dir, derived_dir, snapshots_dir, schema_dir):
+        path.mkdir(parents=True, exist_ok=True)
+    (registry_dir / "instance-ids.jsonl").touch(exist_ok=True)
 
     conn = sqlite3.connect(db_path)
     conn.executescript(DDL)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.commit()
     conn.close()
-    print("[msm-instance init] OK")
+    print("[msm-record-archive init] OK")
 
 if __name__ == "__main__":
     main()

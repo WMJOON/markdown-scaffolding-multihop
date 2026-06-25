@@ -19,7 +19,7 @@ KB의 무결성·일관성·관측성을 점검하고 정정 계획을 생성하
 1. **scan**: drift / orphan / inconsistency 탐지
 2. **rewrite**: md ↔ jsonl 정합 회복 계획
 3. **analysis**: cluster 통계, evidence 커버리지, status 분포
-4. **report**: 결과를 `memory/task-context/troubleshooting/` 및 `harness/reports/`에 기록
+4. **report**: 결과를 `agent-context/work-memory/insight-record/` 및 `harness/reports/`에 기록
 
 자세한 동작은 [core.md](core.md) 참조.
 

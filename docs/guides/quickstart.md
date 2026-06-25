@@ -34,8 +34,9 @@ skills/msm-repository-setup/scripts/msm init \
 #   ontology/explain/concept/ai_agent/      ← 클래스·관계 정의 (md + jsonl)
 #   ontology/explain/instance/ai_agent/      ← 인스턴스 (md + jsonl)
 #   evidence/                    ← 원본·seed
-#   workflow/                    ← yaml 정의 워크플로우
-#   memory/                      ← task-context + ontology-index
+#   record-archive/              ← runtime DB + events + snapshots
+#   agent-context/workflow/      ← workflow 정의·라우팅
+#   agent-context/work-memory/   ← 작업 기록
 #   harness/                     ← L0~L3 런타임
 ```
 
@@ -100,7 +101,7 @@ skills/msm-orchestration/msm-orchestrate run \
 
 # 명시적 workflow 호출
 skills/msm-orchestration/msm-orchestrate run \
-  --workflow workflow/evidence/evidence-collection.yaml \
+  --workflow agent-context/workflow/evidence/evidence-collection.abox.ttl \
   --target my-kb --tier L0 --mode dry-run
 ```
 

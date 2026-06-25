@@ -48,7 +48,7 @@ def _match(path: str, glob: str) -> bool:
     # `glob` can be repo-relative or anchored; we test against both raw and basename.
     if fnmatch.fnmatch(path, glob):
         return True
-    # Path globs like "ontology/Tbox/**/*.jsonl"
+    # Path globs like "ontology/explain/concept/**/*.jsonl"
     if "**" in glob:
         pattern = re.escape(glob).replace(r"\*\*", ".*").replace(r"\*", "[^/]*").replace(r"\?", ".")
         return re.search(pattern + "$", path) is not None

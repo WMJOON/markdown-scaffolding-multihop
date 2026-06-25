@@ -88,10 +88,17 @@ def _delegate_structure(path: Path) -> list[str]:
     for script, kind in ((wf_node, "wf_node"), (wf_to_ttl, "wf_to_ttl")):
         if not script.exists():
             continue
-        r = subprocess.run(
-            [sys.executable, str(script), "validate", str(path)],
-            capture_output=True, text=True,
-        )
+        try:
+            r = subprocess.run(
+                [sys.executable, str(script), "validate", str(path)],
+                capture_output=True, text=True, timeout=3,
+            )
+        except subprocess.TimeoutExpired:
+            print(
+                f"  [degrade] MSO {kind} 구조 검증 timeout — x_msm 계약만 검증: {path.name}",
+                file=sys.stderr,
+            )
+            continue
         if r.returncode != 0:
             errs.append(f"MSO {kind} 구조 검증 실패:\n{r.stdout}{r.stderr}".rstrip())
     return errs

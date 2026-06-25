@@ -18,7 +18,7 @@ from pathlib import Path
 
 _MARKER_KEY = "x_msm_generated"
 _MARKER_VALUE_PREFIX = "msm-repository-setup"
-_MSM_MODULE_IDS = {"msm-instance", "msm-ontology-layer"}
+_MSM_MODULE_IDS = {"msm-instance", "msm-record-archive", "msm-ontology-layer"}
 
 
 def _today() -> str:
@@ -26,23 +26,28 @@ def _today() -> str:
 
 
 def _msm_modules(domain: str | None) -> list[dict]:
-    """MSM v0.12.0 표준 모듈 정의."""
+    """MSM v0.13.4 표준 모듈 정의."""
     return [
         {
-            "id": "msm-instance",
-            "path": "instance/",
-            "description": "MSM v0.12.0 — SQLite runtime DB (OLTP: ECA, 상태, 이벤트)",
+            "id": "msm-record-archive",
+            "path": "record-archive/",
+            "description": "MSM v0.13.4 — record archive: SQLite runtime DB, events, derived records, snapshots",
             "subdirs": [
-                {"path": "schema/",    "role": "instruction",
-                 "description": "DDL 정의 파일 (intel.sql 등)"},
+                {"path": "registry/", "role": "data",
+                 "description": "stable instance id registry"},
+                {"path": "runtime/", "role": "runtime",
+                 "description": "SQLite runtime DB (OLTP/WAL)"},
+                {"path": "events/", "role": "data",
+                 "description": "append-only occurrence/change events"},
+                {"path": "derived/", "role": "data",
+                 "description": "materialized derived state records"},
                 {"path": "snapshots/", "role": "output",
-                 "description": "Parquet 스냅샷 (DuckDB analytics bridge)",
-                 "status": "planned"},
+                 "description": "Parquet snapshots (DuckDB analytics bridge)"},
             ],
-            "key_files": ["runtime.db"],
+            "key_files": ["registry/instance-ids.jsonl", "runtime/runtime.db"],
             "references": [
                 {"consumes": "msm-ontology-layer",
-                 "artifacts": ["contract YAML", "ECA rules"]},
+                 "artifacts": ["source_refs", "ontology/system/**/*.ttl"]},
             ],
             "status": "active",
         },
@@ -50,17 +55,20 @@ def _msm_modules(domain: str | None) -> list[dict]:
             "id": "msm-ontology-layer",
             "path": "ontology/",
             "description": (
-                "MSM v0.12.0 — Ontology layer "
-                "(definition + contract + ECA kinetic)"
+                "MSM v0.13.4 — Ontology layer "
+                "(explain Markdown + system Turtle/PROV-O graphs)"
             ),
             "subdirs": [
-                {"path": "definition/", "role": "instruction",
-                 "description": "entity/relation 타입 정의 YAML (OWL-inspired)",
-                 "status": "planned"},
-                {"path": "contract/",   "role": "instruction",
-                 "description": "유효성 검증 규칙 YAML (SHACL-inspired)"},
-                {"path": "kinetic/",    "role": "instruction",
-                 "description": "ECA rules YAML + Dynamic VIEW SQL + rule_runner.py"},
+                {"path": "explain/concept/", "role": "projection",
+                 "description": "human-readable Class projection"},
+                {"path": "explain/instance/", "role": "projection",
+                 "description": "human-readable instance snapshot projection"},
+                {"path": "system/semantic/", "role": "graph",
+                 "description": "Turtle/RDF/OWL semantic graph + PROV-O projection"},
+                {"path": "system/kinetic/", "role": "graph",
+                 "description": "Turtle transition/action rule graph"},
+                {"path": "system/dynamic/", "role": "graph",
+                 "description": "Turtle event/state/derived-value semantic graph"},
             ],
             "status": "active",
         },
@@ -78,7 +86,7 @@ def _scaffold_index(target: Path, name: str, domain: str | None) -> dict:
         "project": {
             "name":        name,
             "id":          name.lower().replace(" ", "-"),
-            "description": f"{name} KB — MSM v0.12.0 instance layer 포함.",
+            "description": f"{name} KB — MSM v0.13.4 record archive 포함.",
             "owner":       "OWNER",
             "updated":     _today(),
             "version":     "1.0.0",
@@ -152,7 +160,7 @@ def gen_or_update_index(
             yaml.dump(existing, allow_unicode=True, sort_keys=False, default_flow_style=False),
             encoding="utf-8",
         )
-    print(f"[gen_index] updated: {index_path} (MSM 모듈 {len(_MSM_MODULE_IDS)}개 병합)")
+    print(f"[gen_index] updated: {index_path} (MSM 모듈 2개 병합)")
     return "updated"
 
 

@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""msm-obsidian-projection run — DuckDB snapshot → Obsidian MD+Base (v0.12.0 skeleton)"""
+"""msm-explain run — DuckDB snapshot → explain Markdown+Base (v0.12.0 skeleton)"""
 import argparse, json, pathlib, sys
 from datetime import datetime
 
 def main():
-    ap = argparse.ArgumentParser(description="msm-obsidian-projection run")
+    ap = argparse.ArgumentParser(description="msm-explain run")
     ap.add_argument("--target", required=True)
-    ap.add_argument("--domain", default="default")
+    ap.add_argument("--domain", default="instance")
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
 
     target = pathlib.Path(args.target)
-    snapshots_dir = target / "instance" / "snapshots"
-    output_dir = target / "obsidian-projection" / args.domain
+    snapshots_dir = target / "record-archive" / "snapshots"
+    output_dir = target / "ontology" / "explain" / args.domain
 
     try:
         import duckdb
@@ -26,9 +26,9 @@ def main():
         print("jinja2 패키지가 필요합니다. pip install jinja2 를 실행해주세요.", file=sys.stderr)
         sys.exit(1)
 
-    print(f"[msm-obsidian-projection run] target={target}")
+    print(f"[msm-explain run] target={target}")
     print(f"  snapshots/ → {snapshots_dir}")
-    print(f"  output: obsidian-projection/{args.domain}/")
+    print(f"  output: ontology/explain/{args.domain}/")
 
     if not snapshots_dir.exists():
         print(f"[ERROR] snapshots/ 디렉토리가 없습니다: {snapshots_dir}", file=sys.stderr)
@@ -74,7 +74,7 @@ def main():
 title: {{ name }}
 id: {{ id }}
 tags: {{ tags | join(", ") }}
-created_at: {{ timestamp }}
+generated_at: {{ timestamp }}
 ---
 
 <!-- msm:generated -->
@@ -91,6 +91,9 @@ entity_id: {{ id }}
 
     base_entries = []
     for md_path, base_path, entity_id, entity_name, tags in files_to_create:
+        if md_path.exists() and "<!-- msm:generated -->" not in md_path.read_text(encoding="utf-8", errors="replace"):
+            print(f"[ERROR] generated marker 없는 기존 파일은 덮어쓰지 않습니다: {md_path}", file=sys.stderr)
+            sys.exit(2)
         timestamp = datetime.now().isoformat()
         content = template.render(
             name=entity_name,
@@ -99,11 +102,11 @@ entity_id: {{ id }}
             timestamp=timestamp
         )
 
-        md_path.write_text(content)
+        md_path.write_text(content, encoding="utf-8")
         base_entries.append({
             "id": entity_id,
             "title": entity_name,
-            "path": f"obsidian-projection/{args.domain}/{entity_id}.md",
+            "path": f"ontology/explain/{args.domain}/{entity_id}.md",
             "tags": tags
         })
 
@@ -115,9 +118,9 @@ entity_id: {{ id }}
     }
 
     base_index_path = output_dir / f"_manifest.base.json"
-    base_index_path.write_text(json.dumps(base_manifest, indent=2))
+    base_index_path.write_text(json.dumps(base_manifest, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    print(f"[msm-obsidian-projection run] OK → {output_dir}")
+    print(f"[msm-explain run] OK → {output_dir}")
     print(f"  - {len(base_entries)} MD 파일 생성")
     print(f"  - manifest: {base_index_path.relative_to(target)}")
 

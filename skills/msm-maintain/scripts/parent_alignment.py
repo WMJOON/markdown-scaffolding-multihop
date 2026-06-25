@@ -4,7 +4,7 @@
 v0.11.0 신규 스킬. 6가지 검증 규칙 (Rule 1~5 + Rule 3-bis 단일부모)을 read-only로 적용.
 
 Usage:
-  python3 parent_alignment.py --target REPO [--root ontology/Tbox]
+  python3 parent_alignment.py --target REPO [--root ontology/explain/concept]
                               [--output PATH] [--format json|markdown]
                               [--accept-hub-suffix]
 

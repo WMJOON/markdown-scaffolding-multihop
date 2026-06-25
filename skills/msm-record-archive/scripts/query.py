@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""msm-instance query — DuckDB parquet snapshot 분석 (v0.12.0 skeleton)"""
+"""msm-record-archive query — DuckDB parquet snapshot 분석 (v0.12.0 skeleton)"""
 import argparse, json, pathlib, sys
 
 def main():
-    ap = argparse.ArgumentParser(description="msm-instance query")
+    ap = argparse.ArgumentParser(description="msm-record-archive query")
     ap.add_argument("--target", required=True)
     ap.add_argument("--sql", required=True)
     args = ap.parse_args()
 
     target = pathlib.Path(args.target)
-    snapshots_dir = target / "instance" / "snapshots"
+    snapshots_dir = target / "record-archive" / "snapshots"
 
     try:
         import duckdb
@@ -17,7 +17,7 @@ def main():
         print("duckdb 패키지가 필요합니다. pip install duckdb 를 실행해주세요.", file=sys.stderr)
         sys.exit(1)
 
-    print(f"[msm-instance query] target={target}")
+    print(f"[msm-record-archive query] target={target}")
     print(f"  snapshots/ → {snapshots_dir}")
     print(f"  sql: {args.sql}")
 

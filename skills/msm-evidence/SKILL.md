@@ -34,7 +34,7 @@ prd: planning/msm_v0.10.0/msm_v0.10.0-PRD.md
 | CLI — list | `scripts/msm-evidence list --target REPO` |
 | CLI — graphify ETL | `scripts/graphify_to_msm.py graph.json [--output-dir OUT] [--sigma 2.0]` |
 | Harness | `harness/run.sh --skill msm-evidence --tier L0 --mode validate-only --target REPO` |
-| Workflow | `workflow/evidence/graphify-etl.yaml` |
+| Workflow | `agent-context/workflow/evidence/graphify-etl.abox.ttl` |
 
 ## Triggers
 

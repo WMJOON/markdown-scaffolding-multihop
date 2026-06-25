@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """msm-maintain report — generate troubleshooting report for a date range.
 
-Saves to memory/task-context/troubleshooting/<run_id>__report.md.
+Saves to agent-context/work-memory/insight-record/<run_id>__report.md.
 """
 
 from __future__ import annotations
@@ -111,7 +111,7 @@ def main(argv: list[str]) -> int:
     report_text = "\n".join(lines)
 
     # Save report
-    log_dir = target / "memory" / "task-context" / "troubleshooting"
+    log_dir = target / "agent-context" / "work-memory" / "insight-record"
     log_dir.mkdir(parents=True, exist_ok=True)
     log_path = log_dir / f"{run_id}__report.md"
     log_path.write_text(report_text, encoding="utf-8")

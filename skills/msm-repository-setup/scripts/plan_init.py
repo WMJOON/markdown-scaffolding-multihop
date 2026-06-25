@@ -32,8 +32,8 @@ sys.path.insert(0, str(SCRIPT_DIR))
 from manifest import Entry, build_manifest, has_marker  # noqa: E402
 
 
-REPO_ROOT_DEFAULT = SCRIPT_DIR.parents[2]  # skills/msm-repository-setup/scripts -> repo-test/msm_v0.10.0
-DEFAULT_TEMPLATES = SCRIPT_DIR.parents[2] / "templates"
+REPO_ROOT_DEFAULT = SCRIPT_DIR.parents[2]
+DEFAULT_TEMPLATES = REPO_ROOT_DEFAULT / "templates"
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

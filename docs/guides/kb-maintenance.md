@@ -45,7 +45,7 @@ skills/msm-maintain/scripts/msm-maintain report --target my-kb
    → ontology 노드 중 새 evidence를 미반영한 노드 목록
 3. msm-maintain rewrite --dry-run → 변경 사항 미리보기
 4. msm-maintain rewrite --apply → 승인된 노드만 적용
-5. memory/task-context/work-log/ 에 변경 이력 기록
+5. agent-context/work-memory/worklog/ 에 변경 이력 기록
 ```
 
 ---
@@ -78,9 +78,10 @@ skills/msm-maintain/scripts/msm-maintain report --target my-kb
 `msm-harness`가 유지보수 실행 결과를 trajectory에 기록합니다.
 
 ```
-memory/task-context/work-log/        ← 단기 작업 이력
-memory/task-context/decision-history/ ← 결정 사항
-harness/trajectory/                  ← 5-Axis 계측값
+agent-context/work-memory/worklog/       ← 단기 작업 이력
+agent-context/work-memory/auditlog/      ← 감사 로그
+agent-context/work-memory/track-record/  ← 진행·성과 기록
+harness/trajectory/                      ← 5-Axis 계측값
 ```
 
 위험도 High 변경은 `msm-orchestration`의 HITL 게이트를 통과해야 합니다.

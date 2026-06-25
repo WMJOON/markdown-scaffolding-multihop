@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-"""msm-obsidian-projection list — generated 파일 목록 (v0.12.0 skeleton)"""
+"""msm-explain list — generated 파일 목록 (v0.12.0 skeleton)"""
 import argparse, pathlib, sys
 
 def main():
-    ap = argparse.ArgumentParser(description="msm-obsidian-projection list")
+    ap = argparse.ArgumentParser(description="msm-explain list")
     ap.add_argument("--target", required=True)
     args = ap.parse_args()
 
     target = pathlib.Path(args.target)
-    projection_dir = target / "obsidian-projection"
+    projection_dir = target / "ontology" / "explain"
 
-    print(f"[msm-obsidian-projection list] target={target}")
+    print(f"[msm-explain list] target={target}")
 
     if not projection_dir.exists():
-        print(f"[WARNING] obsidian-projection/ 디렉토리가 없습니다: {projection_dir}")
+        print(f"[WARNING] ontology/explain/ 디렉토리가 없습니다: {projection_dir}")
         return
 
     domains = [d for d in projection_dir.iterdir() if d.is_dir()]

@@ -5,18 +5,28 @@
 ```text
 <repo-root>/
 ├── ontology/
-│   ├── Tbox/
-│   │   └── {cluster}/
-│   │       ├── md/{cluster}__hub.md
-│   │       ├── entities.jsonl
-│   │       └── relations.jsonl
-│   └── Abox/
-│       └── {cluster}/
-│           ├── md/
+│   ├── system/
+│   │   ├── semantic/{cluster}.ttl
+│   │   ├── kinetic/{cluster}.ttl
+│   │   └── dynamic/{cluster}.ttl
+│   └── explain/
+│       ├── concept/{cluster}/
+│       │   ├── {cluster}__class.md
+│       │   ├── entities.jsonl
+│       │   └── relations.jsonl
+│       └── instance/{cluster}/
 │           └── instances.jsonl
 ├── evidence/
 │   ├── md/
+│   ├── graphify/
 │   └── seeds.jsonl
+├── record-archive/
+│   ├── registry/instance-ids.jsonl
+│   ├── runtime/
+│   ├── events/
+│   ├── derived/
+│   ├── snapshots/
+│   └── schema/
 ├── planning/{research,ontology}/
 ├── report/paper/
 ├── docs/{index.md,guideline/}
@@ -28,9 +38,12 @@
 │       ├── ontology/ontology-construction.yaml
 │       ├── maintain/validation.yaml
 │       └── explorer/search-reason.yaml
-├── memory/
-│   ├── task-context/{work-log,decision-history,troubleshooting,release-note}/
-│   └── ontology-index/index.md
+├── agent-context/work-memory/
+│   ├── auditlog/
+│   ├── worklog/
+│   ├── track-record/
+│   ├── insight-record/
+│   └── index.md
 ├── harness/
 │   ├── run.sh
 │   ├── tiers/{L0_static,L1_fixture,L2_integration,L3_eval}/

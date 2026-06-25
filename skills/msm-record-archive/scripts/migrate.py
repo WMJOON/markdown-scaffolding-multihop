@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""msm-instance migrate — SQLite schema 마이그레이션 (v0.12.0 skeleton)"""
+"""msm-record-archive migrate — SQLite schema 마이그레이션 (v0.12.0 skeleton)"""
 import argparse, pathlib, sqlite3, sys
 
 def main():
-    ap = argparse.ArgumentParser(description="msm-instance migrate")
+    ap = argparse.ArgumentParser(description="msm-record-archive migrate")
     ap.add_argument("--target", required=True)
     ap.add_argument("--to", required=True, help="target version")
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
 
     target = pathlib.Path(args.target)
-    schema_dir = target / "instance" / "schema"
+    schema_dir = target / "record-archive" / "schema"
     migrate_file = schema_dir / f"migrate_{args.to}.sql"
-    db_path = target / "instance" / "runtime.db"
+    db_path = target / "record-archive" / "runtime" / "runtime.db"
 
-    print(f"[msm-instance migrate] target={target} to={args.to}")
+    print(f"[msm-record-archive migrate] target={target} to={args.to}")
     print(f"  migration → {migrate_file}")
 
     if not migrate_file.exists():
@@ -37,7 +37,7 @@ def main():
         conn.executescript(migration_sql)
         conn.commit()
         conn.close()
-        print("[msm-instance migrate] OK")
+        print("[msm-record-archive migrate] OK")
     except Exception as e:
         print(f"[ERROR] 마이그레이션 실패: {e}", file=sys.stderr)
         sys.exit(1)

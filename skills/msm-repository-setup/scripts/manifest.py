@@ -26,10 +26,23 @@ class Entry:
 
 BASE_DIRS: tuple[str, ...] = (
     "ontology",
-    "ontology/Tbox",
-    "ontology/Abox",
+    "ontology/system",
+    "ontology/system/semantic",
+    "ontology/system/kinetic",
+    "ontology/system/dynamic",
+    "ontology/explain",
+    "ontology/explain/concept",
+    "ontology/explain/instance",
     "evidence",
     "evidence/md",
+    "evidence/graphify",
+    "record-archive",
+    "record-archive/registry",
+    "record-archive/runtime",
+    "record-archive/events",
+    "record-archive/derived",
+    "record-archive/snapshots",
+    "record-archive/schema",
     "planning",
     "planning/research",
     "planning/ontology",
@@ -44,13 +57,11 @@ BASE_DIRS: tuple[str, ...] = (
     "agent-context/workflow/ontology",
     "agent-context/workflow/maintain",
     "agent-context/workflow/explorer",
-    "memory",
-    "memory/task-context",
-    "memory/task-context/work-log",
-    "memory/task-context/decision-history",
-    "memory/task-context/troubleshooting",
-    "memory/task-context/release-note",
-    "memory/ontology-index",
+    "agent-context/work-memory",
+    "agent-context/work-memory/auditlog",
+    "agent-context/work-memory/worklog",
+    "agent-context/work-memory/track-record",
+    "agent-context/work-memory/insight-record",
     "harness",
     "harness/tiers",
     "harness/tiers/L0_static",
@@ -106,12 +117,7 @@ BASE_FILES: tuple[Entry, ...] = (
         "yaml",
     ),
     Entry("docs/index.md", "file_template", "docs/index.md", "markdown"),
-    Entry(
-        "memory/ontology-index/index.md",
-        "file_template",
-        "memory/ontology-index/index.md",
-        "markdown",
-    ),
+    Entry("agent-context/work-memory/index.md", "file_template", "agent-context/work-memory/index.md", "markdown"),
     Entry("harness/run.sh", "file_executable", "harness/run.sh", "shell"),
     Entry(
         "harness/fixtures/repository_setup_minimal.yaml",
@@ -120,21 +126,23 @@ BASE_FILES: tuple[Entry, ...] = (
         "yaml",
     ),
     Entry("evidence/seeds.jsonl", "file_empty", None, "none"),
+    Entry("record-archive/registry/instance-ids.jsonl", "file_empty", None, "none"),
 )
 
 
 def domain_entries(cluster: str) -> tuple[Entry, ...]:
-    base = f"ontology/Tbox/{cluster}"
-    abox = f"ontology/Abox/{cluster}"
+    concept = f"ontology/explain/concept/{cluster}"
+    instance = f"ontology/explain/instance/{cluster}"
     return (
-        Entry(f"{base}", "dir"),
-        Entry(f"{base}/md", "dir"),
-        Entry(f"{abox}", "dir"),
-        Entry(f"{abox}/md", "dir"),
-        Entry(f"{base}/md/{cluster}__hub.md", "file_template", "domain_hub.md", "markdown"),
-        Entry(f"{base}/entities.jsonl", "file_empty"),
-        Entry(f"{base}/relations.jsonl", "file_empty"),
-        Entry(f"{abox}/instances.jsonl", "file_empty"),
+        Entry(concept, "dir"),
+        Entry(instance, "dir"),
+        Entry(f"{concept}/{cluster}__class.md", "file_template", "domain_hub.md", "markdown"),
+        Entry(f"{concept}/entities.jsonl", "file_empty"),
+        Entry(f"{concept}/relations.jsonl", "file_empty"),
+        Entry(f"{instance}/instances.jsonl", "file_empty"),
+        Entry(f"ontology/system/semantic/{cluster}.ttl", "file_empty"),
+        Entry(f"ontology/system/kinetic/{cluster}.ttl", "file_empty"),
+        Entry(f"ontology/system/dynamic/{cluster}.ttl", "file_empty"),
     )
 
 

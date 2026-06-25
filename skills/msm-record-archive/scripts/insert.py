@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""msm-instance insert — SQLite row 삽입 (v0.12.0 skeleton)"""
+"""msm-record-archive insert — SQLite row 삽입 (v0.12.0 skeleton)"""
 import argparse, json, pathlib, sqlite3
 
 def main():
-    ap = argparse.ArgumentParser(description="msm-instance insert")
+    ap = argparse.ArgumentParser(description="msm-record-archive insert")
     ap.add_argument("--target", required=True)
     ap.add_argument("--table", required=True)
     ap.add_argument("--data", required=True, help="JSON string")
@@ -11,13 +11,13 @@ def main():
     args = ap.parse_args()
 
     data = json.loads(args.data)
-    db_path = pathlib.Path(args.target) / "instance" / "runtime.db"
+    db_path = pathlib.Path(args.target) / "record-archive" / "runtime" / "runtime.db"
 
     cols = ", ".join(data.keys())
     placeholders = ", ".join("?" * len(data))
     sql = f"INSERT OR REPLACE INTO {args.table} ({cols}) VALUES ({placeholders})"
 
-    print(f"[msm-instance insert] table={args.table} data={data}")
+    print(f"[msm-record-archive insert] table={args.table} data={data}")
     if not args.apply:
         print("[dry-run] --apply 없이 실행 — insert하지 않습니다.")
         return
@@ -26,7 +26,7 @@ def main():
     conn.execute(sql, list(data.values()))
     conn.commit()
     conn.close()
-    print("[msm-instance insert] OK")
+    print("[msm-record-archive insert] OK")
 
 if __name__ == "__main__":
     main()

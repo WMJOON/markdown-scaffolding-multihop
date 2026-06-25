@@ -6,8 +6,8 @@ SPEC: `msm-harness-SPEC` §4.
 
 | Tier | 경로 | 수명 | 쓰기 주체 |
 |------|------|------|----------|
-| task-context | `memory/task-context/` | 단기 (실행/세션) | run 종료 시 harness가 요약 |
-| workspace-index | `memory/ontology-index/` | 영구 | drift 발생 시 harness가 재계산 |
+| worklog | `agent-context/work-memory/worklog/` | 단기 (실행/세션) | run 종료 시 harness가 요약 |
+| audit/index | `agent-context/work-memory/{auditlog,index.md}` | 영구 | orchestration/harness가 갱신 |
 
 `user-memory`는 MSM 범위 밖.
 
@@ -15,10 +15,10 @@ SPEC: `msm-harness-SPEC` §4.
 
 | 디렉토리 | 내용 | 파일명 |
 |----------|------|--------|
-| `work-log/` | 매 run의 요약 | `<run_id>.md` |
-| `decision-history/` | HITL 응답·옵션 선택 | `<run_id>__<topic>.md` |
-| `troubleshooting/` | L2/L3 실패·오라클 위반 | `<run_id>__<issue>.md` |
-| `release-note/` | 사용자 보고 가능 변경 | `<date>__<topic>.md` |
+| `worklog/` | 매 run의 요약 | `<run_id>.md` |
+| `auditlog/` | HITL 응답·옵션 선택·감사 이벤트 | `<run_id>__<topic>.md` |
+| `track-record/` | 진행·성과 기록 | `<date>__<topic>.md` |
+| `insight-record/` | L2/L3 실패·오라클 위반에서 얻은 인사이트 | `<run_id>__<issue>.md` |
 
 ## work-log 포맷 (harness 기본)
 
@@ -55,7 +55,7 @@ finished_at: 2026-05-18T12:00:08Z
 
 | 항목 | 보존 |
 |------|------|
-| work-log, decision-history, troubleshooting, release-note | 무기한 |
-| ontology-index | 항상 최신 (덮어쓰기) |
+| worklog, auditlog, track-record, insight-record | 무기한 |
+| index.md | 항상 최신 (덮어쓰기) |
 | `.msm-context/active/<run_id>/` | run 종료 후 7일, 이후 archive |
 | `.msm-context/archive/` | 30일, 이후 GC |

@@ -1,22 +1,22 @@
 ---
 name: msm-repository-setup
-version: "0.12.0"
+version: "0.13.4"
 description: |
-  MSM v0.12.1 Fat Skill — 신규 KB 프로젝트를 5-Layer 구조로 부트스트랩한다.
-  canonical_root_hub.yaml, workflow 템플릿, memory/harness/docs 골격, .claude/.codex skill scaffold를 생성한다.
-  v0.12.1: init 완료 시 index.yaml 자동 생성·갱신 (mso-scaffold-design v2 스키마).
+  MSM v0.13.4 Fat Skill — 신규 KB 프로젝트를 5-Layer 구조로 부트스트랩한다.
+  canonical_root_hub.yaml, ontology/system TTL, ontology/explain MD, evidence, record-archive,
+  agent-context/workflow, agent-context/work-memory, harness/docs 골격을 생성한다.
 spec: planning/msm_v0.10.0/msm-repository-setup-SPEC.md
 prd: planning/msm_v0.12.0/msm_v0.12.0-PRD.md
 ---
 
-# msm-repository-setup (v0.12.1)
+# msm-repository-setup (v0.13.4)
 
 ## What
 
-신규 markdown KB를 MSM v0.10.0의 5-Layer 토폴로지로 부트스트랩하는 Fat Skill.
+신규 markdown KB를 MSM v0.13.4의 5-Layer 토폴로지로 부트스트랩하는 Fat Skill.
 실제 entity/relation/instance/evidence 내용은 만들지 않는다 — 골격, 템플릿, 계약만 채운다.
 
-**v0.12.1 추가:** `init --apply` 완료 시 `index.yaml`을 자동 생성·갱신한다.
+`init --apply` 완료 시 `index.yaml`을 자동 생성·갱신한다.
 
 자세한 동작은 [core.md](core.md) 참조.
 
@@ -28,14 +28,14 @@ prd: planning/msm_v0.12.0/msm_v0.12.0-PRD.md
 | index.yaml 단독 생성 | `python scripts/gen_index.py --target PATH [--name NAME] [--domain DOMAIN]` |
 | Harness | `harness/run.sh --skill msm-repository-setup --tier L0 --mode validate-only --target PATH` |
 
-## index.yaml 자동 생성 규칙 (v0.12.1)
+## index.yaml 자동 생성 규칙
 
 `apply_init.py`가 init 완료 후 `gen_index.py`를 호출한다.
 
 | 상태 | 동작 |
 |------|------|
 | `index.yaml` 없음 | MSM 표준 모듈 포함 신규 생성 |
-| `index.yaml` 있음 + `x_msm_generated` 마커 | MSM 모듈(`msm-instance`, `msm-ontology-layer`) 병합, 기존 모듈 보존 |
+| `index.yaml` 있음 + `x_msm_generated` 마커 | MSM 모듈(`msm-record-archive`, `msm-ontology-layer`) 병합, 기존 모듈 보존 |
 | `index.yaml` 있음 + 마커 없음 | skip (사용자 관리 파일 — HITL 정책 준수) |
 
 생성된 `index.yaml`은 `sf_node.py validate`로 자동 검증 가능:
@@ -47,7 +47,7 @@ python sf_node.py validate index.yaml
 
 - "msm init", "이 KB 부트스트랩", "5-Layer 스캐폴드 생성"
 - "canonical_root_hub.yaml 만들어줘"
-- "MSM v0.10.0 repository 구조"
+- "MSM v0.13.4 repository 구조"
 - "index.yaml 자동 생성"
 
 ## Dependencies

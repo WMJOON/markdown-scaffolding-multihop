@@ -7,10 +7,34 @@ locked: true
 
 domains: []
 
+system:
+  semantic: ontology/system/semantic/**/*.ttl
+  kinetic: ontology/system/kinetic/**/*.ttl
+  dynamic: ontology/system/dynamic/**/*.ttl
+
+record_archive:
+  registry: record-archive/registry/**/*.jsonl
+  runtime: record-archive/runtime/runtime.db
+  events: record-archive/events/**/*.jsonl
+  derived: record-archive/derived/**/*.jsonl
+  snapshots: record-archive/snapshots/**/*.parquet
+
+time_axes:
+  source_time: published_at
+  observation_time: observed_at
+  capture_time: captured_at
+  archive_time: archived_at
+  domain_time: valid_at
+  derivation_time: derived_at
+
+provenance:
+  source_registry: evidence/seeds.jsonl
+  prov_graph: ontology/system/semantic/**/*.prov.ttl
+  prov_shapes: ontology/system/semantic/**/*.prov.shapes.ttl
+
 scan:
   include:
-    - "ontology/Tbox/**/*.md"
-    - "ontology/Abox/**/*.md"
+    - "ontology/explain/**/*.md"
   exclude:
     - "ontology/**/_*.md"
     - "ontology/**/.*/**"

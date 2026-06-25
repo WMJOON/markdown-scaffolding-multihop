@@ -45,18 +45,18 @@ def _load_jsonl(path: Path) -> list[dict]:
 
 
 def _discover_clusters(target: Path) -> list[str]:
-    tbox = target / "ontology" / "Tbox"
-    if not tbox.exists():
+    concept_root = target / "ontology" / "explain" / "concept"
+    if not concept_root.exists():
         return []
-    return sorted(d.name for d in tbox.iterdir() if d.is_dir())
+    return sorted(d.name for d in concept_root.iterdir() if d.is_dir())
 
 
 def compute_eval(target: Path, clusters: list[str]) -> list[dict]:
     results: list[dict] = []
     for cluster in sorted(clusters):
-        entities = _load_jsonl(target / "ontology" / "Tbox" / cluster / "entities.jsonl")
-        relations = _load_jsonl(target / "ontology" / "Tbox" / cluster / "relations.jsonl")
-        instances = _load_jsonl(target / "ontology" / "Abox" / cluster / "instances.jsonl")
+        entities = _load_jsonl(target / "ontology" / "explain" / "concept" / cluster / "entities.jsonl")
+        relations = _load_jsonl(target / "ontology" / "explain" / "concept" / cluster / "relations.jsonl")
+        instances = _load_jsonl(target / "ontology" / "explain" / "instance" / cluster / "instances.jsonl")
 
         status_dist: dict[str, int] = {}
         for e in entities:
@@ -81,16 +81,16 @@ def compute_eval(target: Path, clusters: list[str]) -> list[dict]:
 
 
 def count_orphan_md(target: Path, clusters: list[str]) -> int:
-    """Count md files in Tbox not referenced by any jsonl."""
+    """Count concept Markdown files not referenced by any jsonl."""
     all_md_refs: set[str] = set()
     for cluster in clusters:
-        for e in _load_jsonl(target / "ontology" / "Tbox" / cluster / "entities.jsonl"):
+        for e in _load_jsonl(target / "ontology" / "explain" / "concept" / cluster / "entities.jsonl"):
             mp = e.get("md_path", "")
             if mp:
                 all_md_refs.add(mp)
     orphans = 0
     for cluster in clusters:
-        md_dir = target / "ontology" / "Tbox" / cluster / "md"
+        md_dir = target / "ontology" / "explain" / "concept" / cluster
         if md_dir.exists():
             for f in md_dir.glob("*.md"):
                 if str(f.relative_to(target)) not in all_md_refs:
@@ -102,7 +102,7 @@ def count_drift(target: Path, clusters: list[str], seed_ids: set[str]) -> int:
     """Quick drift count without full scan module import."""
     count = 0
     for cluster in clusters:
-        entities = _load_jsonl(target / "ontology" / "Tbox" / cluster / "entities.jsonl")
+        entities = _load_jsonl(target / "ontology" / "explain" / "concept" / cluster / "entities.jsonl")
         for e in entities:
             mp = e.get("md_path", "")
             if mp and not (target / mp).exists():

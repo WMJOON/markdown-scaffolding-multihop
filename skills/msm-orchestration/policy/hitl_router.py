@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """HITL ack router.
 
-Persists user ack into memory/task-context/decision-history/ and emits a
+Persists user ack into agent-context/work-memory/auditlog/ and emits a
 `hitl_ack` event into the orchestration mirror trajectory.
 
 SPEC §7.3, §7.4, AC-ORCH-10.
@@ -23,7 +23,7 @@ import mirror_writer as mw  # noqa: E402
 def ack(target: Path, run_id: str, topic: str, decided_by: str, outcome: str,
         notes: str | None = None) -> Path:
     decided_at = _dt.datetime.now(tz=_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    dir_ = target / "memory" / "task-context" / "decision-history"
+    dir_ = target / "agent-context" / "work-memory" / "auditlog"
     dir_.mkdir(parents=True, exist_ok=True)
     out = dir_ / f"{run_id}__{topic}.md"
     body = (
