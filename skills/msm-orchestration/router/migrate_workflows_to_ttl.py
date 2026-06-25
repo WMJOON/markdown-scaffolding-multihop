@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Migrate MSM workflow YAML files to TTL SSOT.
+"""Migrate MSM workflow YAML files to TTL ABox SSOT.
 
-YAML remains a migration/edit layer. Runtime code prefers ``workflow/index.ttl``
-and explicit ``*.ttl`` workflow files when present.
+YAML remains a migration/edit layer. Runtime code prefers
+``agent-context/workflow/index.ttl`` and explicit ``*.abox.ttl`` workflow files
+when present. Legacy ``workflow/`` roots are still accepted as migration input.
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ DEFAULT_PATTERNS = ("*.yaml", "*.yml")
 
 
 def _ttl_path(yaml_path: Path) -> Path:
-    return yaml_path.with_suffix(".ttl")
+    return yaml_path.with_suffix(".abox.ttl")
 
 
 def _load_yaml(path: Path) -> dict:
@@ -49,7 +50,7 @@ def _rewrite_index_paths(index_doc: dict, workflow_root: Path) -> list[dict]:
         item = dict(wf)
         path = item.get("path")
         if isinstance(path, str) and path.endswith((".yaml", ".yml")):
-            item["path"] = str(Path(path).with_suffix(".ttl"))
+            item["path"] = str(Path(path).with_suffix(".abox.ttl"))
         workflows.append(item)
     return workflows
 

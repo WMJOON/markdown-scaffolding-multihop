@@ -1,0 +1,7 @@
+schema_version: "1.0"
+name: "MSM Skill Repository Workflows"
+workflows:
+  - id: graphify-etl
+    path: agent-context/workflow/evidence/graphify-etl.yaml
+    category: evidence
+    kind: single

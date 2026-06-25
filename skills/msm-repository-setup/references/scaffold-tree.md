@@ -20,12 +20,14 @@
 ├── planning/{research,ontology}/
 ├── report/paper/
 ├── docs/{index.md,guideline/}
-├── workflow/
-│   ├── index.yaml
-│   ├── evidence/evidence-collection.yaml
-│   ├── ontology/ontology-construction.yaml
-│   ├── maintain/validation.yaml
-│   └── explorer/search-reason.yaml
+├── agent-context/
+│   ├── index/index.yaml
+│   └── workflow/
+│       ├── index.yaml
+│       ├── evidence/evidence-collection.yaml
+│       ├── ontology/ontology-construction.yaml
+│       ├── maintain/validation.yaml
+│       └── explorer/search-reason.yaml
 ├── memory/
 │   ├── task-context/{work-log,decision-history,troubleshooting,release-note}/
 │   └── ontology-index/index.md

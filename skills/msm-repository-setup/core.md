@@ -72,7 +72,7 @@ Gate: `>=0.85 pass`, `0.70~0.85 warn`, `<0.70 fail`.
 | 경로 | 내용 |
 |------|------|
 | `<target>/canonical_root_hub.yaml` | locked SSOT |
-| `<target>/workflow/{index.yaml,evidence/,ontology/,maintain/,explorer/}` | workflow yaml |
+| `<target>/agent-context/workflow/{index.yaml,evidence/,ontology/,maintain/,explorer/}` | MSO canonical workflow yaml migration layer |
 | `<target>/memory/{task-context/*, ontology-index/index.md}` | 2-tier 메모리 |
 | `<target>/harness/{run.sh, tiers/, trajectory/}` | 하네스 stub |
 | `<target>/docs/index.md` | 사람용 진입점 |

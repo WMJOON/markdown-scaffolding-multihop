@@ -1,4 +1,4 @@
-"""Resolve workflow_id → on-disk path via <repo>/workflow/index.ttl.
+"""Resolve workflow_id → on-disk path via MSO canonical workflow index.
 
 SPEC §4.2 step 4.
 """
@@ -18,19 +18,22 @@ from workflow_ttl import parse_index_ttl  # noqa: E402
 
 
 def resolve(target: Path, workflow_id: str) -> dict | None:
-    ttl_path = target / "workflow" / "index.ttl"
-    if ttl_path.exists():
-        for wf in parse_index_ttl(ttl_path):
+    roots = (target / "agent-context" / "workflow", target / "workflow")
+    for root in roots:
+        ttl_path = root / "index.ttl"
+        if ttl_path.exists():
+            for wf in parse_index_ttl(ttl_path):
+                if wf.get("id") == workflow_id:
+                    return wf
+
+    for root in roots:
+        idx_path = root / "index.yaml"
+        if not idx_path.exists():
+            continue
+        data = yaml.load(idx_path)
+        for wf in data.get("workflows", []) or []:
             if wf.get("id") == workflow_id:
                 return wf
-
-    idx_path = target / "workflow" / "index.yaml"
-    if not idx_path.exists():
-        return None
-    data = yaml.load(idx_path)
-    for wf in data.get("workflows", []) or []:
-        if wf.get("id") == workflow_id:
-            return wf
     return None
 
 

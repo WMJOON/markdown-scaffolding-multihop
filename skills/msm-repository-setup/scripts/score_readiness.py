@@ -19,7 +19,7 @@ WEIGHTS = {
     "no_unresolved_conflicts": 0.10,
 }
 
-REQUIRED_TOP_DIRS = ("ontology", "evidence", "workflow", "memory", "harness", "docs")
+REQUIRED_TOP_DIRS = ("ontology", "evidence", "agent-context", "memory", "harness", "docs")
 REQUIRED_HUB_KEYS = ("version:", "locked:", "domains:", "scan:", "sync:")
 REQUIRED_SYNC = ("structural_ssot: jsonl", "projection_target: md", "auto_apply_md_to_jsonl: false")
 WORKFLOW_REQUIRED = (
@@ -47,10 +47,11 @@ def score(target: Path) -> dict:
         hub_ok = all(k in text for k in REQUIRED_HUB_KEYS) and all(s in text for s in REQUIRED_SYNC)
     breakdown["canonical_hub_valid"] = hub_ok
 
-    index = target / "workflow" / "index.yaml"
+    workflow_root = target / "agent-context" / "workflow"
+    index = workflow_root / "index.yaml"
     wfs_ok = index.exists() and "workflows:" in index.read_text(encoding="utf-8")
     if wfs_ok:
-        for sub in (target / "workflow").rglob("*.yaml"):
+        for sub in workflow_root.rglob("*.yaml"):
             if sub.name == "index.yaml":
                 continue
             wfs_ok = wfs_ok and all(k in sub.read_text(encoding="utf-8") for k in WORKFLOW_REQUIRED)

@@ -26,7 +26,7 @@
 router/dispatch.py --intent "evidence 수집" --target REPO
 
 # 직접 workflow 호출
-router/dispatch.py --workflow workflow/evidence/evidence-collection.yaml --target REPO
+router/dispatch.py --workflow agent-context/workflow/evidence/evidence-collection.abox.ttl --target REPO
 
 # harness가 남긴 measurement 소비 → gate_decision 기록
 policy/gate_evaluator.py --target REPO --run-id RUN_ID

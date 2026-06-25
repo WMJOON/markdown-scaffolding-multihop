@@ -158,6 +158,11 @@ def check_workflow(path: Path) -> list[str]:
     return check_workflow_flat(path, text)
 
 
+def _workflow_root(target: Path) -> Path:
+    canonical = target / "agent-context" / "workflow"
+    return canonical if canonical.exists() else target / "workflow"
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--target", required=True)
@@ -178,19 +183,20 @@ def main() -> int:
         print(f"OK: {single}")
         return 0
 
-    index = target / "workflow" / "index.yaml"
+    workflow_root = _workflow_root(target)
+    index = workflow_root / "index.yaml"
     if not index.exists():
-        print("FAIL: workflow/index.yaml not found", file=sys.stderr)
+        print("FAIL: agent-context/workflow/index.yaml not found", file=sys.stderr)
         return 1
     idx_text = index.read_text(encoding="utf-8")
     for k in INDEX_REQUIRED_KEYS:
         if k not in idx_text:
-            print(f"FAIL: workflow/index.yaml missing {k}", file=sys.stderr)
+            print(f"FAIL: {index.relative_to(target)} missing {k}", file=sys.stderr)
             return 1
 
-    yamls = [p for p in (target / "workflow").rglob("*.yaml") if p.name != "index.yaml"]
+    yamls = [p for p in workflow_root.rglob("*.yaml") if p.name != "index.yaml"]
     if not yamls:
-        print("FAIL: no workflow yaml under workflow/", file=sys.stderr)
+        print(f"FAIL: no workflow yaml under {workflow_root.relative_to(target)}/", file=sys.stderr)
         return 1
     total_errs = 0
     for p in yamls:

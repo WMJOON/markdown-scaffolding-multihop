@@ -70,7 +70,8 @@ def _exec_harness(target: Path, run_id: str, route: dict, mode: str | None) -> i
     elif route.get("workflow_path"):
         args = ["--workflow", route["workflow_path"]] + args
     else:
-        # Resolve workflow_id via target/workflow/index.ttl, falling back to index.yaml.
+        # Resolve workflow_id via target/agent-context/workflow/index.ttl,
+        # falling back to legacy target/workflow/index.{ttl,yaml}.
         wf = resolve_workflow.resolve(target, route["workflow_id"])
         if wf is None:
             return 1
@@ -140,7 +141,7 @@ def main(argv: list[str]) -> int:
         workflow_id = meta.get("id")
         category = meta.get("category")
         # Explicit --workflow path bypasses the registry lookup so ad-hoc workflow
-        # workflows that aren't in workflow/index.ttl can still be dispatched.
+        # workflows that aren't in the workflow registry can still be dispatched.
         route = {"mode": "workflow", "workflow_id": workflow_id, "tier": args.tier or "L0",
                  "default_mode": meta.get("mode", "dry-run"),
                  "workflow_path": str(wf_path)}

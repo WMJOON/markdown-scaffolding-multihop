@@ -29,7 +29,7 @@ _MSO_SCRIPTS = (
     _MONOREPO
     / "00_multi-swarm-orchestrator/repository/skills/mso-workflow-design/scripts"
 )
-_WF_DIR = _REPO / "workflow"
+_WF_DIR = _REPO / "agent-context" / "workflow"
 
 
 def _workflow_yamls() -> list[Path]:
