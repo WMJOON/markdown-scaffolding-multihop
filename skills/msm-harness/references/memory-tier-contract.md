@@ -6,7 +6,7 @@ SPEC: `msm-harness-SPEC` §4.
 
 | Tier | 경로 | 수명 | 쓰기 주체 |
 |------|------|------|----------|
-| worklog | `agent-context/work-memory/worklog/` | 단기 (실행/세션) | run 종료 시 harness가 요약 |
+| worklog | `agent-context/work-memory/worklog/` | workflow rail 실행 기록 | workflow TTL node/run context가 명시된 writer |
 | audit/index | `agent-context/work-memory/{auditlog,index.md}` | 영구 | orchestration/harness가 갱신 |
 
 `user-memory`는 MSM 범위 밖.
@@ -15,17 +15,18 @@ SPEC: `msm-harness-SPEC` §4.
 
 | 디렉토리 | 내용 | 파일명 |
 |----------|------|--------|
-| `worklog/` | 매 run의 요약 | `<run_id>.md` |
+| `worklog/` | workflow TTL node 실행 기록 | `<run_id>.md` 또는 `<node_id>.md` |
 | `auditlog/` | HITL 응답·옵션 선택·감사 이벤트 | `<run_id>__<topic>.md` |
-| `track-record/` | 진행·성과 기록 | `<date>__<topic>.md` |
+| `track-record/` | workflow rail 밖의 진행·판단·이슈 기록 | `<date>__<topic>.md` |
 | `insight-record/` | L2/L3 실패·오라클 위반에서 얻은 인사이트 | `<run_id>__<issue>.md` |
 
-## work-log 포맷 (harness 기본)
+## work-log 포맷 (workflow node 실행 기록)
 
 ```markdown
 ---
 run_id: 20260518T120000Z
 workflow_id: evidence.collection.default
+workflow_node: evidence.collect
 skill: msm-evidence
 tier: L0
 mode: dry-run
@@ -50,6 +51,10 @@ finished_at: 2026-05-18T12:00:08Z
 - evidence/seeds.jsonl: +12 appended
 - evidence/md/: 2 created
 ```
+
+workflow_id 또는 workflow_node를 특정할 수 없는 run은 worklog를 만들지 않는다. 그런 실행은
+`harness/trajectory/run-<id>.jsonl`에 계측 이벤트로 남기고, 의미 있는 판단은 `track-record/` 또는
+`insight-record/` 후보로 기록한다.
 
 ## 보존 정책
 

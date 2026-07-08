@@ -4,5 +4,8 @@
     msmwf:workflowEntry [ msmwf:category "evidence" ;
             msmwf:id "graphify-etl" ;
             msmwf:kind "single" ;
-            msmwf:path "agent-context/workflow/evidence/graphify-etl.abox.ttl" ] .
-
+            msmwf:path "agent-context/workflow/evidence/graphify-etl.abox.ttl" ],
+        [ msmwf:category "explorer" ;
+            msmwf:id "semantic-link" ;
+            msmwf:kind "pipeline" ;
+            msmwf:path "agent-context/workflow/explorer/semantic-link.abox.ttl" ] .

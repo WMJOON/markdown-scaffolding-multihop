@@ -65,9 +65,9 @@ skills/msm-evidence/scripts/msm-evidence collect \
 
 ---
 
-## Workflow C — Graphify ETL
+## Workflow C — Graphify ELT
 
-코드베이스를 KB evidence로 수집합니다.
+코드베이스 graph를 KB evidence 후보로 적재합니다. workflow 파일명 `graphify-etl`은 기존 호환을 위해 유지하지만, 운영 모델은 Load 후 검증·승격하는 ELT입니다.
 
 ```bash
 # agent-context/workflow/evidence/graphify-etl.abox.ttl 소비

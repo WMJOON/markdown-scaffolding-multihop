@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Any
 
 MSMWF_URI = "https://msm.dev/ontology/workflow#"
+WFOPS_URI = "https://wmjoon.kb/ontology/workflow-ops#"
+MSOWF_URI = "https://mso.dev/ontology/workflow#"
 
 
 def _safe(value: str) -> str:
@@ -27,6 +29,140 @@ def _require_rdflib():
 
 def _scalar(value: Any) -> bool:
     return isinstance(value, (str, int, float, bool)) or value is None
+
+
+def _local_name(value: Any) -> str:
+    text = str(value)
+    if "#" in text:
+        return text.rsplit("#", 1)[1]
+    return text.rstrip("/").rsplit("/", 1)[-1]
+
+
+def _object_value(g: Any, subj: Any, namespace: Any, pred: str) -> Any:
+    vals = list(g.objects(subj, namespace[pred]))
+    return vals[0].toPython() if vals else None
+
+
+def _sort_wfops_steps(g: Any, steps: list[Any], namespace: Any) -> list[Any]:
+    remaining = set(steps)
+    ordered: list[Any] = []
+    step_set = set(steps)
+    while remaining:
+        ready = []
+        for step in remaining:
+            deps = set(g.objects(step, namespace.precededBy))
+            if not deps.intersection(remaining):
+                ready.append(step)
+        if not ready:
+            ordered.extend(sorted(remaining, key=_local_name))
+            break
+        for step in sorted(ready, key=_local_name):
+            ordered.append(step)
+            remaining.remove(step)
+    return [step for step in ordered if step in step_set]
+
+
+def _parse_wfops_ttl(path: Path, g: Any, Graph: Any, Namespace: Any, RDF: Any) -> dict[str, Any] | None:
+    WFO = Namespace(WFOPS_URI)
+    workflow_subjects = list(g.subjects(RDF.type, WFO.Pipeline))
+    workflow_subjects += [s for s in g.subjects(RDF.type, WFO.Workflow) if s not in workflow_subjects]
+    if not workflow_subjects:
+        return None
+    subj = workflow_subjects[0]
+    is_pipeline = (subj, RDF.type, WFO.Pipeline) in g
+    category = _object_value(g, subj, WFO, "category")
+    runtime_tier = _object_value(g, subj, WFO, "runtimeTier")
+    out: dict[str, Any] = {
+        "path": str(path),
+        "raw": path.read_text(encoding="utf-8"),
+        "id": _local_name(subj).removeprefix("workflow/"),
+        "version": None,
+        "category": category,
+        "kind": "pipeline" if is_pipeline else "workflow",
+        "mode": None,
+        "status": None,
+        "tool": None,
+        "governance": {},
+        "pipeline": [],
+    }
+    if runtime_tier is not None:
+        out["runtime_tier"] = runtime_tier
+
+    for gate in g.subjects(RDF.type, WFO.Gate):
+        if not _local_name(gate).startswith(out["id"]):
+            continue
+        oracle_threshold = _object_value(g, gate, WFO, "oracleThreshold")
+        judge = _object_value(g, gate, WFO, "judge")
+        if oracle_threshold is not None:
+            out["governance"]["oracle_threshold"] = oracle_threshold
+        if str(judge).upper() == "HITL":
+            out["governance"]["hitl_required"] = True
+        break
+
+    steps = list(g.objects(subj, WFO.hasStep))
+    if steps:
+        parsed_steps = []
+        for step in _sort_wfops_steps(g, steps, WFO):
+            step_id = _object_value(g, step, Namespace("http://www.w3.org/2000/01/rdf-schema#"), "label")
+            parsed_steps.append({
+                "step_id": step_id or _local_name(step),
+                "tool": _object_value(g, step, WFO, "tool"),
+                "action": _object_value(g, step, WFO, "action") or "default",
+            })
+        out["pipeline"] = parsed_steps
+        return out
+
+    if category:
+        out["tool"] = {
+            "evidence": "msm-evidence",
+            "maintain": "msm-maintain",
+            "ontology": "msm-ontology",
+        }.get(str(category))
+    return out
+
+
+def _parse_mso_v07_ttl(path: Path, g: Any, Namespace: Any, RDF: Any) -> dict[str, Any] | None:
+    """Read MSO v0.7 wf:Workflow Rail/Stream TTL as dry-run metadata.
+
+    MSO owns topology execution semantics; MSM consumes this shape so the same
+    workflow ABox can pass orchestration/CC/gate checks without requiring a
+    separate MSMWF mirror file. The harness keeps this as a dry-run metadata
+    workflow and leaves actual domain tool execution to explicit MSMWF pipelines.
+    """
+    W = Namespace(MSOWF_URI)
+    workflow_subjects = list(g.subjects(RDF.type, W.Workflow))
+    if not workflow_subjects:
+        return None
+    subj = workflow_subjects[0]
+    members = list(g.objects(subj, W.has))
+    category = path.parent.name if path.parent.name else None
+
+    def one(pred: str):
+        vals = list(g.objects(subj, W[pred]))
+        return vals[0].toPython() if vals else None
+
+    return {
+        "path": str(path),
+        "raw": path.read_text(encoding="utf-8"),
+        "id": _local_name(subj).removeprefix("workflow/"),
+        "version": None,
+        "category": category,
+        "kind": "pipeline",
+        "mode": "dry-run",
+        "status": one("status"),
+        "tool": None,
+        "governance": {"max_retry": 1},
+        "pipeline": [],
+        "workflow_type": one("workflowType"),
+        "topology": {
+            "members": len(members),
+            "rail_edges": sum(1 for _ in g.subjects(RDF.type, W.Rail)),
+            "stream_edges": sum(1 for _ in g.subjects(RDF.type, W.Stream)),
+            "tasks": sum(1 for node in members if (node, RDF.type, W.Task) in g),
+            "decisions": sum(1 for node in members if (node, RDF.type, W.Decision) in g),
+            "artifacts": sum(1 for node in members if (node, RDF.type, W.Artifact) in g),
+        },
+    }
 
 
 def workflow_dict_from_yaml_doc(doc: dict[str, Any], path: Path | None = None) -> dict[str, Any]:
@@ -104,6 +240,12 @@ def parse_workflow_ttl(path: Path) -> dict[str, Any]:
     g = Graph().parse(str(path), format="turtle")
     subjects = list(g.subjects(RDF.type, W.Workflow))
     if not subjects:
+        wfops = _parse_wfops_ttl(path, g, Graph, Namespace, RDF)
+        if wfops is not None:
+            return wfops
+        mso_v07 = _parse_mso_v07_ttl(path, g, Namespace, RDF)
+        if mso_v07 is not None:
+            return mso_v07
         return {"path": str(path), "raw": path.read_text(encoding="utf-8")}
     subj = subjects[0]
 

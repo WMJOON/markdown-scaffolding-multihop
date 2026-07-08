@@ -81,4 +81,8 @@ Gate: `>=0.85 pass`, `0.70~0.85 warn`, `<0.70 fail`.
 
 ## 7. Open Items
 
+`agent-context/work-memory/worklog/`는 scaffold로 생성하지만 자동 세션 요약 저장소가 아니다.
+MSO v0.6.3 기준에 따라 workflow TTL node/run context가 명시된 실행 기록만 저장한다.
+hook side effect는 cloud hand-off 보장이 아니며, ephemeral runtime에서는 최종 답변·diff·tracked file이 인계 기준이다.
+
 `msm-repository-setup-SPEC §13` 참조 (full harness 교체, pack_config 최종 schema, hook PreToolUse 통합 등).

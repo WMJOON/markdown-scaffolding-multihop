@@ -1,8 +1,8 @@
-# KnowledgeBase 디렉토리 구조 (v0.13.4)
+# KnowledgeBase 디렉토리 구조 (v0.13.6)
 
 > **MSM = Human-Agent KnowledgeBase Management System**
 > 인간과 에이전트가 함께 운용하는 KnowledgeBase를 관리하는 시스템.
-> 본 문서는 v0.13.4 공개 스킬팩 기준의 D-1~D-7 디렉토리 룰, MSO `agent-context/` 정렬, `record-archive/` 경계를 기준으로 한다.
+> 본 문서는 v0.13.6 공개 스킬팩 기준의 D-1~D-7 디렉토리 룰, MSO `agent-context/` 정렬, `record-archive/` 경계를 기준으로 한다.
 
 ---
 
@@ -76,9 +76,12 @@ concept__descriptive-statistics              ← 하위 Concept (HITL 필수)
   evidence/                         ← 원본·seed registry (PROV-O 입력)
     seeds.jsonl                     ← source id registry (`evidence:seed:*`)
     md/                             ← source-note / chunk projection
-    graphify/                       ← Graphify ETL 출력
+    graphify/                       ← Graphify ELT 후보 출력
       entity_candidates.jsonl
       relation_candidates.jsonl
+    semantic-link/                  ← semantic relation/axiom 후보 큐
+      relation_candidates.jsonl
+      axiom_candidates.jsonl
   record-archive/                    ← 실제 record archive (ontology 외부)
     registry/
       instance-ids.jsonl            ← stable instance id + type/source refs
@@ -102,10 +105,10 @@ concept__descriptive-statistics              ← 하위 Concept (HITL 필수)
         *.yaml                      ← 편집·마이그레이션 레이어
         *.abox.ttl                  ← 실행 정본 (harness/orchestration 우선 소비)
     work-memory/                    ← 작업 메모리 (MSO work-memory 표준)
-      auditlog/
-      worklog/
-      track-record/
-      insight-record/
+      auditlog/                      ← 도구·정책·HITL 감사 이벤트
+      worklog/                       ← workflow TTL node 실행 기록
+      track-record/                  ← workflow rail 밖의 진행·판단·이슈 기록
+      insight-record/                ← 실패·오라클 위반·반복 패턴 학습
   harness/                          ← 하네스·런타임
     run.sh
     reports/
@@ -116,6 +119,10 @@ concept__descriptive-statistics              ← 하위 Concept (HITL 필수)
     config.toml
     hooks.json
 ```
+
+`worklog/`는 대화 종료 요약이나 Stop/PreCompact hook 자동 산출물이 아니다. workflow TTL node/run context가
+명시되지 않은 작업은 `auditlog/`, `track-record/`, `insight-record/`, 또는 `harness/trajectory/`에
+의미별로 남긴다. cloud/ephemeral runtime에서는 hook side effect를 다음 에이전트 기억 보장으로 보지 않는다.
 
 > [!important] Legacy path policy
 > 과거 루트 `workflow/` 및 `memory/` 경로는 더 이상 정본 위치가 아니다.
@@ -304,15 +311,26 @@ scan/validator는 정상 디렉토리로 인식하되 잔여 카운트를 리포
 
 ---
 
-## ETL 흐름
+## ELT 흐름
 
 ```
-Evidence 수집
-  (msm-evidence: URL/MD → evidence/seeds.jsonl + evidence/md/)
-  (graphify_to_msm.py: graph.json → entity_candidates.jsonl)
+Extract
+  (msm-evidence: URL/MD)
+  (graphify_to_msm.py: graph.json)
+  (msm-semantic-search link-relations: 기존 entity/chunk)
       ↓
-Ontology 승격
-  (msm-ontology: MECE 검증 → explain/concept/ + entities.jsonl(source_refs))
+Load
+  evidence/seeds.jsonl + evidence/md/
+  evidence/graphify/*_candidates.jsonl
+  evidence/semantic-link/relation_candidates.jsonl
+  evidence/semantic-link/axiom_candidates.jsonl
+  zvec index
+      ↓
+Transform / Promote
+  source validation
+  relation predicate review
+  axiom risk tier + inference preview
+  MECE 검증 → explain/concept/ + entities.jsonl(source_refs)
       ↓
 Record archive materialization
   (stable id/row/event → record-archive/registry + runtime + events)

@@ -59,9 +59,9 @@ ontology/
 
 ---
 
-## Graphify ETL 노드 → explain/concept (TBox) 매핑
+## Graphify ELT 후보 → explain/concept (TBox) 매핑
 
-Graphify `graph.json`의 concept 노드는 `graphify_to_msm.py`가 MSM entity 형식으로 변환합니다.
+Graphify `graph.json`의 concept 노드는 `graphify_to_msm.py`가 MSM evidence 후보 형식으로 적재합니다. ontology 정본 승격은 source validation과 MECE 검증 뒤 수행합니다.
 
 | Graphify 필드 | MSM 필드 | 변환 규칙 |
 |---|---|---|

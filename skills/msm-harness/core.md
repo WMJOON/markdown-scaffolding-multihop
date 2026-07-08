@@ -8,7 +8,7 @@
 | Trajectory | `harness/trajectory/run-<run_id>.jsonl` append-only 기록 |
 | 4-Tier runtime | L0 static / L1 fixture / L2 integration / L3 eval |
 | 5-axis 계측 | non-determinism, trajectory, oracle, cost, HITL |
-| Memory | task-context/work-log/<run_id>.md, ontology-index 갱신 큐 |
+| Memory | workflow node 실행 기록, audit/track/insight 기록 후보, ontology-index 갱신 큐 |
 | Retry | workflow.governance.max_retry 한도 내 자동 재시도 |
 | Oracle | workflow.governance.oracle 함수 호출·결과 기록 |
 
@@ -68,21 +68,27 @@ orchestration이 caller에게 던지는 100번대(HITL pending=100, gate fail=10
 
 ## 7. Memory 2-tier
 
-- `agent-context/work-memory/worklog/<run_id>.md`: run 종료 시 매번 생성
-- `agent-context/work-memory/{auditlog,track-record,insight-record}/`: orchestration 또는 스킬이 채움
+- `agent-context/work-memory/worklog/`: workflow TTL node 또는 명시적 run context가 있을 때만 작성하는 workflow rail 실행 기록
+- `agent-context/work-memory/auditlog/`: 도구 실행, HITL, 정책 판정 같은 감사 이벤트
+- `agent-context/work-memory/track-record/`: workflow rail 밖의 판단, 이슈, 진행 기록
+- `agent-context/work-memory/insight-record/`: 실패·오라클 위반·반복 패턴에서 얻은 학습 기록
 - `agent-context/work-memory/index.md`: work-memory 인덱스
+- `harness/trajectory/run-<run_id>.jsonl`: harness append-only event store. worklog의 대체물이 아니라 원천 계측 로그
 
 ## 8. Run Context Slot 라이프사이클
 
 ```
 CREATE  → .msm-context/active/<run_id>/manifest.yaml (atomic write)
 APPEND  → decisions.jsonl (rename-on-write)
-CLOSE   → outputs.json 확정 + work-log 생성
+CLOSE   → outputs.json 확정 + trajectory measurement 기록
 ARCHIVE → 7일 후 archive/<yyyy>/<mm>/<run_id>.tar.gz 이동
 GC      → archive 30일 후 삭제
 ```
 
 본 구현은 ARCHIVE/GC를 별도 명령(`runtime/gc.py`)으로 분리. crontab/launchd에서 호출.
+
+worklog는 close 단계의 자동 부산물이 아니다. workflow TTL node를 특정할 수 있는 실행에 한해 별도 writer가
+node 실행 기록을 남긴다. node 맥락이 없으면 track/insight 후보로 남기고 workflow TTL 보강 대상으로 환류한다.
 
 ## 9. 동시성
 

@@ -5,3 +5,7 @@ workflows:
     path: agent-context/workflow/evidence/graphify-etl.yaml
     category: evidence
     kind: single
+  - id: semantic-link
+    path: agent-context/workflow/explorer/semantic-link.abox.ttl
+    category: explorer
+    kind: pipeline

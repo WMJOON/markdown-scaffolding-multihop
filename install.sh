@@ -17,6 +17,7 @@ MSM_SKILLS=(
   msm-record-archive
   msm-explain
   msm-maintain
+  msm-semantic-search
   msm-ontology
   msm-repository-setup
   msm-instance

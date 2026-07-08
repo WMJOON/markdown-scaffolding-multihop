@@ -9,7 +9,7 @@ pip install -r requirements.txt
 ./install.sh   # ~/.claude/skills/msm-orchestration 심링크 생성
 ```
 
-Graphify ETL을 사용하려면:
+Graphify ELT adapter를 사용하려면:
 
 ```bash
 pip install graphifyy
@@ -36,7 +36,7 @@ skills/msm-repository-setup/scripts/msm init \
 #   evidence/                    ← 원본·seed
 #   record-archive/              ← runtime DB + events + snapshots
 #   agent-context/workflow/      ← workflow 정의·라우팅
-#   agent-context/work-memory/   ← 작업 기록
+#   agent-context/work-memory/   ← 작업 기억(audit/worklog/track/insight)
 #   harness/                     ← L0~L3 런타임
 ```
 
@@ -55,13 +55,13 @@ skills/msm-evidence/scripts/msm-evidence collect \
 skills/msm-evidence/scripts/msm-evidence list --target my-kb
 ```
 
-### Graphify ETL (코드베이스 → concept 노드)
+### Graphify ELT (코드베이스 → concept 후보 적재)
 
 ```bash
 # 1) 코드베이스 분석
 graphify .
 
-# 2) concept 노드만 추출 → MSM JSONL 변환
+# 2) concept 노드만 추출 → evidence 후보 JSONL 적재
 python skills/msm-evidence/scripts/graphify_to_msm.py \
   graphify-out/graph.json \
   --output-dir my-kb/evidence/graphify/
@@ -70,6 +70,8 @@ python skills/msm-evidence/scripts/graphify_to_msm.py \
 # evidence/graphify/entity_candidates.jsonl   ← concept 노드 (hub_candidate 태그 포함)
 # evidence/graphify/relation_candidates.jsonl ← concept 간 관계
 ```
+
+후보는 바로 ontology 정본이 되지 않습니다. source validation, MECE, parent-alignment 검증 뒤 `msm-ontology`로 승격합니다.
 
 ---
 
@@ -104,6 +106,10 @@ skills/msm-orchestration/msm-orchestrate run \
   --workflow agent-context/workflow/evidence/evidence-collection.abox.ttl \
   --target my-kb --tier L0 --mode dry-run
 ```
+
+`agent-context/work-memory/worklog/`는 workflow TTL node/run context가 명시된 실행 기록에만 사용합니다.
+세션 종료 hook이나 cloud runtime의 side effect를 hand-off 보장으로 간주하지 말고, 인계가 필요한 내용은
+최종 답변, diff, 커밋 가능한 tracked file에 남깁니다.
 
 ---
 

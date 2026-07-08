@@ -26,12 +26,12 @@ def _today() -> str:
 
 
 def _msm_modules(domain: str | None) -> list[dict]:
-    """MSM v0.13.4 표준 모듈 정의."""
+    """MSM v0.13.6 표준 모듈 정의."""
     return [
         {
             "id": "msm-record-archive",
             "path": "record-archive/",
-            "description": "MSM v0.13.4 — record archive: SQLite runtime DB, events, derived records, snapshots",
+            "description": "MSM v0.13.6 — record archive: SQLite runtime DB, events, derived records, snapshots",
             "subdirs": [
                 {"path": "registry/", "role": "data",
                  "description": "stable instance id registry"},
@@ -55,7 +55,7 @@ def _msm_modules(domain: str | None) -> list[dict]:
             "id": "msm-ontology-layer",
             "path": "ontology/",
             "description": (
-                "MSM v0.13.4 — Ontology layer "
+                "MSM v0.13.6 — Ontology layer "
                 "(explain Markdown + system Turtle/PROV-O graphs)"
             ),
             "subdirs": [
@@ -86,7 +86,7 @@ def _scaffold_index(target: Path, name: str, domain: str | None) -> dict:
         "project": {
             "name":        name,
             "id":          name.lower().replace(" ", "-"),
-            "description": f"{name} KB — MSM v0.13.4 record archive 포함.",
+            "description": f"{name} KB — MSM v0.13.6 record archive 포함.",
             "owner":       "OWNER",
             "updated":     _today(),
             "version":     "1.0.0",

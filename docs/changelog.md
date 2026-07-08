@@ -1,5 +1,46 @@
 # Changelog
 
+## v0.14.0 (2026-07-09)
+
+> **Semantic Relation · Axiom Governance.** KB 탐색을 zvec 의미 확장으로 넓히고, directed relation 후보와 공리 후보를 추론 오염 위험 등급으로 관리한다.
+
+### Added
+
+- `msm-semantic-search` v0.1 wrapper 추가. 기본 해시 임베딩으로 오프라인 zvec index `init/add/search/stats`를 제공한다.
+- `msm-semantic-search link-relations` 추가. entity 설명을 zvec으로 확장하고 chunk 내용의 direction cue를 읽어 directed relation 후보(`implements`, `depends_on`, `enables`, `part_of` 등)를 `evidence/semantic-link/relation_candidates.jsonl`로 생성한다. source validation 후 `msm-ontology add --relation`으로 승격하는 플로우를 문서화했다.
+- README에 relation/axiom risk tier governance(L0~L5)를 추가. `disjointWith`, `propertyChain`, `classification_rule` 같은 공리 후보는 `axiom_candidates.jsonl` review queue로만 생성하고, L2 이상은 HITL, L3 이상은 inference graph diff preview를 요구하도록 구조화했다.
+- `docs/semantic-relations.md` 추가. L0 observed relation, L1 directed fact relation, L2~L5 axiom의 의미·방향·근거 기준·추론 오염 리스크를 predicate별로 설명한다.
+- `agent-context/workflow/explorer/semantic-link.abox.ttl` 추가. relation/axiom 후보 연결 레일을 MSO v0.7 `wf:Workflow` / `wf:Rail` / `wf:Stream` shape로 노출해 `mso-workflow-observation`이 workflow graph를 생성할 수 있게 했다.
+
+### Changed
+
+- MSM KB 탐색 기본 레일을 `rg lexical seed → zvec semantic expansion → graph traversal → source validation`으로 명시. exact ID/문자열 조회는 `rg` 단독을 허용하되, 개념 탐색·KB 질의·ontology 후보 생성·drift 분석은 zvec 의미 확장을 기본 포함한다.
+- zvec index 부재/노후화 시 `semantic_expansion_skipped` 사유를 남기고, 최종 답변·정본 변경은 원문 라인 또는 evidence seed 검증 뒤에만 수행하도록 문서화.
+- KB 구축 흐름을 ETL에서 ELT로 재정의. 원문과 후보를 `evidence/`, zvec index, `relation_candidates.jsonl`, `axiom_candidates.jsonl`에 먼저 적재하고 검증된 subset만 ontology 정본으로 승격한다.
+- `agent-context/workflow/explorer/semantic-link.abox.ttl`을 단순 relation 후보 레일에서 full KB workflow로 확장. Research → ELT collect/source validation → TBox/ABox concept extraction → optional MECE clustering → PROV-O materialization → ELT revalidation → zvec index/search → relation/axiom inference → proposal/promotion 흐름을 workflow graph로 노출한다.
+- 루트 `canonical_root_hub.yaml`을 추가해 CC 계약의 `canonical_root_hub_present`/`locked` 검증을 통과하도록 정렬했다.
+- MSM workflow parser가 MSO v0.7 `wf:Workflow` / `wf:Rail` / `wf:Stream` TTL을 dry-run metadata로 읽도록 확장했다. 관측 workflow는 별도 MSMWF mirror 없이 dispatch/CC/gate preflight에서 동일 정본을 소비한다.
+- README 전면의 현재 버전을 v0.14.0으로 갱신하고, v0.13.x 세부 패치 설명은 changelog로 이동했다.
+
+### Removed
+
+- 폐기된 `.skill-modules/` legacy skill bundle을 제거했다. v0.10 이후 MSM은 repository-local canonical `skills/`와 installed skill symlink를 사용하며, `.skill-modules`는 더 이상 실행 plane이 아니다.
+
+## v0.13.6 (2026-06-30)
+
+> **MSO v0.6.3 기준으로 worklog 의미, hook 정책, cloud hand-off 경계를 정렬.**
+
+### Changed
+
+- `worklog`를 자동 세션 요약이 아니라 workflow TTL node/run context가 명시된 실행 기록으로 제한.
+- `auditlog`는 도구·정책 이벤트, `harness/trajectory`는 append-only 5-Axis event store, `track-record`/`insight-record`는 판단·이슈·학습 기록으로 경계 고정.
+- `msm-harness` 문서에서 run 종료마다 worklog를 생성한다는 표현 제거. workflow rail을 특정할 수 없으면 trajectory/audit/track/insight에 남기고 worklog를 만들지 않는다.
+- `PreToolUse` HITL hook은 유지하되, 정책 로직과 provider adapter 분리를 명시. Codex 적용 시 Claude hook을 자동 치환하지 않는다.
+- MSO v0.6.3의 Stop reminder throttle은 사용자에게 보이는 Stop reminder adapter에만 적용한다. MSM의 `PreToolUse` 정책 hook은 차단/허용 adapter이므로 `stop-check.sh` 대상이 아니다.
+- Codex cloud 같은 ephemeral runtime에서는 hook side effect를 다음 에이전트 기억 보장으로 보지 않고, 최종 답변·diff·커밋 가능한 tracked file을 hand-off 기준으로 삼는다.
+
+---
+
 ## v0.13.4 (2026-06-25)
 
 > **Record Archive와 Explain projection을 canonical 스킬로 승격.**
@@ -16,6 +57,35 @@
 - `msm-obsidian-projection`은 `msm-explain` wrapper로 전환.
 - `msm-repository-setup` manifest/index/readiness/harness를 `ontology/system/**/*.ttl`, `ontology/explain/`, `record-archive/`, `agent-context/work-memory/` 기준으로 정렬.
 - `msm-maintain`과 `msm-orchestration`의 work-memory 출력 경로를 `agent-context/work-memory/`로 정렬.
+
+---
+
+## v0.13.3
+
+> **Workflow TTL 정렬.** 워크플로우 위치와 실행 정본을 MSO 기준으로 정렬했다.
+
+### Changed
+
+- 워크플로우 canonical 위치를 `agent-context/workflow/{category}/*.abox.ttl`로 고정.
+- `agent-context/workflow/index.ttl`을 라우팅 정본으로 두고, `index.yaml`은 편집·마이그레이션 레이어로 유지.
+- 기존 `workflow/index.{ttl,yaml}`와 `workflow/{category}/*`는 legacy fallback/migration input으로만 유지.
+- `migrate_workflows_to_ttl.py`가 `*.yaml`에서 sibling `*.abox.ttl`을 생성하고 `index.yaml` 경로를 `*.abox.ttl`로 재작성.
+- `resolve_workflow`와 `cc_check`는 `agent-context/workflow`를 먼저 보고, 없을 때 legacy `workflow`를 확인.
+
+---
+
+## v0.13.2
+
+> **Provider-Free 적용.** Claude Code 사용성을 유지하면서 Codex 설치/라우팅 누락을 보완했다.
+
+### Changed
+
+- `install.sh --codex`가 `~/.codex/skills`에 MSM 전체 스킬셋을 설치.
+- 설치 목록에 canonical 스킬과 legacy wrapper를 함께 포함해 README의 스킬 구성과 실제 설치 결과를 정렬.
+- 글로벌 sync 경로에서는 `~/.claude/skills`, `~/.codex/skills`, `~/.agents/skills`, Antigravity skills가 동일한 글로벌 링크 허브를 바라보도록 정렬.
+- Claude Code 전용 `PreToolUse` hook 설명은 유지하되, Codex에서는 hook 로직을 자동 치환하지 않는다.
+- Codex 적용 시 정책 로직과 provider adapter를 분리해 `.codex/hooks.json` 등 해당 runtime 경로에 별도 등록한다.
+- Codex 전역 `AGENTS.md`에서 `msm-orchestration`을 MSM 진입점으로 라우팅.
 
 ---
 

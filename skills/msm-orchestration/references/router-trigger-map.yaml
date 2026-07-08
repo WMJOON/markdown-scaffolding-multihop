@@ -71,6 +71,12 @@ triggers:
         - "multi-hop"
         - "BFS"
         - "semantic search"
+        - "zvec"
+        - "유사도검색"
+        - "의미 확장"
+        - "관계 연결"
+        - "relation 후보"
+        - "semantic relation linking"
       intents: ["search", "reason", "explore"]
       legacy_aliases: ["msm-rdf-owl-bridge"]
     route:

@@ -37,6 +37,21 @@ skills/msm-maintain/scripts/msm-maintain report --target my-kb
 
 ---
 
+## 기본 탐색 레일: rg seed → zvec expansion → source validation
+
+KB 유지보수와 개념 탐색은 `rg` 키워드 검색만으로 끝내지 않는다. `rg`는 빠른 seed 단계이고, `zvec`은 표면어가 다른 인접 노트를 끌어오는 의미 확장 단계다.
+
+```
+1. rg로 정확한 용어·ID·파일 경로 seed 확보
+2. zvec으로 유사 개념·사례·근거 후보 확장
+3. wikilink/RDF/JSONL 관계로 후보 간 연결 확인
+4. 원문 라인 또는 evidence seed로 최종 근거 검증
+```
+
+`zvec`을 생략할 수 있는 경우는 exact string 조회, 파일 존재 확인, 특정 ID/라인 검증처럼 의미 확장이 필요 없는 작업뿐이다. index가 없거나 오래된 경우에는 `semantic_expansion_skipped`로 기록하고, 다음 유지보수 작업에 ontology-index 갱신을 큐잉한다.
+
+---
+
 ## 시나리오 1: 새 evidence 추가 후 ontology 업데이트
 
 ```
@@ -45,7 +60,8 @@ skills/msm-maintain/scripts/msm-maintain report --target my-kb
    → ontology 노드 중 새 evidence를 미반영한 노드 목록
 3. msm-maintain rewrite --dry-run → 변경 사항 미리보기
 4. msm-maintain rewrite --apply → 승인된 노드만 적용
-5. agent-context/work-memory/worklog/ 에 변경 이력 기록
+5. workflow TTL node가 명시된 유지보수 실행이면 `agent-context/work-memory/worklog/`에 node 실행 기록 작성
+   (node 맥락이 없으면 `track-record/` 또는 `insight-record/` 후보로 기록)
 ```
 
 ---
@@ -55,9 +71,11 @@ skills/msm-maintain/scripts/msm-maintain report --target my-kb
 ```
 1. msm-maintain scan --check orphan
    → wikilink 0개 노드 목록
-2. msm-ontology list → 연결 후보 탐색
-3. msm-ontology add (relation 추가) --apply
-4. msm-maintain scan --check orphan (재확인)
+2. msm-semantic-search link-relations
+   → evidence/semantic-link/relation_candidates.jsonl 후보 생성
+3. 후보별 source_path/chunk 원문 검증 + evidence:seed:* 부착
+4. msm-ontology add --relation ... --evidence evidence:seed:* --apply
+5. msm-maintain scan --check orphan (재확인)
 ```
 
 ---
@@ -75,13 +93,14 @@ skills/msm-maintain/scripts/msm-maintain report --target my-kb
 
 ## 거버넌스 통합
 
-`msm-harness`가 유지보수 실행 결과를 trajectory에 기록합니다.
+`msm-harness`가 유지보수 실행 결과를 trajectory에 append-only 이벤트로 기록합니다.
 
 ```
-agent-context/work-memory/worklog/       ← 단기 작업 이력
-agent-context/work-memory/auditlog/      ← 감사 로그
-agent-context/work-memory/track-record/  ← 진행·성과 기록
-harness/trajectory/                      ← 5-Axis 계측값
+agent-context/work-memory/worklog/       ← workflow TTL node 실행 기록
+agent-context/work-memory/auditlog/      ← 도구·정책·HITL 감사 이벤트
+agent-context/work-memory/track-record/  ← workflow rail 밖의 진행·판단·이슈 기록
+agent-context/work-memory/insight-record/← 실패·오라클 위반·반복 패턴 학습
+harness/trajectory/                      ← append-only 5-Axis 계측 이벤트
 ```
 
 위험도 High 변경은 `msm-orchestration`의 HITL 게이트를 통과해야 합니다.

@@ -95,3 +95,21 @@ def test_msm_resolver_prefers_index_ttl(tmp_path, monkeypatch):
     assert resolved is not None
     assert resolved["path"] == "agent-context/workflow/evidence/graphify-etl.abox.ttl"
     assert resolved["category"] == "evidence"
+
+
+def test_mso_v07_workflow_ttl_parses_as_dry_run_metadata(monkeypatch):
+    monkeypatch.syspath_prepend(str(HARNESS_RUNTIME))
+    from workflow_parser import parse
+
+    workflow = ROOT / "agent-context" / "workflow" / "explorer" / "semantic-link.abox.ttl"
+    parsed = parse(workflow)
+
+    assert parsed["id"] == "semantic-link"
+    assert parsed["category"] == "explorer"
+    assert parsed["kind"] == "pipeline"
+    assert parsed["mode"] == "dry-run"
+    assert parsed["workflow_type"] == "base"
+    assert parsed["pipeline"] == []
+    assert parsed["topology"]["rail_edges"] == 21
+    assert parsed["topology"]["stream_edges"] == 41
+    assert parsed["topology"]["artifacts"] == 16

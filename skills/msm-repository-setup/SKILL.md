@@ -1,19 +1,19 @@
 ---
 name: msm-repository-setup
-version: "0.13.4"
+version: "0.13.6"
 description: |
-  MSM v0.13.4 Fat Skill — 신규 KB 프로젝트를 5-Layer 구조로 부트스트랩한다.
+  MSM v0.13.6 Fat Skill — 신규 KB 프로젝트를 5-Layer 구조로 부트스트랩한다.
   canonical_root_hub.yaml, ontology/system TTL, ontology/explain MD, evidence, record-archive,
   agent-context/workflow, agent-context/work-memory, harness/docs 골격을 생성한다.
 spec: planning/msm_v0.10.0/msm-repository-setup-SPEC.md
 prd: planning/msm_v0.12.0/msm_v0.12.0-PRD.md
 ---
 
-# msm-repository-setup (v0.13.4)
+# msm-repository-setup (v0.13.6)
 
 ## What
 
-신규 markdown KB를 MSM v0.13.4의 5-Layer 토폴로지로 부트스트랩하는 Fat Skill.
+신규 markdown KB를 MSM v0.13.6의 5-Layer 토폴로지로 부트스트랩하는 Fat Skill.
 실제 entity/relation/instance/evidence 내용은 만들지 않는다 — 골격, 템플릿, 계약만 채운다.
 
 `init --apply` 완료 시 `index.yaml`을 자동 생성·갱신한다.
@@ -47,7 +47,7 @@ python sf_node.py validate index.yaml
 
 - "msm init", "이 KB 부트스트랩", "5-Layer 스캐폴드 생성"
 - "canonical_root_hub.yaml 만들어줘"
-- "MSM v0.13.4 repository 구조"
+- "MSM v0.13.6 repository 구조"
 - "index.yaml 자동 생성"
 
 ## Dependencies

@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# msm-semantic-search - CLI entrypoint for MSM zvec semantic expansion.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PY="${PYTHON:-python3}"
+
+sub="${1:-}"
+shift || true
+
+case "$sub" in
+  init|add|search|link-relations|stats)
+    exec "$PY" "$SCRIPT_DIR/search.py" "$sub" "$@"
+    ;;
+  ""|-h|--help)
+    cat <<EOF
+msm-semantic-search - zvec semantic expansion for MSM KBs
+
+Commands:
+  init      Create/open the zvec collection
+  add       Ingest Markdown/text/json/jsonl files
+  search    Query semantically similar chunks
+  link-relations
+            Propose relation candidates from zvec-expanded entity mentions
+  stats     Print collection stats
+
+Common options:
+  --target PATH       KB root (default: .)
+  --path PATH         Explicit zvec collection path
+  --dimension INT     Embedding dimension (default: 384)
+  --embedder hash     Offline deterministic embedder (default)
+
+Examples:
+  msm-semantic-search init --target my-kb
+  msm-semantic-search add --target my-kb --input ontology --input evidence
+  msm-semantic-search search --target my-kb "GEO AEO blog architecture" --limit 5
+  msm-semantic-search link-relations --target my-kb --cluster marketing --output evidence/semantic-link/relation_candidates.jsonl
+EOF
+    ;;
+  *)
+    echo "unknown subcommand: $sub" >&2
+    echo "Use 'msm-semantic-search --help' for usage." >&2
+    exit 2
+    ;;
+esac

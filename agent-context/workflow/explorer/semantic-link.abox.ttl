@@ -1,0 +1,714 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix wf: <https://mso.dev/ontology/workflow#> .
+
+<https://mso.dev/ontology/workflow#workflow/semantic-link> a wf:Workflow ;
+    wf:description "MSM v0.14.0 full KB construction and semantic relation workflow. Research scope, ELT load, source validation, TBox/ABox concept extraction, optional MECE clustering, PROV-O materialization, revalidation, zvec expansion, graph traversal, relation/axiom inference, HITL proposal, and ontology promotion are exposed as an observable workflow graph." ;
+    wf:has <https://mso.dev/ontology/workflow#artifact/semantic-link/abox_registry>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/axiom_candidates>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/concept_candidates>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/concept_clusters>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/evidence_seed>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/prov_o_records>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/raw_corpus>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/relation_candidates>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/relation_proposals>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/relations>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/research_brief>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/semantic_neighbors>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/source_candidates>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/tbox_registry>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/validated_sources>,
+        <https://mso.dev/ontology/workflow#artifact/semantic-link/zvec_index>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/collect-sources>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/concept-extraction>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/elt-revalidation>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/end>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/graph-traversal>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/mece-clustering>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/mece-decision>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/promote-relation>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/proposal-packaging>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/prov-o-materialization>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/relation-inference>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/relation-source-validation>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/research-scope>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/semantic-expansion>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/source-validation>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/start>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/tbox-abox-split>,
+        <https://mso.dev/ontology/workflow#node/semantic-link/zvec-index-build> ;
+    wf:label "MSM full semantic KB workflow" ;
+    wf:status "draft" ;
+    wf:workflowType "base" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/start> a wf:Node,
+        wf:Start ;
+    rdfs:label "semantic KB start" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/research-scope> a wf:Execution,
+        wf:Node,
+        wf:Task ;
+    wf:hasSubject "self" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:instruction "Define the research question, domain boundary, expected source classes, exclusion rules, and validation depth before collection." ;
+    wf:label "research scope framing" ;
+    wf:method "workflow" ;
+    wf:status "draft" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/collect-sources> a wf:Execution,
+        wf:Node,
+        wf:Task ;
+    wf:hasSubject "self" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:instruction "Collect URLs, local Markdown, Graphify output, and existing registry records into evidence queues without writing ontology SSOT." ;
+    wf:label "ELT collect sources" ;
+    wf:method "script" ;
+    wf:status "draft" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/source-validation> a wf:Decision,
+        wf:Execution,
+        wf:Node ;
+    wf:criteria "Collected sources must have locator, capture time, source class, dedup key, and enough quote/window evidence for later promotion." ;
+    wf:hasBranch <https://mso.dev/ontology/workflow#rail/semantic-link/source-validation__fail__collect-sources>,
+        <https://mso.dev/ontology/workflow#rail/semantic-link/source-validation__pass__concept-extraction> ;
+    wf:hasSubject "human" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:label "source validation gate" ;
+    wf:method "manual" ;
+    wf:status "draft" ;
+    wf:targetArtifact "evidence/seeds.jsonl" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/concept-extraction> a wf:Execution,
+        wf:Node,
+        wf:Task ;
+    wf:hasSubject "self" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:instruction "Extract concept and instance candidates from validated evidence. Separate class-like TBox signals from instance-like ABox signals." ;
+    wf:label "concept extraction (TBox|ABox)" ;
+    wf:method "script" ;
+    wf:status "draft" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/mece-decision> a wf:Decision,
+        wf:Execution,
+        wf:Node ;
+    wf:criteria "If concept candidates are dense, overlapping, or parent alignment is unclear, run clustering before TBox/ABox split." ;
+    wf:hasBranch <https://mso.dev/ontology/workflow#rail/semantic-link/mece-decision__cluster__mece-clustering>,
+        <https://mso.dev/ontology/workflow#rail/semantic-link/mece-decision__skip__tbox-abox-split> ;
+    wf:hasSubject "human" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:label "MECE clustering decision" ;
+    wf:method "manual" ;
+    wf:status "draft" ;
+    wf:targetArtifact "evidence/semantic-link/concept_candidates.jsonl" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/mece-clustering> a wf:Execution,
+        wf:Node,
+        wf:Task ;
+    wf:hasSubject "self" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:instruction "Cluster concept candidates by semantic proximity and parent alignment. Mark overlaps, god nodes, orphan classes, and candidate MECE partitions." ;
+    wf:label "MECE concept clustering" ;
+    wf:method "script" ;
+    wf:status "draft" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/tbox-abox-split> a wf:Execution,
+        wf:Node,
+        wf:Task ;
+    wf:hasSubject "self" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:instruction "Transform validated candidates into ontology/explain concept classes and instance records while preserving evidence refs." ;
+    wf:label "TBox/ABox transform" ;
+    wf:method "script" ;
+    wf:status "draft" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/prov-o-materialization> a wf:Execution,
+        wf:Node,
+        wf:Task ;
+    wf:hasSubject "self" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:instruction "Materialize provenance records for source, extraction activity, agent/tool, evidence quote, and ontology candidate derivation." ;
+    wf:label "PROV-O materialization" ;
+    wf:method "script" ;
+    wf:status "draft" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/elt-revalidation> a wf:Decision,
+        wf:Execution,
+        wf:Node ;
+    wf:criteria "Revalidate transformed TBox/ABox candidates against source refs, PROV-O chain, MECE parent alignment, and ontology write constraints." ;
+    wf:hasBranch <https://mso.dev/ontology/workflow#rail/semantic-link/elt-revalidation__fail__concept-extraction>,
+        <https://mso.dev/ontology/workflow#rail/semantic-link/elt-revalidation__pass__zvec-index-build> ;
+    wf:hasSubject "human" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:label "ELT revalidation gate" ;
+    wf:method "manual" ;
+    wf:status "draft" ;
+    wf:targetArtifact "ontology/explain/**" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/zvec-index-build> a wf:Execution,
+        wf:Node,
+        wf:Task ;
+    wf:hasSubject "self" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:instruction "Build or refresh zvec index from validated evidence, TBox, ABox, relation registry, and PROV-O records." ;
+    wf:label "zvec index build" ;
+    wf:method "script" ;
+    wf:status "draft" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/semantic-expansion> a wf:Execution,
+        wf:Node,
+        wf:Task ;
+    wf:hasSubject "self" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:instruction "Expand seeds, candidate concepts, and evidence chunks through zvec similarity. Record semantic_expansion_skipped when the index is missing or stale." ;
+    wf:label "zvec semantic expansion" ;
+    wf:method "script" ;
+    wf:status "draft" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/graph-traversal> a wf:Execution,
+        wf:Node,
+        wf:Task ;
+    wf:hasSubject "self" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:instruction "Check wikilink, RDF, JSONL, registry, and PROV-O relations for structural evidence before candidate inference." ;
+    wf:label "graph traversal" ;
+    wf:method "workflow" ;
+    wf:status "draft" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/relation-inference> a wf:Execution,
+        wf:Node,
+        wf:Task ;
+    wf:hasSubject "self" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:instruction "Infer directed relation candidates and separate L2-L5 axiom candidates. Downgrade weak direction cues to related_to." ;
+    wf:label "relation and axiom inference" ;
+    wf:method "script" ;
+    wf:status "draft" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/relation-source-validation> a wf:Decision,
+        wf:Execution,
+        wf:Node ;
+    wf:criteria "Every promotable relation candidate has verified source_refs, evidence seed support, direction cue, and no conflicting TBox/ABox constraint. L2+ axiom candidates require HITL and inference preview." ;
+    wf:hasBranch <https://mso.dev/ontology/workflow#rail/semantic-link/relation-source-validation__fail__proposal-packaging>,
+        <https://mso.dev/ontology/workflow#rail/semantic-link/relation-source-validation__pass__proposal-packaging> ;
+    wf:hasSubject "human" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:label "relation source validation gate" ;
+    wf:method "manual" ;
+    wf:status "draft" ;
+    wf:targetArtifact "evidence/semantic-link/relation_candidates.jsonl" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/proposal-packaging> a wf:Execution,
+        wf:Node,
+        wf:Task ;
+    wf:hasSubject "self" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:instruction "Package validated relation candidates, rejected candidates, axiom HITL questions, provenance pointers, and graph diff preview into a reviewable proposal." ;
+    wf:label "relation proposal packaging" ;
+    wf:method "script" ;
+    wf:status "draft" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/promote-relation> a wf:Execution,
+        wf:Node,
+        wf:Task ;
+    wf:hasSubject "human" ;
+    wf:inWorkflow <https://mso.dev/ontology/workflow#workflow/semantic-link> ;
+    wf:instruction "Promote approved L0/L1 relation candidates with msm-ontology add --relation. Do not auto-apply L2+ axiom candidates." ;
+    wf:label "ontology relation promotion" ;
+    wf:method "manual" ;
+    wf:status "draft" .
+
+<https://mso.dev/ontology/workflow#node/semantic-link/end> a wf:End,
+        wf:Node ;
+    rdfs:label "semantic KB end" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/research_brief> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "research scope brief" ;
+    wf:artifactType "document" ;
+    wf:locator "agent-context/research/semantic-link/research_brief.md" ;
+    wf:validation "research question, source boundary, exclusion rules, and validation depth" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/source_candidates> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "source candidate queue" ;
+    wf:artifactType "event_store" ;
+    wf:locator "evidence/source_candidates.jsonl" ;
+    wf:validation "raw collection queue; not ontology SSOT" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/raw_corpus> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "raw evidence corpus" ;
+    wf:artifactType "knowledge_store" ;
+    wf:locator "evidence/md/** and evidence/raw/**" ;
+    wf:validation "preserved source text and extraction windows" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/evidence_seed> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "evidence seed registry" ;
+    wf:artifactType "knowledge_store" ;
+    wf:locator "evidence/seeds.jsonl" ;
+    wf:validation "source validation anchor" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/validated_sources> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "validated source set" ;
+    wf:artifactType "knowledge_store" ;
+    wf:locator "evidence/validated_sources.jsonl" ;
+    wf:validation "deduped and source-validated evidence subset" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/concept_candidates> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "concept candidate queue" ;
+    wf:artifactType "event_store" ;
+    wf:locator "evidence/semantic-link/concept_candidates.jsonl" ;
+    wf:validation "TBox/ABox extraction candidates before promotion" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/concept_clusters> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "MECE cluster proposal" ;
+    wf:artifactType "event_store" ;
+    wf:locator "evidence/semantic-link/concept_clusters.jsonl" ;
+    wf:validation "optional clustering review queue; overlap/orphan/god-node flags" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/tbox_registry> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "ontology TBox registry" ;
+    wf:artifactType "knowledge_store" ;
+    wf:locator "ontology/explain/concept/** and ontology/system/**" ;
+    wf:validation "class candidates after MECE and parent-alignment checks" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/abox_registry> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "ontology ABox registry" ;
+    wf:artifactType "knowledge_store" ;
+    wf:locator "ontology/explain/instance/** and ontology/**/entities.jsonl" ;
+    wf:validation "instance/entity records with source_refs" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/prov_o_records> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "PROV-O provenance records" ;
+    wf:artifactType "knowledge_store" ;
+    wf:locator "record-archive/prov-o/*.ttl and evidence/provenance.jsonl" ;
+    wf:validation "source, extraction activity, agent/tool, and derivation chain" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/zvec_index> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "zvec semantic index" ;
+    wf:artifactType "knowledge_store" ;
+    wf:locator ".zvec or configured semantic index" ;
+    wf:validation "semantic expansion cache; stale index records semantic_expansion_skipped" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/semantic_neighbors> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "semantic neighbor candidate set" ;
+    wf:artifactType "event_store" ;
+    wf:locator "evidence/semantic-link/semantic_neighbors.jsonl" ;
+    wf:validation "zvec-expanded candidate chunks and adjacent concepts" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/relation_candidates> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "relation candidates review queue" ;
+    wf:artifactType "event_store" ;
+    wf:locator "evidence/semantic-link/relation_candidates.jsonl" ;
+    wf:validation "review queue only; not ontology SSOT" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/axiom_candidates> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "axiom candidates HITL queue" ;
+    wf:artifactType "event_store" ;
+    wf:locator "evidence/semantic-link/axiom_candidates.jsonl" ;
+    wf:validation "L2-L5 HITL and inference preview required" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/relation_proposals> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "relation proposal packet" ;
+    wf:artifactType "document" ;
+    wf:locator "agent-context/review/semantic-link/relation_proposals.md" ;
+    wf:validation "HITL review packet with accepted/rejected candidates and graph diff preview" .
+
+<https://mso.dev/ontology/workflow#artifact/semantic-link/relations> a wf:Artifact,
+        wf:Node ;
+    rdfs:label "ontology relation registry" ;
+    wf:artifactType "knowledge_store" ;
+    wf:locator "ontology/**/relations.jsonl" ;
+    wf:validation "promoted ontology relation SSOT" .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/start__default__research-scope> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/start> ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/research-scope> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/research-scope__default__collect-sources> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/research-scope> ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/collect-sources> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/collect-sources__default__source-validation> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/collect-sources> ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/source-validation> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/source-validation__pass__concept-extraction> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/source-validation> ;
+    wf:on "pass" ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/concept-extraction> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/source-validation__fail__collect-sources> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/source-validation> ;
+    wf:on "fail" ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/collect-sources> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/concept-extraction__default__mece-decision> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/concept-extraction> ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/mece-decision> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/mece-decision__cluster__mece-clustering> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/mece-decision> ;
+    wf:on "cluster" ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/mece-clustering> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/mece-decision__skip__tbox-abox-split> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/mece-decision> ;
+    wf:on "skip" ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/tbox-abox-split> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/mece-clustering__default__tbox-abox-split> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/mece-clustering> ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/tbox-abox-split> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/tbox-abox-split__default__prov-o-materialization> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/tbox-abox-split> ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/prov-o-materialization> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/prov-o-materialization__default__elt-revalidation> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/prov-o-materialization> ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/elt-revalidation> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/elt-revalidation__pass__zvec-index-build> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/elt-revalidation> ;
+    wf:on "pass" ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/zvec-index-build> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/elt-revalidation__fail__concept-extraction> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/elt-revalidation> ;
+    wf:on "fail" ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/concept-extraction> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/zvec-index-build__default__semantic-expansion> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/zvec-index-build> ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/semantic-expansion> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/semantic-expansion__default__graph-traversal> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/semantic-expansion> ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/graph-traversal> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/graph-traversal__default__relation-inference> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/graph-traversal> ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/relation-inference> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/relation-inference__default__relation-source-validation> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/relation-inference> ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/relation-source-validation> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/relation-source-validation__pass__proposal-packaging> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/relation-source-validation> ;
+    wf:on "pass" ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/proposal-packaging> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/relation-source-validation__fail__proposal-packaging> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/relation-source-validation> ;
+    wf:on "fail" ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/proposal-packaging> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/proposal-packaging__default__promote-relation> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/proposal-packaging> ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/promote-relation> .
+
+<https://mso.dev/ontology/workflow#rail/semantic-link/promote-relation__default__end> a wf:Edge,
+        wf:Rail ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/promote-relation> ;
+    wf:railType "default" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/end> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/research-scope__produces_to__research-brief> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/research-scope> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/research_brief> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/research-brief__consumed_by__collect-sources> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/research_brief> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/collect-sources> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/collect-sources__produces_to__source-candidates> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/collect-sources> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/source_candidates> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/collect-sources__produces_to__raw-corpus> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/collect-sources> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/raw_corpus> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/source-candidates__consumed_by__source-validation> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/source_candidates> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/source-validation> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/raw-corpus__consumed_by__source-validation> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/raw_corpus> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/source-validation> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/source-validation__produces_to__validated-sources> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/source-validation> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/validated_sources> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/source-validation__produces_to__evidence-seed> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/source-validation> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/evidence_seed> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/validated-sources__consumed_by__concept-extraction> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/validated_sources> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/concept-extraction> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/concept-extraction__produces_to__concept-candidates> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/concept-extraction> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/concept_candidates> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/concept-candidates__consumed_by__mece-decision> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/concept_candidates> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/mece-decision> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/concept-candidates__consumed_by__mece-clustering> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/concept_candidates> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/mece-clustering> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/mece-clustering__produces_to__concept-clusters> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/mece-clustering> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/concept_clusters> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/concept-candidates__consumed_by__tbox-abox-split> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/concept_candidates> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/tbox-abox-split> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/concept-clusters__consumed_by__tbox-abox-split> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/concept_clusters> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/tbox-abox-split> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/tbox-abox-split__produces_to__tbox-registry> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/tbox-abox-split> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/tbox_registry> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/tbox-abox-split__produces_to__abox-registry> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/tbox-abox-split> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/abox_registry> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/tbox-registry__consumed_by__prov-o-materialization> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/tbox_registry> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/prov-o-materialization> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/abox-registry__consumed_by__prov-o-materialization> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/abox_registry> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/prov-o-materialization> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/prov-o-materialization__produces_to__prov-o-records> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/prov-o-materialization> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/prov_o_records> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/prov-o-records__consumed_by__elt-revalidation> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/prov_o_records> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/elt-revalidation> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/tbox-registry__consumed_by__elt-revalidation> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/tbox_registry> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/elt-revalidation> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/abox-registry__consumed_by__elt-revalidation> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/abox_registry> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/elt-revalidation> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/tbox-registry__consumed_by__zvec-index-build> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/tbox_registry> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/zvec-index-build> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/abox-registry__consumed_by__zvec-index-build> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/abox_registry> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/zvec-index-build> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/prov-o-records__consumed_by__zvec-index-build> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/prov_o_records> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/zvec-index-build> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/zvec-index-build__produces_to__zvec-index> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/zvec-index-build> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/zvec_index> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/zvec-index__consumed_by__semantic-expansion> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/zvec_index> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/semantic-expansion> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/semantic-expansion__produces_to__semantic-neighbors> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/semantic-expansion> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/semantic_neighbors> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/semantic-neighbors__consumed_by__graph-traversal> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/semantic_neighbors> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/graph-traversal> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/semantic-neighbors__consumed_by__relation-inference> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/semantic_neighbors> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/relation-inference> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/relation-inference__produces_to__relation-candidates> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/relation-inference> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/relation_candidates> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/relation-inference__produces_to__axiom-candidates> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/relation-inference> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/axiom_candidates> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/relation-candidates__consumed_by__relation-source-validation> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/relation_candidates> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/relation-source-validation> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/evidence-seed__consumed_by__relation-source-validation> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/evidence_seed> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/relation-source-validation> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/prov-o-records__consumed_by__relation-source-validation> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/prov_o_records> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/relation-source-validation> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/relation-candidates__consumed_by__proposal-packaging> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/relation_candidates> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/proposal-packaging> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/axiom-candidates__consumed_by__proposal-packaging> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/axiom_candidates> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/proposal-packaging> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/proposal-packaging__produces_to__relation-proposals> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/proposal-packaging> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/relation_proposals> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/relation-proposals__consumed_by__promote-relation> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#artifact/semantic-link/relation_proposals> ;
+    wf:streamType "consumed_by" ;
+    wf:to <https://mso.dev/ontology/workflow#node/semantic-link/promote-relation> .
+
+<https://mso.dev/ontology/workflow#stream/semantic-link/promote-relation__produces_to__relations> a wf:Edge,
+        wf:Stream ;
+    wf:from <https://mso.dev/ontology/workflow#node/semantic-link/promote-relation> ;
+    wf:streamType "produces_to" ;
+    wf:to <https://mso.dev/ontology/workflow#artifact/semantic-link/relations> .
