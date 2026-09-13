@@ -12,8 +12,7 @@
     msmwf:id "evidence.graphify.etl" ;
     msmwf:kind "single" ;
     msmwf:mode "dry-run" ;
-    msmwf:path "/Users/woo_mujune/Library/Mobile Documents/iCloud~md~obsidian/Documents/wmjoon/03_AgentsTools/11_markdown-scaffolding-multihop/repository/agent-context/workflow/evidence/graphify-etl.yaml" ;
+    msmwf:path "agent-context/workflow/evidence/graphify-etl.yaml" ;
     msmwf:status "draft" ;
     msmwf:tool "msm-evidence" ;
     msmwf:version "1.0" .
-

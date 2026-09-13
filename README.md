@@ -1,5 +1,11 @@
 # MSM — Human-Agent KnowledgeBase Management System (v0.13.4)
 
+> [!IMPORTANT]
+> This repository is archived and retained for the legacy MSM implementation.
+> Active development continues in
+> [WMJOON/semantic-knowledge-base](https://github.com/WMJOON/semantic-knowledge-base),
+> where ontology domain data uses RDF/OWL Turtle as its sole source of truth.
+
 MSM은 단순 Markdown scaffolding 도구가 아니다. 인간과 에이전트가 함께 운용하는 **KnowledgeBase 자체**를 관리하는 시스템이다. `ontology/`, `evidence/` 등 KB의 모든 구성 요소가 책임 범위다.
 
 이 스킬셋은 **"Markdown 파일은 많이 쌓였는데, 그 안의 연결을 구조적으로 읽고 유지하고 확장하기가 어렵다"**는 문제를 풀기 위해 만들어졌다.
